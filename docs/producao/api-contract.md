@@ -49,22 +49,13 @@ Consulta ou atualiza os momentos concluidos em uma data.
 
 Gerencia eventos pessoais, sempre limitados ao usuario autenticado.
 
-### `POST /v1/billing/checkout`
-
-Disponivel apenas quando a cobranca estiver habilitada. Retorna URL temporaria
-de checkout criada no backend.
-
-### `POST /v1/billing/webhook`
-
-Valida assinatura do provedor, garante idempotencia e atualiza a assinatura.
-
 ## Requisitos transversais
 
 - validacao de esquema em todas as entradas;
 - limite de requisicoes por usuario e IP;
 - logs sem nome, data de nascimento, texto de leitura ou token;
 - identificador de requisicao em respostas e logs;
-- idempotencia em criacao de leitura, exclusao e webhooks;
+- idempotencia em criacao de leitura e exclusao;
 - testes que provem que um usuario nao acessa registros de outro;
 - paginacao para historico e linha do tempo;
 - datas em ISO 8601 e armazenamento em UTC quando houver horario.

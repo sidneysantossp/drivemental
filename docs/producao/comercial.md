@@ -3,9 +3,9 @@
 ## Estado atual
 
 `billingMode` esta configurado como `external-checkout`. Enquanto as URLs reais
-da Hotmart nao forem preenchidas em `runtime-config.js`, os botoes comerciais
-permanecem sem destino de compra. A liberacao de acesso acontece somente pelo
-webhook no Supabase.
+da Hotmart, Kiwify ou checkout equivalente nao forem preenchidas em
+`runtime-config.js`, os botoes comerciais permanecem sem destino de compra. A
+plataforma nao processa pagamentos e nao recebe webhook comercial.
 
 ## Decisoes obrigatorias antes da cobranca
 
@@ -16,20 +16,19 @@ webhook no Supabase.
 5. Impostos, emissao fiscal e identificacao da empresa vendedora.
 6. Provedor de pagamento e paises atendidos.
 7. Canal de suporte e prazo de resposta.
+8. Processo de envio de usuario e senha apos pagamento.
 
 ## Requisitos tecnicos
 
-- checkout externo acessado somente depois da criacao da conta;
-- webhooks assinados e idempotentes;
+- checkout externo acessado em nova aba, sem dados financeiros na plataforma;
 - nenhum segredo do provedor no frontend;
-- estado de acesso derivado do banco, nunca de `localStorage`;
+- acesso entregue por e-mail apos pagamento confirmado;
 - portal para cancelamento e atualizacao do meio de pagamento;
-- testes de renovacao, falha, estorno, cancelamento e reativacao;
-- trilha de auditoria sem armazenar dados completos de cartao;
+- testes de compra, e-mail de acesso, login, troca de senha e suporte;
+- trilha operacional fora da plataforma para compras e cancelamentos;
 - ambiente de homologacao separado do ambiente real.
 
 ## Criterio para ativacao
 
-As URLs de checkout so devem ser preenchidas depois que os requisitos legais e
-tecnicos estiverem aprovados e o fluxo completo tiver sido testado com transacoes
-de homologacao.
+As URLs de checkout so devem ser preenchidas depois que os requisitos legais,
+textos comerciais e processo de envio de acesso estiverem aprovados.

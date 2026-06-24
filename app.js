@@ -2011,17 +2011,15 @@ function PublicHeader() {
 function CommercialPlanAction(planId) {
   const config = runtimeConfig();
   const checkoutUrl = config.checkoutUrls && config.checkoutUrls[planId];
+  const provider = config.paymentProvider === "kiwify" ? "Kiwify" : "Hotmart";
   if (
     config.billingMode === "external-checkout"
     && typeof checkoutUrl === "string"
     && /^https:\/\//.test(checkoutUrl)
   ) {
-    if (!state.authenticated) {
-      return '<button class="button-primary button-large" data-route="signup" type="button">Criar conta para assinar</button>';
-    }
-    return `<a class="button-primary button-large" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noopener">Continuar para pagamento ${icon("arrow")}</a>`;
+    return `<a class="button-primary button-large" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noopener">Ir para checkout ${provider} ${icon("arrow")}</a>`;
   }
-  return '<button class="button-primary button-large" type="button" disabled>Dispon&iacute;vel em breve</button>';
+  return '<button class="button-primary button-large" type="button" disabled>Checkout em configura&ccedil;&atilde;o</button>';
 }
 
 function LandingScreen() {
@@ -2290,7 +2288,7 @@ function LandingScreen() {
               <button class="button-ghost button-large" data-route="signup" type="button">Fazer consulta gr&aacute;tis</button>
             </article>
             <article class="plan-card is-featured">
-              <span class="plan-badge">EM PREPARA&Ccedil;&Atilde;O</span>
+              <span class="plan-badge">CHECKOUT EXTERNO</span>
               <span class="plan-label">Assinatura mensal</span>
               <h3>Drive Astral</h3>
               <p>Amplie as consultas e acompanhe diferentes &aacute;reas da sua vida dentro da plataforma.</p>
@@ -2304,7 +2302,7 @@ function LandingScreen() {
               ${CommercialPlanAction("monthly")}
             </article>
             <article class="plan-card is-guided">
-              <span class="plan-badge">EM PREPARA&Ccedil;&Atilde;O</span>
+              <span class="plan-badge">CHECKOUT EXTERNO</span>
               <span class="plan-label">Acompanhamento premium</span>
               <h3>Jornada Guiada</h3>
               <p>Transforme os resultados das consultas em um plano acompanhado de 90 dias, com extens&atilde;o at&eacute; 180.</p>
@@ -2318,7 +2316,7 @@ function LandingScreen() {
               ${CommercialPlanAction("guided")}
             </article>
           </div>
-          <p class="plans-note">Nenhuma cobran&ccedil;a est&aacute; ativa nesta vers&atilde;o. Valores, limites e condi&ccedil;&otilde;es ser&atilde;o apresentados antes do lan&ccedil;amento comercial.</p>
+          <p class="plans-note">A compra acontece fora da plataforma, em Hotmart, Kiwify ou checkout equivalente. Ap&oacute;s a confirma&ccedil;&atilde;o do pagamento, o acesso &eacute; enviado por e-mail.</p>
         </section>
 
         <section id="faq" class="sales-section faq-section">
@@ -4076,9 +4074,9 @@ function ProfileScreen() {
       `)}
       ${GoldenCard(`
         <h2 class="settings-title">Plano e acesso</h2>
-        <p class="transparency-note">Plano atual: <strong>${escapeHtml(state.account && state.account.planId ? state.account.planId : "gratuito")}</strong>.</p>
+        <p class="transparency-note">Seu acesso &eacute; definido pelas credenciais recebidas por e-mail ap&oacute;s a compra externa.</p>
         ${runtimeConfig().billingMode === "external-checkout" ? `
-          <p class="transparency-note">Use na compra o mesmo e-mail da sua conta para que o acesso seja liberado automaticamente.</p>
+          <p class="transparency-note">A plataforma n&atilde;o processa pagamentos nem recebe dados financeiros. O checkout abre em uma nova aba.</p>
           <div class="profile-plan-actions">
             ${CommercialPlanAction("monthly")}
             ${CommercialPlanAction("guided")}

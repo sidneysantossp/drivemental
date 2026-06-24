@@ -15,7 +15,6 @@ Com a Supabase CLI autenticada:
 ```powershell
 npx supabase link --project-ref jjnmxkfumiwoeyyregzb
 npx supabase db push
-npx supabase functions deploy payment-webhook
 npx supabase functions deploy delete-account
 ```
 
@@ -23,8 +22,6 @@ Ou use o script do projeto:
 
 ```powershell
 $env:SUPABASE_DB_PASSWORD="SENHA_DO_BANCO"
-$env:PAYMENT_WEBHOOK_SECRET="SEGREDO_FORTE"
-$env:PAYMENT_PRODUCT_PLAN_MAP='{"ID_PRODUTO_MENSAL":"monthly","ID_PRODUTO_GUIADO":"guided"}'
 .\scripts\deploy-supabase.ps1
 ```
 
@@ -32,25 +29,23 @@ Para aplicar apenas as migrations do banco, sem publicar Edge Functions:
 
 ```powershell
 $env:SUPABASE_DB_PASSWORD="SENHA_DO_BANCO"
-.\scripts\deploy-supabase.ps1 -SkipFunctions -SkipSecrets
+.\scripts\deploy-supabase.ps1 -SkipFunctions
 ```
 
-A migracao inicial ja foi aplicada no projeto remoto em 24 de junho de 2026. O
-deploy das Edge Functions ainda depende de `npx supabase login` com uma conta
-que tenha permissao de owner/editor no projeto.
+A migracao inicial ja foi aplicada no projeto remoto em 24 de junho de 2026. A
+migration `202606240001_remove_payment_integration.sql` remove as tabelas da
+integracao antiga de pagamento. O deploy da Edge Function de exclusao ainda
+depende de `npx supabase login` com uma conta que tenha permissao de owner/editor
+no projeto.
 
 A migracao `supabase/migrations/202606130001_initial_schema.sql` cria as tabelas,
 triggers e politicas RLS. Nao crie tabelas publicas sem RLS.
 
 ## 3. Configurar segredos
 
-```powershell
-npx supabase secrets set PAYMENT_WEBHOOK_SECRET=SEGREDO_FORTE
-npx supabase secrets set PAYMENT_PRODUCT_PLAN_MAP='{"ID_PRODUTO_MENSAL":"monthly","ID_PRODUTO_GUIADO":"guided"}'
-```
-
-`SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` sao disponibilizados no ambiente
-das Edge Functions. A chave `service_role` nunca deve ser colocada no frontend.
+Nao ha segredo de pagamento para configurar no Supabase. `SUPABASE_URL` e
+`SUPABASE_SERVICE_ROLE_KEY` sao usados apenas pela Edge Function de exclusao de
+conta. A chave `service_role` nunca deve ser colocada no frontend.
 
 ## 4. Ativar o frontend
 
@@ -73,7 +68,6 @@ pelas politicas RLS. A chave administrativa nao pode estar no navegador.
 - usuario A nao acessa dados do usuario B;
 - leituras, jornada, protocolo e eventos sincronizam;
 - exclusao remove o usuario do Auth e as linhas relacionadas;
-- plano liberado aparece apenas para o comprador correto.
 
 Referencias oficiais:
 

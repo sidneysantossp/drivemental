@@ -8,5 +8,6 @@ Thumbs.db
 runtime-config.production.js
 .supabase/
 supabase/.temp/
+dist/
 *-qa.png
 resultado-drive-astral.png

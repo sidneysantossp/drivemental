@@ -8,8 +8,8 @@
     billingMode: "external-checkout",
     paymentProvider: "hotmart",
     checkoutUrls: {
-      monthly: "https://pay.hotmart.com/REPLACE_ME",
-      guided: "https://pay.hotmart.com/REPLACE_ME",
+      monthly: "https://pay.hotmart.com/REPLACE_ME_OR_KIWIFY_URL",
+      guided: "https://pay.hotmart.com/REPLACE_ME_OR_KIWIFY_URL",
     },
     analyticsMode: "privacy-safe",
   });

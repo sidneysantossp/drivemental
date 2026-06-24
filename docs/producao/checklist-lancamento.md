@@ -36,10 +36,11 @@ Atualizado em 24 de junho de 2026.
 - [ ] Definir empresa vendedora, precos, moeda e impostos.
 - [ ] Definir limites e beneficios de cada plano.
 - [ ] Aprovar cancelamento, reembolso e inadimplencia.
-- [x] Definir Hotmart ou checkout externo equivalente.
-- [x] Preparar webhook assinado e idempotente no Supabase.
-- [ ] Criar produtos, URLs de checkout e webhook na Hotmart.
-- [ ] Testar renovacao, falha, estorno, cancelamento e reativacao.
+- [x] Definir Hotmart, Kiwify ou checkout externo equivalente.
+- [x] Remover webhook comercial da plataforma.
+- [ ] Criar produtos e URLs de checkout na Hotmart ou Kiwify.
+- [ ] Definir envio de usuario e senha apos pagamento.
+- [ ] Testar compra, recebimento de acesso, login, cancelamento e suporte.
 - [x] Ativar `billingMode` externo sem URLs reais de checkout.
 
 ## Metodologia

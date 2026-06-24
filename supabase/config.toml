@@ -1,7 +1,4 @@
 project_id = "drive-astral"
 
-[functions.payment-webhook]
-verify_jwt = false
-
 [functions.delete-account]
 verify_jwt = true

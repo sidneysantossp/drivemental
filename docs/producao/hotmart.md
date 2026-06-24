@@ -1,53 +1,51 @@
-# Hotmart ou provedor semelhante
+# Checkout externo
 
 ## Fluxo adotado
 
-1. O usuario cria e confirma a conta no Drive Astral.
-2. No Perfil, abre o checkout externo.
-3. Usa no checkout o mesmo e-mail da conta.
-4. A Hotmart envia o evento para a Edge Function do Supabase.
-5. A funcao valida o segredo, evita eventos duplicados e atualiza
-   `access_entitlements`.
-6. O frontend consulta a liberacao usando RLS.
+1. O usuario escolhe um plano no site.
+2. A plataforma abre uma pagina externa de checkout, como Hotmart ou Kiwify.
+3. Todo pagamento, parcelamento, reembolso e nota fiscal fica fora do Drive Astral.
+4. Apos a confirmacao do pagamento, o usuario recebe por e-mail o usuario e a senha de acesso.
+5. O Drive Astral apenas autentica a pessoa com as credenciais recebidas.
 
-## Endpoint
+## O que nao sera integrado
 
-```text
-https://SEU_PROJECT_REF.supabase.co/functions/v1/payment-webhook?hottok=SEU_SEGREDO
+- Nao havera webhook de pagamento no Supabase.
+- Nao havera liberacao automatica de plano dentro do frontend.
+- Nao serao recebidos dados financeiros, status de compra, cartao ou assinatura.
+- Nao sera necessario salvar eventos de pagamento no banco da plataforma.
+
+## Configuracao do frontend
+
+Preencha apenas URLs publicas de checkout em `runtime-config.js`:
+
+```js
+checkoutUrls: {
+  monthly: "https://pay.hotmart.com/SEU_CHECKOUT",
+  guided: "https://pay.kiwify.com.br/SEU_CHECKOUT",
+}
 ```
 
-Se o provedor permitir cabecalho personalizado, prefira enviar o segredo em
-`x-hotmart-hottok` em vez da URL.
+Se usar Kiwify como provedor principal, altere tambem:
 
-## Eventos
+```js
+paymentProvider: "kiwify"
+```
 
-Cadastre os eventos equivalentes a:
+## Operacao de acesso
 
-- compra aprovada ou completa;
-- assinatura ativada ou renovada;
-- cancelamento;
-- reembolso;
-- chargeback.
+O acesso pago deve ser criado fora do fluxo da plataforma, pelo processo
+operacional definido no provedor de venda ou pelo atendimento. O e-mail enviado
+ao comprador precisa conter:
 
-Os nomes recebidos devem ser conferidos com uma entrega real de homologacao. O
-adaptador atual reconhece os nomes comuns registrados em
-`supabase/functions/payment-webhook/index.ts`.
+- URL de acesso do Drive Astral;
+- usuario ou e-mail de login;
+- senha inicial ou link de definicao de senha;
+- canal de suporte para problemas de acesso.
 
-## Regras de seguranca
+## Cuidados
 
-- a liberacao nunca e feita pelo navegador;
-- somente a Edge Function utiliza `service_role`;
-- o payload bruto nao e salvo;
-- o e-mail e usado apenas para localizar a conta e salvo no evento como hash;
-- o identificador do produto precisa existir em `PAYMENT_PRODUCT_PLAN_MAP`;
-- eventos repetidos retornam sucesso sem conceder acesso novamente.
-
-## Limitacao conhecida
-
-Se a compra usar outro e-mail, o evento fica com status `pending_user`. Antes do
-lancamento comercial, defina um atendimento para conciliacao manual ou implemente
-um fluxo de reivindicacao de compra com verificacao da transacao.
-
-Documentacao oficial:
-
-- https://developers.hotmart.com/docs/pt-BR/
+- Mantenha os textos do checkout alinhados aos Termos de Uso.
+- Nao prometa liberacao automatica se o acesso for manual.
+- Tenha um processo para troca de senha e reenvio de acesso.
+- Rotacione credenciais compartilhadas durante configuracao.

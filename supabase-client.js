@@ -56,11 +56,10 @@
     return clientPromise;
   }
 
-  function accountFrom(user, profile, entitlements = []) {
+  function accountFrom(user, profile) {
     if (!user) {
       return null;
     }
-    const activeEntitlement = entitlements.find((item) => item.status === "active") || null;
     return {
       id: user.id,
       email: user.email || profile?.email || "",
@@ -69,8 +68,7 @@
       primaryAreaId: profile?.primary_area_id || "",
       onboardingComplete: Boolean(profile?.birth_date && profile?.primary_area_id),
       accessMode: "supabase",
-      planId: activeEntitlement?.plan_id || "free",
-      entitlement: activeEntitlement,
+      planId: "external-access",
     };
   }
 
@@ -84,14 +82,15 @@
       return null;
     }
     const user = sessionData.session.user;
-    const [{ data: profile, error: profileError }, { data: entitlements, error: entitlementError }] = await Promise.all([
-      client.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      client.from("access_entitlements").select("*").eq("user_id", user.id),
-    ]);
-    if (profileError || entitlementError) {
-      throw profileError || entitlementError;
+    const { data: profile, error: profileError } = await client
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (profileError) {
+      throw profileError;
     }
-    return accountFrom(user, profile, entitlements || []);
+    return accountFrom(user, profile);
   }
 
   async function signUp({ name, email, password, privacyVersion, termsVersion }) {

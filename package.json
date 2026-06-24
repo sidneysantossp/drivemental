@@ -4,6 +4,7 @@
   "private": true,
   "description": "Drive Astral web platform and installable PWA",
   "scripts": {
+    "build": "node scripts/build-static.js",
     "start": "node server.js",
     "test": "node tests/sincronario-engine.test.js && node tests/thirteen-moons-engine.test.js && node tests/cosmic-timeline.test.js && node tests/web-platform.test.js && node tests/supabase-integration.test.js && node tests/app-render.test.js",
     "check": "npm.cmd test",

@@ -1,10 +1,7 @@
 param(
   [string]$ProjectRef = "jjnmxkfumiwoeyyregzb",
   [string]$DbPassword = $env:SUPABASE_DB_PASSWORD,
-  [string]$PaymentWebhookSecret = $env:PAYMENT_WEBHOOK_SECRET,
-  [string]$PaymentProductPlanMap = $env:PAYMENT_PRODUCT_PLAN_MAP,
-  [switch]$SkipFunctions,
-  [switch]$SkipSecrets
+  [switch]$SkipFunctions
 )
 
 $ErrorActionPreference = "Stop"
@@ -22,13 +19,6 @@ function Invoke-Supabase {
       $displayArguments[$index + 1] = "***"
     }
 
-    if ($displayArguments[$index] -like "PAYMENT_WEBHOOK_SECRET=*") {
-      $displayArguments[$index] = "PAYMENT_WEBHOOK_SECRET=***"
-    }
-
-    if ($displayArguments[$index] -like "PAYMENT_PRODUCT_PLAN_MAP=*") {
-      $displayArguments[$index] = "PAYMENT_PRODUCT_PLAN_MAP=***"
-    }
   }
 
   Write-Host ""
@@ -67,40 +57,11 @@ if ($SkipFunctions) {
     "supabase",
     "functions",
     "deploy",
-    "payment-webhook",
-    "--project-ref",
-    $ProjectRef,
-    "--no-verify-jwt",
-    "--use-api"
-  )
-
-  Invoke-Supabase @(
-    "supabase",
-    "functions",
-    "deploy",
     "delete-account",
     "--project-ref",
     $ProjectRef,
     "--use-api"
   )
-}
-
-if (-not $SkipSecrets) {
-  if ($PaymentWebhookSecret -and $PaymentProductPlanMap) {
-    Invoke-Supabase @(
-      "supabase",
-      "secrets",
-      "set",
-      "--project-ref",
-      $ProjectRef,
-      "PAYMENT_WEBHOOK_SECRET=$PaymentWebhookSecret",
-      "PAYMENT_PRODUCT_PLAN_MAP=$PaymentProductPlanMap"
-    )
-  } else {
-    Write-Host ""
-    Write-Host "Payment secrets were not configured." -ForegroundColor Yellow
-    Write-Host "Set PAYMENT_WEBHOOK_SECRET and PAYMENT_PRODUCT_PLAN_MAP locally, then rerun this script or configure them in the Supabase dashboard."
-  }
 }
 
 Write-Host ""
