@@ -2,9 +2,10 @@
 
 ## Estado atual
 
-A aplicacao continua em modo `local-beta` enquanto as chaves publicas do
-Supabase nao forem preenchidas. O codigo para contas sincronizadas ja esta
-preparado e e ativado com `authMode: "supabase"`.
+A aplicacao ja aponta para o projeto Supabase informado e esta com
+`authMode: "supabase"` no frontend. A chave publica anon pode ficar no
+navegador; a chave `service_role` continua proibida no codigo e deve ser
+mantida apenas no ambiente seguro do Supabase.
 
 ## Arquitetura alvo
 
@@ -21,10 +22,10 @@ preparado e e ativado com `authMode: "supabase"`.
 
 - `runtime-config.js` contem apenas configuracao publica.
 - Segredos ficam no ambiente do backend e seguem `.env.example`.
-- O frontend somente muda para `authMode: "supabase"` quando migracao, Auth,
-  SMTP, exclusao de conta e testes de autorizacao estiverem ativos.
-- O frontend somente muda para `billingMode: "external-checkout"` quando checkout,
-  cancelamento, webhooks e reconciliacao estiverem validados.
+- O frontend usa `authMode: "supabase"` e depende da migracao, Auth, SMTP,
+  exclusao de conta e testes de autorizacao no projeto remoto.
+- O frontend esta em `billingMode: "external-checkout"`, mas os botoes de
+  compra so abrem checkout quando as URLs reais forem preenchidas.
 - A origem da API deve ser adicionada ao `connect-src` da politica CSP no
   servidor, Netlify e Vercel.
 
@@ -35,7 +36,8 @@ preparado e e ativado com `authMode: "supabase"`.
 3. Aplicar a migracao e publicar as Edge Functions.
 4. Configurar Auth, URLs de redirecionamento e SMTP.
 5. Executar testes de isolamento entre usuarios.
-6. Publicar homologacao com `billingMode: "disabled"`.
+6. Publicar homologacao e testar `billingMode: "external-checkout"` sem URLs de
+   compra ate a Hotmart estar homologada.
 7. Validar exclusao, exportacao, recuperacao e backups.
 8. Somente depois configurar pagamentos e producao.
 
@@ -44,8 +46,8 @@ preparado e e ativado com `authMode: "supabase"`.
 Para concluir a integracao real ainda sao necessarios:
 
 - dominio oficial;
-- projeto e chaves publicas do Supabase;
-- repositorio remoto no GitHub;
-- produto e webhook na Hotmart;
+- migracao aplicada no Supabase remoto;
+- Edge Functions publicadas no Supabase remoto;
+- produtos, URLs de checkout e webhook na Hotmart;
 - definicao dos planos, precos, impostos e politica de cancelamento;
 - identificacao juridica do controlador para a politica de privacidade.

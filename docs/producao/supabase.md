@@ -2,7 +2,7 @@
 
 ## 1. Criar e configurar o projeto
 
-1. Crie um projeto de homologacao no Supabase.
+1. Use o projeto Supabase informado para homologacao inicial.
 2. Em Authentication, mantenha e-mail e senha habilitados.
 3. Ative confirmacao de e-mail.
 4. Configure o Site URL e os Redirect URLs para o dominio final e localhost.
@@ -13,7 +13,7 @@
 Com a Supabase CLI autenticada:
 
 ```powershell
-npx supabase link --project-ref SEU_PROJECT_REF
+npx supabase link --project-ref jjnmxkfumiwoeyyregzb
 npx supabase db push
 npx supabase functions deploy payment-webhook
 npx supabase functions deploy delete-account
@@ -38,8 +38,8 @@ Edite `runtime-config.js` no ambiente publicado:
 
 ```js
 authMode: "supabase",
-supabaseUrl: "https://SEU_PROJECT_REF.supabase.co",
-supabasePublishableKey: "sb_publishable_...",
+supabaseUrl: "https://jjnmxkfumiwoeyyregzb.supabase.co",
+supabasePublishableKey: "chave anon/public do projeto",
 ```
 
 A publishable key pode estar no navegador porque o acesso aos dados e protegido

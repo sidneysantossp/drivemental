@@ -2,9 +2,10 @@
 
 ## Estado atual
 
-`billingMode` permanece `disabled` no arquivo local. O modo
-`external-checkout` abre a Hotmart ou outro checkout configurado, mas a
-liberacao de acesso acontece somente pelo webhook no Supabase.
+`billingMode` esta configurado como `external-checkout`. Enquanto as URLs reais
+da Hotmart nao forem preenchidas em `runtime-config.js`, os botoes comerciais
+permanecem sem destino de compra. A liberacao de acesso acontece somente pelo
+webhook no Supabase.
 
 ## Decisoes obrigatorias antes da cobranca
 
@@ -29,6 +30,6 @@ liberacao de acesso acontece somente pelo webhook no Supabase.
 
 ## Criterio para ativacao
 
-O valor de `billingMode` so pode mudar para `external-checkout` depois que os requisitos
-legais e tecnicos estiverem aprovados e o fluxo completo tiver sido testado com
-transacoes de homologacao.
+As URLs de checkout so devem ser preenchidas depois que os requisitos legais e
+tecnicos estiverem aprovados e o fluxo completo tiver sido testado com transacoes
+de homologacao.

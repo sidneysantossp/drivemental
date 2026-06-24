@@ -58,9 +58,10 @@ assert.ok(platformSource.includes('navigator.serviceWorker.register("/sw.js")'))
 assert.ok(platformSource.includes('"beforeinstallprompt"'));
 assert.ok(platformSource.includes('"appinstalled"'));
 assert.ok(platformSource.includes('"offline"'));
-assert.ok(runtimeConfigSource.includes('environment: "local-beta"'));
-assert.ok(runtimeConfigSource.includes('authMode: "local-preview"'));
-assert.ok(runtimeConfigSource.includes('billingMode: "disabled"'));
+assert.ok(runtimeConfigSource.includes('environment: "production"'));
+assert.ok(runtimeConfigSource.includes('authMode: "supabase"'));
+assert.ok(runtimeConfigSource.includes("https://jjnmxkfumiwoeyyregzb.supabase.co"));
+assert.ok(runtimeConfigSource.includes('billingMode: "external-checkout"'));
 assert.ok(supabaseClientSource.includes("DriveAstralSupabase"));
 assert.ok(supabaseClientSource.includes("@supabase/supabase-js@2.102.0"));
 

@@ -1,6 +1,6 @@
 # Checklist de lancamento
 
-Atualizado em 13 de junho de 2026.
+Atualizado em 24 de junho de 2026.
 
 ## Pronto para beta publico
 
@@ -10,19 +10,22 @@ Atualizado em 13 de junho de 2026.
 - [x] Dados locais com backup, restauracao e exclusao completa.
 - [x] Consentimento local versionado.
 - [x] Politica de Privacidade e Termos de Uso para a fase beta.
-- [x] Planos pagos identificados como indisponiveis.
+- [x] Planos pagos preparados para checkout externo.
 - [x] Cabecalhos de seguranca em servidor local, Netlify e Vercel.
-- [x] Configuracao explicita `local-beta`.
+- [x] Configuracao explicita `production` com Supabase publico.
 - [x] Testes automatizados dos motores e das telas.
 
 ## Obrigatorio antes de contas reais
 
 - [ ] Definir dominio oficial e identidade juridica do controlador.
 - [x] Escolher Supabase Auth e PostgreSQL.
-- [ ] Criar projetos Supabase de homologacao e producao.
+- [x] Criar projeto Supabase inicial.
 - [x] Preparar migracao, RLS e Edge Functions.
-- [ ] Implementar confirmacao de e-mail e recuperacao de senha.
-- [ ] Implementar exportacao e exclusao de dados no servidor.
+- [x] Implementar confirmacao de e-mail e recuperacao de senha no frontend.
+- [x] Implementar exclusao de dados no servidor via Edge Function.
+- [ ] Homologar configuracao de Auth, e-mail e URLs no painel Supabase.
+- [ ] Aplicar migracao no Supabase remoto.
+- [ ] Publicar Edge Functions no Supabase remoto.
 - [ ] Testar isolamento de dados entre usuarios.
 - [ ] Definir politica de backup, retencao e resposta a incidentes.
 - [ ] Atualizar a Politica de Privacidade com operadores e bases legais reais.
@@ -36,7 +39,7 @@ Atualizado em 13 de junho de 2026.
 - [x] Preparar webhook assinado e idempotente no Supabase.
 - [ ] Criar produtos, URLs de checkout e webhook na Hotmart.
 - [ ] Testar renovacao, falha, estorno, cancelamento e reativacao.
-- [ ] Ativar `billingMode` somente depois da homologacao.
+- [x] Ativar `billingMode` externo sem URLs reais de checkout.
 
 ## Metodologia
 
@@ -48,7 +51,8 @@ Atualizado em 13 de junho de 2026.
 ## Operacao
 
 - [x] Iniciar repositorio Git e workflow de validacao.
-- [ ] Criar repositorio remoto no GitHub e proteger a branch `main`.
+- [x] Criar repositorio remoto no GitHub.
+- [ ] Proteger a branch `main`.
 - [ ] Configurar ambiente de homologacao.
 - [ ] Configurar monitoramento de erros sem conteudo privado.
 - [ ] Configurar alerta de indisponibilidade e rotina de backup.
