@@ -26,6 +26,7 @@ Atualizado em 24 de junho de 2026.
 - [ ] Homologar configuracao de Auth, e-mail e URLs no painel Supabase.
 - [ ] Aplicar migracao no Supabase remoto.
 - [ ] Publicar Edge Functions no Supabase remoto.
+- [x] Preparar script de deploy do Supabase sem gravar segredos no repositorio.
 - [ ] Testar isolamento de dados entre usuarios.
 - [ ] Definir politica de backup, retencao e resposta a incidentes.
 - [ ] Atualizar a Politica de Privacidade com operadores e bases legais reais.

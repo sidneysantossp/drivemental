@@ -19,6 +19,15 @@ npx supabase functions deploy payment-webhook
 npx supabase functions deploy delete-account
 ```
 
+Ou use o script do projeto:
+
+```powershell
+$env:SUPABASE_DB_PASSWORD="SENHA_DO_BANCO"
+$env:PAYMENT_WEBHOOK_SECRET="SEGREDO_FORTE"
+$env:PAYMENT_PRODUCT_PLAN_MAP='{"ID_PRODUTO_MENSAL":"monthly","ID_PRODUTO_GUIADO":"guided"}'
+.\scripts\deploy-supabase.ps1
+```
+
 A migracao `supabase/migrations/202606130001_initial_schema.sql` cria as tabelas,
 triggers e politicas RLS. Nao crie tabelas publicas sem RLS.
 
