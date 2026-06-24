@@ -8178,6 +8178,24 @@ html {
   color: #d7aa50;
 }
 
+.plan-price {
+  margin-top: auto;
+  margin-bottom: 18px;
+  color: #f1c76b;
+  font-family: var(--font-title);
+  font-size: clamp(2.25rem, 5vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.plan-price span {
+  margin-right: 5px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
 .plan-card > button,
 .plan-card > a.button-primary,
 .plan-card > a.button-ghost {
@@ -8185,7 +8203,7 @@ html {
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-top: auto;
+  margin-top: 0;
   text-decoration: none;
 }
 
