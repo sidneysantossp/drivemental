@@ -55,3 +55,9 @@ Para concluir a integracao real ainda sao necessarios:
 - produtos e URLs de checkout na Hotmart ou Kiwify;
 - definicao dos planos, precos, impostos e politica de cancelamento;
 - identificacao juridica do controlador para a politica de privacidade.
+
+## Proximo modulo interno
+
+O planejamento do Painel Admin esta em `docs/producao/admin-planejamento.md`.
+A area **Configuracoes** sera obrigatoria para controlar planos, precos, CTAs,
+checkout externo, metodologia, e-mails, seguranca e aparencia da plataforma.
