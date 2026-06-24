@@ -6083,6 +6083,165 @@ body {
   display: none;
 }
 
+.admin-shell .admin-main {
+  background:
+    radial-gradient(circle at 84% 7%, rgba(214, 165, 58, 0.08), transparent 28rem),
+    rgba(2, 13, 11, 0.44);
+}
+
+.admin-sidebar {
+  border-right-color: rgba(214, 165, 58, 0.2);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(214, 165, 58, 0.1), transparent 16rem),
+    linear-gradient(180deg, rgba(4, 27, 21, 0.92), rgba(2, 16, 13, 0.98));
+}
+
+.admin-dashboard-grid,
+.admin-settings-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-dashboard-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-settings-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.admin-kpi-card,
+.admin-wide-card,
+.admin-settings-card,
+.admin-status-card {
+  position: relative;
+  z-index: 1;
+  border-color: rgba(214, 165, 58, 0.22);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(23, 77, 53, 0.18), transparent 17rem),
+    linear-gradient(155deg, rgba(8, 32, 26, 0.93), rgba(3, 19, 15, 0.94));
+}
+
+.admin-kpi-card {
+  display: grid;
+  min-height: 150px;
+  align-content: space-between;
+  gap: 12px;
+}
+
+.admin-kpi-label {
+  color: #d5a94f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.admin-kpi-value {
+  color: #f0dfba;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 3vw, 2.55rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.admin-kpi-card small,
+.admin-wide-card .transparency-note,
+.admin-status-card .transparency-note {
+  color: rgba(243, 228, 195, 0.62);
+  line-height: 1.55;
+}
+
+.admin-wide-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-wide-card .button-primary {
+  width: fit-content;
+}
+
+.admin-settings-form {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-settings-card {
+  display: grid;
+  gap: 13px;
+}
+
+.admin-field {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-field span,
+.admin-check span {
+  color: rgba(243, 228, 195, 0.68);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(214, 165, 58, 0.24);
+  border-radius: 10px;
+  background: rgba(1, 12, 10, 0.64);
+  color: #f3e4c3;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  outline: none;
+  padding: 0 13px;
+}
+
+.admin-field textarea {
+  min-height: 96px;
+  padding: 12px 13px;
+  resize: vertical;
+}
+
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus {
+  border-color: rgba(230, 189, 98, 0.62);
+  box-shadow: 0 0 0 3px rgba(214, 165, 58, 0.12);
+}
+
+.admin-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+}
+
+.admin-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #d6a53a;
+}
+
+.admin-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 2px;
+}
+
 .dashboard-welcome {
   display: flex;
   align-items: center;
@@ -7007,6 +7166,18 @@ body {
   .platform-shell .screen.portal-content {
     min-height: calc(100vh - 142px);
     padding: 24px 20px 35px;
+  }
+
+  .admin-dashboard-grid,
+  .admin-settings-grid,
+  .admin-two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-wide-card .button-primary,
+  .admin-settings-actions .button-primary,
+  .admin-settings-actions .button-ghost {
+    width: 100%;
   }
 
   .platform-route-chakras .screen.portal-content,

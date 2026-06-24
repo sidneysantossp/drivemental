@@ -9,6 +9,43 @@ const LEGACY_BACKUP_FORMAT_VERSION = "drive-astral-backup-v1";
 const WEB_PLATFORM_VERSION = "web-platform-v1";
 const PRIVACY_POLICY_VERSION = "2026-06-13";
 const TERMS_VERSION = "2026-06-13";
+const ADMIN_SETTING_KEYS = Object.freeze({
+  general: "platform.general",
+  plans: "plans.display",
+  checkout: "checkout.external",
+  methodology: "methodology.lunar",
+});
+const ADMIN_DEFAULT_SETTINGS = Object.freeze({
+  general: {
+    platformName: "Drive Astral",
+    supportEmail: "contato@driveastral.com",
+    environmentStatus: "producao",
+    maintenanceMode: false,
+    globalNotice: "",
+  },
+  plans: {
+    premiumBadge: "PREMIUM",
+    premiumPrice: "29,90",
+    mentorBadge: "MENTOR",
+    mentorPrice: "97,00",
+    ctaText: "INICIAR A MINHA JORNADA",
+    premiumVisible: true,
+    mentorVisible: true,
+  },
+  checkout: {
+    provider: "hotmart",
+    premiumCheckoutUrl: "",
+    mentorCheckoutUrl: "",
+    accessInstruction: "Enviar usuario e senha por e-mail apos confirmacao do pagamento.",
+  },
+  methodology: {
+    activeVersion: "2026.06",
+    draftVersion: "",
+    leapDayPolicy: "blocked",
+    dailyPhraseEnabled: true,
+    mantraEnabled: true,
+  },
+});
 
 function runtimeConfig() {
   return window.DriveAstralRuntimeConfig || {
@@ -33,6 +70,14 @@ function environmentLabel() {
   return isSupabaseMode()
     ? "Conta sincronizada"
     : "Beta local";
+}
+
+function isAdminRoute(route) {
+  return route === "admin-dashboard" || route === "admin-settings";
+}
+
+function defaultAdminSettings() {
+  return JSON.parse(JSON.stringify(ADMIN_DEFAULT_SETTINGS));
 }
 
 const chakras = Object.freeze([
@@ -547,6 +592,8 @@ function routeStateFromLocation() {
     "/app/jornada": "journey",
     "/app/historico": "history",
     "/app/perfil": "profile",
+    "/admin": "admin-dashboard",
+    "/admin/configuracoes": "admin-settings",
   };
 
   return routes[pathname] ? { route: routes[pathname] } : {};
@@ -577,6 +624,8 @@ function updateLocationForState(nextState, replace = false) {
     "timeline-event": "/app/historico/evento",
     profile: "/app/perfil",
     "legacy-history": "/app/historico/leitura",
+    "admin-dashboard": "/admin",
+    "admin-settings": "/admin/configuracoes",
   };
   let nextUrl = routeUrls[nextState.route] || "/";
   if (nextState.route === "chakra-detail") {
@@ -612,6 +661,14 @@ const defaultState = {
   timelineFormOpen: false,
   timelineNotice: "",
   timelineNoticeKind: "",
+  adminAccessChecked: false,
+  adminLoading: false,
+  adminRole: "",
+  adminSettings: defaultAdminSettings(),
+  adminSettingsLoaded: false,
+  adminSettingsLoading: false,
+  adminNotice: "",
+  adminNoticeKind: "",
   timelineDraft: {
     title: "",
     eventDate: "",
@@ -2623,6 +2680,173 @@ function PlatformShell(content) {
   `;
 }
 
+function mergedAdminSettings(source = state.adminSettings) {
+  const defaults = defaultAdminSettings();
+  return {
+    general: { ...defaults.general, ...(source && source.general ? source.general : {}) },
+    plans: { ...defaults.plans, ...(source && source.plans ? source.plans : {}) },
+    checkout: { ...defaults.checkout, ...(source && source.checkout ? source.checkout : {}) },
+    methodology: { ...defaults.methodology, ...(source && source.methodology ? source.methodology : {}) },
+  };
+}
+
+function AdminSidebar() {
+  const items = [
+    ["admin-dashboard", "chart", "Dashboard"],
+    ["admin-settings", "spark", "Configura&ccedil;&otilde;es"],
+  ];
+  return `
+    <aside class="portal-sidebar admin-sidebar">
+      <button class="portal-brand" data-route="admin-dashboard" type="button">${BrandMark(true)}<span>Admin</span></button>
+      <nav aria-label="Navega&ccedil;&atilde;o administrativa">
+        <span>ADMINISTRA&Ccedil;&Atilde;O</span>
+        ${items.map(([route, iconName, label]) => `
+          <button class="${state.route === route ? "is-active" : ""}" data-route="${route}" type="button">
+            ${icon(iconName)}<span>${label}</span>
+          </button>
+        `).join("")}
+      </nav>
+      <div class="sidebar-account">
+        <span>${escapeHtml((state.account && state.account.name) || "A").slice(0, 1).toUpperCase()}</span>
+        <div><strong>${escapeHtml((state.account && state.account.name) || "Admin")}</strong><small>${escapeHtml(state.adminRole || "preview local")}</small></div>
+        <button data-route="dashboard" type="button" aria-label="Voltar para plataforma">${icon("back")}</button>
+      </div>
+    </aside>
+  `;
+}
+
+function AdminShell(content, title = "Admin", subtitle = "Gest&atilde;o da plataforma") {
+  return `
+    <div class="app-shell platform-shell admin-shell platform-route-${state.route}">
+      ${CosmicBackground()}
+      ${AdminSidebar()}
+      <section class="portal-main admin-main">
+        <header class="portal-topbar admin-topbar">
+          <div><h1>${title}</h1><p>${subtitle}</p></div>
+          <div class="topbar-actions">
+            <span class="premium-pill">${icon("spark")} ${isSupabaseMode() ? "Role verificada" : "Preview local"}</span>
+          </div>
+        </header>
+        <main class="screen portal-content admin-content screen-${state.route}">${content}</main>
+      </section>
+    </div>
+  `;
+}
+
+function AdminAccessLoadingScreen() {
+  return AdminShell(
+    GoldenCard(`
+      <h2 class="settings-title">Verificando permiss&atilde;o administrativa</h2>
+      <p class="transparency-note">A &aacute;rea admin exige uma conta com role ativa em <strong>admin_roles</strong>.</p>
+    `, "admin-status-card"),
+    "Admin",
+    "Verifica&ccedil;&atilde;o de acesso",
+  );
+}
+
+function AdminAccessDeniedScreen() {
+  return AdminShell(
+    GoldenCard(`
+      <h2 class="settings-title">Acesso administrativo n&atilde;o liberado</h2>
+      <p class="transparency-note">Sua conta est&aacute; autenticada, mas n&atilde;o possui permiss&atilde;o admin ativa.</p>
+      <p class="transparency-note">Para liberar acesso, registre seu usu&aacute;rio na tabela <strong>admin_roles</strong> com uma role ativa.</p>
+    `, "admin-status-card"),
+    "Admin",
+    "Acesso restrito",
+  );
+}
+
+function AdminDashboardScreen() {
+  const settings = mergedAdminSettings();
+  return AdminShell(`
+    <section class="admin-dashboard-grid">
+      ${GoldenCard(`
+        <span class="admin-kpi-label">Plano Premium</span>
+        <strong class="admin-kpi-value">R$ ${escapeHtml(settings.plans.premiumPrice)}</strong>
+        <small>${escapeHtml(settings.plans.premiumBadge)} &middot; ${escapeHtml(settings.plans.ctaText)}</small>
+      `, "admin-kpi-card")}
+      ${GoldenCard(`
+        <span class="admin-kpi-label">Plano Mentor</span>
+        <strong class="admin-kpi-value">R$ ${escapeHtml(settings.plans.mentorPrice)}</strong>
+        <small>${escapeHtml(settings.plans.mentorBadge)} &middot; acompanhamento guiado</small>
+      `, "admin-kpi-card")}
+      ${GoldenCard(`
+        <span class="admin-kpi-label">Checkout</span>
+        <strong class="admin-kpi-value">${escapeHtml(settings.checkout.provider)}</strong>
+        <small>Links externos configurados em Configura&ccedil;&otilde;es</small>
+      `, "admin-kpi-card")}
+    </section>
+    ${GoldenCard(`
+      <h2 class="settings-title">Configura&ccedil;&otilde;es da plataforma</h2>
+      <p class="transparency-note">Controle nomes, pre&ccedil;os, badges, links de checkout, metodologia lunar e regras operacionais em uma &aacute;rea centralizada.</p>
+      <button class="button-primary" data-route="admin-settings" type="button">Abrir Configura&ccedil;&otilde;es ${icon("arrow")}</button>
+    `, "admin-wide-card")}
+  `, "Painel Admin", "Resumo operacional e atalhos de gest&atilde;o");
+}
+
+function AdminSettingsScreen() {
+  const settings = mergedAdminSettings();
+  const statusOptions = ["beta", "homologacao", "producao"];
+  const providerOptions = ["hotmart", "kiwify", "outro"];
+  const leapPolicyOptions = ["blocked", "manual", "previous_day"];
+
+  return AdminShell(`
+    <form id="admin-settings-form" class="admin-settings-form">
+      ${state.adminNotice ? `<p class="form-notice ${state.adminNoticeKind === "error" ? "is-error" : ""}" role="status">${state.adminNotice}</p>` : ""}
+      ${isSupabaseMode() && state.adminSettingsLoading ? `<p class="transparency-note">Carregando configura&ccedil;&otilde;es publicadas...</p>` : ""}
+      <section class="admin-settings-grid">
+        ${GoldenCard(`
+          <h2 class="settings-title">Configura&ccedil;&otilde;es gerais</h2>
+          <label class="admin-field"><span>Nome da plataforma</span><input name="platformName" value="${escapeHtml(settings.general.platformName)}" /></label>
+          <label class="admin-field"><span>E-mail de suporte</span><input name="supportEmail" type="email" value="${escapeHtml(settings.general.supportEmail)}" /></label>
+          <label class="admin-field"><span>Status</span><select name="environmentStatus">
+            ${statusOptions.map((option) => `<option value="${option}" ${settings.general.environmentStatus === option ? "selected" : ""}>${option}</option>`).join("")}
+          </select></label>
+          <label class="admin-check"><input name="maintenanceMode" type="checkbox" ${settings.general.maintenanceMode ? "checked" : ""} /> <span>Modo manuten&ccedil;&atilde;o</span></label>
+          <label class="admin-field"><span>Mensagem global</span><textarea name="globalNotice" rows="3">${escapeHtml(settings.general.globalNotice)}</textarea></label>
+        `, "admin-settings-card")}
+        ${GoldenCard(`
+          <h2 class="settings-title">Planos e CTAs</h2>
+          <div class="admin-two-columns">
+            <label class="admin-field"><span>Badge Premium</span><input name="premiumBadge" value="${escapeHtml(settings.plans.premiumBadge)}" /></label>
+            <label class="admin-field"><span>Valor Premium</span><input name="premiumPrice" value="${escapeHtml(settings.plans.premiumPrice)}" /></label>
+            <label class="admin-field"><span>Badge Mentor</span><input name="mentorBadge" value="${escapeHtml(settings.plans.mentorBadge)}" /></label>
+            <label class="admin-field"><span>Valor Mentor</span><input name="mentorPrice" value="${escapeHtml(settings.plans.mentorPrice)}" /></label>
+          </div>
+          <label class="admin-field"><span>Texto dos bot&otilde;es</span><input name="ctaText" value="${escapeHtml(settings.plans.ctaText)}" /></label>
+          <label class="admin-check"><input name="premiumVisible" type="checkbox" ${settings.plans.premiumVisible ? "checked" : ""} /> <span>Exibir plano Premium</span></label>
+          <label class="admin-check"><input name="mentorVisible" type="checkbox" ${settings.plans.mentorVisible ? "checked" : ""} /> <span>Exibir plano Mentor</span></label>
+        `, "admin-settings-card")}
+        ${GoldenCard(`
+          <h2 class="settings-title">Checkout externo</h2>
+          <label class="admin-field"><span>Provedor principal</span><select name="provider">
+            ${providerOptions.map((option) => `<option value="${option}" ${settings.checkout.provider === option ? "selected" : ""}>${option}</option>`).join("")}
+          </select></label>
+          <label class="admin-field"><span>URL checkout Premium</span><input name="premiumCheckoutUrl" type="url" value="${escapeHtml(settings.checkout.premiumCheckoutUrl)}" placeholder="https://..." /></label>
+          <label class="admin-field"><span>URL checkout Mentor</span><input name="mentorCheckoutUrl" type="url" value="${escapeHtml(settings.checkout.mentorCheckoutUrl)}" placeholder="https://..." /></label>
+          <label class="admin-field"><span>Instru&ccedil;&atilde;o ap&oacute;s pagamento</span><textarea name="accessInstruction" rows="3">${escapeHtml(settings.checkout.accessInstruction)}</textarea></label>
+        `, "admin-settings-card")}
+        ${GoldenCard(`
+          <h2 class="settings-title">Metodologia lunar</h2>
+          <div class="admin-two-columns">
+            <label class="admin-field"><span>Vers&atilde;o ativa</span><input name="activeVersion" value="${escapeHtml(settings.methodology.activeVersion)}" /></label>
+            <label class="admin-field"><span>Vers&atilde;o rascunho</span><input name="draftVersion" value="${escapeHtml(settings.methodology.draftVersion)}" /></label>
+          </div>
+          <label class="admin-field"><span>Pol&iacute;tica para 29/02</span><select name="leapDayPolicy">
+            ${leapPolicyOptions.map((option) => `<option value="${option}" ${settings.methodology.leapDayPolicy === option ? "selected" : ""}>${option}</option>`).join("")}
+          </select></label>
+          <label class="admin-check"><input name="dailyPhraseEnabled" type="checkbox" ${settings.methodology.dailyPhraseEnabled ? "checked" : ""} /> <span>Frase do dia ativa</span></label>
+          <label class="admin-check"><input name="mantraEnabled" type="checkbox" ${settings.methodology.mantraEnabled ? "checked" : ""} /> <span>Mantras ativos</span></label>
+        `, "admin-settings-card")}
+      </section>
+      <div class="admin-settings-actions">
+        <button class="button-ghost" data-route="admin-dashboard" type="button">Voltar ao dashboard</button>
+        <button class="button-primary" type="submit" ${state.adminSettingsLoading ? "disabled" : ""}>Salvar Configura&ccedil;&otilde;es ${icon("arrow")}</button>
+      </div>
+    </form>
+  `, "Configura&ccedil;&otilde;es", "Planos, checkout, metodologia e opera&ccedil;&atilde;o");
+}
+
 function AppHeader(title, subtitle, options = {}) {
   const backRoute = options.backRoute || "home";
   const backButton = options.back
@@ -4371,6 +4595,143 @@ function enterDemoAccess() {
   }, { persist: true, updateUrl: true });
 }
 
+function requestAdminAccess() {
+  if (state.adminLoading || state.adminAccessChecked) {
+    return;
+  }
+
+  if (!isSupabaseMode()) {
+    setState({
+      adminAccessChecked: true,
+      adminRole: "owner",
+      adminLoading: false,
+    });
+    return;
+  }
+
+  setState({ adminLoading: true, adminNotice: "", adminNoticeKind: "" });
+  supabaseService().getAdminRole().then((role) => {
+    setState({
+      adminAccessChecked: true,
+      adminLoading: false,
+      adminRole: role || "",
+    });
+  }).catch(() => {
+    setState({
+      adminAccessChecked: true,
+      adminLoading: false,
+      adminRole: "",
+      adminNotice: "N&atilde;o foi poss&iacute;vel verificar permiss&atilde;o admin.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
+function normalizeAdminSettingsRows(rows) {
+  const defaults = defaultAdminSettings();
+  return {
+    general: { ...defaults.general, ...(rows[ADMIN_SETTING_KEYS.general] || {}) },
+    plans: { ...defaults.plans, ...(rows[ADMIN_SETTING_KEYS.plans] || {}) },
+    checkout: { ...defaults.checkout, ...(rows[ADMIN_SETTING_KEYS.checkout] || {}) },
+    methodology: { ...defaults.methodology, ...(rows[ADMIN_SETTING_KEYS.methodology] || {}) },
+  };
+}
+
+function requestAdminSettings() {
+  if (!isSupabaseMode() || state.adminSettingsLoading || state.adminSettingsLoaded || !state.adminRole) {
+    return;
+  }
+
+  setState({ adminSettingsLoading: true, adminNotice: "", adminNoticeKind: "" });
+  supabaseService().loadAdminSettings().then((rows) => {
+    setState({
+      adminSettings: normalizeAdminSettingsRows(rows || {}),
+      adminSettingsLoaded: true,
+      adminSettingsLoading: false,
+    });
+  }).catch(() => {
+    setState({
+      adminSettingsLoading: false,
+      adminNotice: "N&atilde;o foi poss&iacute;vel carregar as configura&ccedil;&otilde;es.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
+function adminSettingsFromForm(formData) {
+  return {
+    general: {
+      platformName: String(formData.get("platformName") || "").trim() || "Drive Astral",
+      supportEmail: String(formData.get("supportEmail") || "").trim(),
+      environmentStatus: String(formData.get("environmentStatus") || "producao"),
+      maintenanceMode: formData.get("maintenanceMode") === "on",
+      globalNotice: String(formData.get("globalNotice") || "").trim(),
+    },
+    plans: {
+      premiumBadge: String(formData.get("premiumBadge") || "").trim() || "PREMIUM",
+      premiumPrice: String(formData.get("premiumPrice") || "").trim() || "29,90",
+      mentorBadge: String(formData.get("mentorBadge") || "").trim() || "MENTOR",
+      mentorPrice: String(formData.get("mentorPrice") || "").trim() || "97,00",
+      ctaText: String(formData.get("ctaText") || "").trim() || "INICIAR A MINHA JORNADA",
+      premiumVisible: formData.get("premiumVisible") === "on",
+      mentorVisible: formData.get("mentorVisible") === "on",
+    },
+    checkout: {
+      provider: String(formData.get("provider") || "hotmart"),
+      premiumCheckoutUrl: String(formData.get("premiumCheckoutUrl") || "").trim(),
+      mentorCheckoutUrl: String(formData.get("mentorCheckoutUrl") || "").trim(),
+      accessInstruction: String(formData.get("accessInstruction") || "").trim(),
+    },
+    methodology: {
+      activeVersion: String(formData.get("activeVersion") || "").trim(),
+      draftVersion: String(formData.get("draftVersion") || "").trim(),
+      leapDayPolicy: String(formData.get("leapDayPolicy") || "blocked"),
+      dailyPhraseEnabled: formData.get("dailyPhraseEnabled") === "on",
+      mantraEnabled: formData.get("mantraEnabled") === "on",
+    },
+  };
+}
+
+function submitAdminSettings(formData) {
+  const settings = adminSettingsFromForm(formData);
+  if (!isSupabaseMode()) {
+    setState({
+      adminSettings: settings,
+      adminSettingsLoaded: true,
+      adminNotice: "Configura&ccedil;&otilde;es atualizadas na pr&eacute;via local.",
+      adminNoticeKind: "",
+    });
+    return;
+  }
+
+  const payload = {
+    [ADMIN_SETTING_KEYS.general]: settings.general,
+    [ADMIN_SETTING_KEYS.plans]: settings.plans,
+    [ADMIN_SETTING_KEYS.checkout]: settings.checkout,
+    [ADMIN_SETTING_KEYS.methodology]: settings.methodology,
+  };
+  setState({
+    adminSettingsLoading: true,
+    adminNotice: "Salvando configura&ccedil;&otilde;es...",
+    adminNoticeKind: "",
+  });
+  supabaseService().saveAdminSettings(payload).then(() => {
+    setState({
+      adminSettings: settings,
+      adminSettingsLoaded: true,
+      adminSettingsLoading: false,
+      adminNotice: "Configura&ccedil;&otilde;es salvas com sucesso.",
+      adminNoticeKind: "",
+    });
+  }).catch(() => {
+    setState({
+      adminSettingsLoading: false,
+      adminNotice: "N&atilde;o foi poss&iacute;vel salvar as configura&ccedil;&otilde;es.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
 function submitOnboarding(birthValue) {
   const birth = String(birthValue || "").trim();
   const validation = validateBirthDateForProduct(birth);
@@ -4556,22 +4917,51 @@ function render() {
     history: HistoryScreen,
     "timeline-event": TimelineEventDetailScreen,
     profile: ProfileScreen,
+    "admin-dashboard": AdminDashboardScreen,
+    "admin-settings": AdminSettingsScreen,
   };
 
   const publicRoutes = ["landing", "login", "signup"];
+  const adminRoute = isAdminRoute(state.route);
   const accountNeedsOnboarding = state.authenticated
     && state.account
     && !state.account.onboardingComplete;
+  let selectedScreen = screens[state.route] || LandingScreen;
+  let shouldRequestAdminAccess = false;
+  let shouldRequestAdminSettings = false;
 
   if (!state.authenticated && !publicRoutes.includes(state.route)) {
     state.route = "login";
-  } else if (accountNeedsOnboarding && !["landing", "login", "signup", "onboarding"].includes(state.route)) {
+    selectedScreen = LoginScreen;
+  } else if (accountNeedsOnboarding && !adminRoute && !["landing", "login", "signup", "onboarding"].includes(state.route)) {
     state.route = "onboarding";
+    selectedScreen = OnboardingScreen;
+  } else if (adminRoute) {
+    if (isSupabaseMode()) {
+      if (!state.adminAccessChecked) {
+        selectedScreen = AdminAccessLoadingScreen;
+        shouldRequestAdminAccess = true;
+      } else if (!state.adminRole) {
+        selectedScreen = AdminAccessDeniedScreen;
+      } else if (state.route === "admin-settings" && !state.adminSettingsLoaded && !state.adminSettingsLoading) {
+        shouldRequestAdminSettings = true;
+      }
+    } else if (!state.adminAccessChecked) {
+      state.adminAccessChecked = true;
+      state.adminRole = "owner";
+    }
   }
 
-  document.getElementById("app").innerHTML = (screens[state.route] || LandingScreen)();
+  document.getElementById("app").innerHTML = selectedScreen();
   bindEvents();
   updateBottomNavigationOffset();
+
+  if (shouldRequestAdminAccess) {
+    requestAdminAccess();
+  }
+  if (shouldRequestAdminSettings) {
+    requestAdminSettings();
+  }
 }
 
 function updateBottomNavigationOffset() {
@@ -4741,6 +5131,14 @@ function bindEvents() {
   document.querySelectorAll("[data-signout]").forEach((button) => {
     button.addEventListener("click", signOut);
   });
+
+  const adminSettingsForm = document.getElementById("admin-settings-form");
+  if (adminSettingsForm) {
+    adminSettingsForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitAdminSettings(new FormData(adminSettingsForm));
+    });
+  }
 
   document.querySelectorAll("[data-chakra-id]").forEach((element) => {
     element.addEventListener("click", () => {

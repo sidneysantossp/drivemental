@@ -360,6 +360,62 @@
     };
   }
 
+  async function getAdminRole() {
+    const client = await getClient();
+    if (!client) {
+      return null;
+    }
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError || !userData.user) {
+      throw userError || new Error("AUTH_REQUIRED");
+    }
+    const { data, error } = await client
+      .from("admin_roles")
+      .select("role,is_active")
+      .eq("user_id", userData.user.id)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return data?.role || null;
+  }
+
+  async function loadAdminSettings() {
+    const client = await getClient();
+    if (!client) {
+      return {};
+    }
+    const { data, error } = await client
+      .from("app_settings")
+      .select("setting_key,setting_value");
+    if (error) {
+      throw error;
+    }
+    return (data || []).reduce((settings, item) => {
+      settings[item.setting_key] = item.setting_value || {};
+      return settings;
+    }, {});
+  }
+
+  async function saveAdminSettings(settings) {
+    const client = await getClient();
+    if (!client) {
+      return;
+    }
+    const updates = Object.entries(settings || {}).map(([settingKey, settingValue]) => (
+      client
+        .from("app_settings")
+        .update({ setting_value: settingValue })
+        .eq("setting_key", settingKey)
+    ));
+    const results = await Promise.all(updates);
+    const failed = results.find((result) => result.error);
+    if (failed) {
+      throw failed.error;
+    }
+  }
+
   async function deleteAccount() {
     const client = await getClient();
     if (!client) {
@@ -390,6 +446,9 @@
     saveJourneyProgress,
     saveProtocolProgress,
     loadProgress,
+    getAdminRole,
+    loadAdminSettings,
+    saveAdminSettings,
     deleteAccount,
   });
 })(window);

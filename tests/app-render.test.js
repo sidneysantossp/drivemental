@@ -200,6 +200,27 @@ assert.ok(styles.includes("@keyframes starGlint"));
 assert.ok(styles.includes("@media (prefers-reduced-motion: reduce)"));
 assert.ok(styles.includes(".cosmic-nebula"));
 assert.ok(styles.includes("pointer-events: none"));
+assert.ok(styles.includes(".admin-settings-grid"));
+assert.ok(styles.includes(".admin-field input"));
+
+const adminContext = createBrowserLikeContext("http://localhost:4173/admin/configuracoes");
+const adminHtml = adminContext.__getHtml();
+assert.strictEqual(vm.runInContext("state.route", adminContext), "admin-settings");
+assert.ok(adminHtml.includes("Configura&ccedil;&otilde;es"));
+assert.ok(adminHtml.includes("Planos e CTAs"));
+assert.ok(adminHtml.includes("Checkout externo"));
+assert.ok(adminHtml.includes("Metodologia lunar"));
+assert.ok(adminHtml.includes("PREMIUM"));
+assert.ok(adminHtml.includes("29,90"));
+assert.ok(adminHtml.includes("97,00"));
+assert.ok(adminHtml.includes("INICIAR A MINHA JORNADA"));
+assert.ok(adminHtml.includes('id="admin-settings-form"'));
+
+const adminDeniedContext = createBrowserLikeContext(
+  "http://localhost:4173/admin",
+  { authenticated: false },
+);
+assert.strictEqual(vm.runInContext("state.route", adminDeniedContext), "login");
 
 const demoContext = createBrowserLikeContext(
   "http://localhost:4173/login",

@@ -23,13 +23,13 @@ function Invoke-Supabase {
 
   Write-Host ""
   Write-Host "npx $($displayArguments -join ' ')" -ForegroundColor DarkGray
-  & npx @Arguments
+  & npx.cmd @Arguments
   if ($LASTEXITCODE -ne 0) {
     throw "Supabase CLI failed with exit code $LASTEXITCODE."
   }
 }
 
-if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command npx.cmd -ErrorAction SilentlyContinue)) {
   throw "npx was not found. Install Node.js 20+ before deploying Supabase."
 }
 
