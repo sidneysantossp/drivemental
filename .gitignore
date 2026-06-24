@@ -7,5 +7,6 @@ node_modules/
 Thumbs.db
 runtime-config.production.js
 .supabase/
+supabase/.temp/
 *-qa.png
 resultado-drive-astral.png

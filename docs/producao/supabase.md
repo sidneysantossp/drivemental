@@ -28,6 +28,17 @@ $env:PAYMENT_PRODUCT_PLAN_MAP='{"ID_PRODUTO_MENSAL":"monthly","ID_PRODUTO_GUIADO
 .\scripts\deploy-supabase.ps1
 ```
 
+Para aplicar apenas as migrations do banco, sem publicar Edge Functions:
+
+```powershell
+$env:SUPABASE_DB_PASSWORD="SENHA_DO_BANCO"
+.\scripts\deploy-supabase.ps1 -SkipFunctions -SkipSecrets
+```
+
+A migracao inicial ja foi aplicada no projeto remoto em 24 de junho de 2026. O
+deploy das Edge Functions ainda depende de `npx supabase login` com uma conta
+que tenha permissao de owner/editor no projeto.
+
 A migracao `supabase/migrations/202606130001_initial_schema.sql` cria as tabelas,
 triggers e politicas RLS. Nao crie tabelas publicas sem RLS.
 
