@@ -1,0 +1,4 @@
+-- The canonical production schema now lives in:
+-- supabase/migrations/202606130001_initial_schema.sql
+--
+-- Apply it with the Supabase CLI instead of maintaining a second SQL copy.

@@ -1,0 +1,33 @@
+name: Validate Drive Astral
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run automated tests
+        run: npm test
+
+      - name: Check production configuration
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('vercel.json', 'utf8'))"
+          test -f supabase/migrations/202606130001_initial_schema.sql
+          test -f supabase/functions/payment-webhook/index.ts

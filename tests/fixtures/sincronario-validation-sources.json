@@ -1,0 +1,193 @@
+[
+  {
+    "sourceId": "SOURCE-001",
+    "name": "Law of Time - 13 Moon Calendar FAQ",
+    "type": "official_documentation",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "web_review",
+    "urlOrReference": "https://lawoftime.org/thirteenmoonfaq.html",
+    "consultedAt": "2026-06-07",
+    "supports": {
+      "kinByDate": false,
+      "seal": true,
+      "tone": true,
+      "color": true,
+      "earthFamily": true,
+      "oracle": false,
+      "waveSpell": true,
+      "castle": false,
+      "leapDayRule": true
+    },
+    "notes": "Official methodology source used for the February 29 rule: 0.0 Hunab Ku, outside the ordinary Kin count.",
+    "status": "reviewed_official_methodology"
+  },
+  {
+    "sourceId": "SOURCE-002",
+    "name": "Law of Time - Rainbow Science Primer",
+    "type": "official_documentation",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "manual",
+    "urlOrReference": "https://www.lawoftime.org/rainbow-bridge/rainbow-science.html",
+    "consultedAt": null,
+    "supports": {
+      "kinByDate": false,
+      "seal": true,
+      "tone": false,
+      "color": false,
+      "earthFamily": true,
+      "oracle": false,
+      "waveSpell": false,
+      "castle": false,
+      "leapDayRule": false
+    },
+    "notes": "Candidate already cited by the project for Earth Family structure.",
+    "status": "pending_review"
+  },
+  {
+    "sourceId": "SOURCE-003",
+    "name": "13moon Birthdate Decoder",
+    "type": "online_decoder",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "manual",
+    "urlOrReference": "",
+    "consultedAt": null,
+    "supports": {
+      "kinByDate": true,
+      "seal": true,
+      "tone": true,
+      "color": true,
+      "earthFamily": false,
+      "oracle": false,
+      "waveSpell": false,
+      "castle": false,
+      "leapDayRule": false
+    },
+    "notes": "Candidate requested for manual review. Confirm the canonical URL and methodology before use.",
+    "status": "pending_review"
+  },
+  {
+    "sourceId": "SOURCE-004",
+    "name": "MayanKin Daily Tzolkin",
+    "type": "calendar_tool",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "public_code_review",
+    "urlOrReference": "https://mayankin.com/daily-tzolkin/",
+    "codeReference": "https://mayankin.com/wp-content/themes/genesis-sample/scripts/dtselecteddate.js?ver=6.8.5",
+    "consultedAt": "2026-06-07",
+    "supports": {
+      "kinByDate": true,
+      "seal": true,
+      "tone": true,
+      "color": true,
+      "earthFamily": false,
+      "oracle": false,
+      "waveSpell": false,
+      "castle": false,
+      "leapDayRule": true
+    },
+    "notes": "Accepted for Kin/date comparison. Published JavaScript uses the Dreamspell count and rewrites February 29 to February 28.",
+    "status": "reviewed_compatible",
+    "phaseA2": {
+      "reviewedAt": "2026-06-07",
+      "casesChecked": 96,
+      "agreementsWithOtherAcceptedSource": 96,
+      "disagreementsWithOtherAcceptedSource": 0
+    }
+  },
+  {
+    "sourceId": "SOURCE-005",
+    "name": "Starroot Mayan Oracle / Dreamspell Date Viewer",
+    "type": "online_decoder",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "manual",
+    "urlOrReference": "",
+    "consultedAt": null,
+    "supports": {
+      "kinByDate": true,
+      "seal": true,
+      "tone": true,
+      "color": true,
+      "earthFamily": false,
+      "oracle": true,
+      "waveSpell": false,
+      "castle": false,
+      "leapDayRule": false
+    },
+    "notes": "Candidate requested for manual review. Confirm availability and calculation convention.",
+    "status": "pending_review"
+  },
+  {
+    "sourceId": "SOURCE-006",
+    "name": "13:20 Sync",
+    "type": "app_reference",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "manual",
+    "urlOrReference": "",
+    "consultedAt": null,
+    "supports": {
+      "kinByDate": true,
+      "seal": true,
+      "tone": true,
+      "color": true,
+      "earthFamily": false,
+      "oracle": true,
+      "waveSpell": true,
+      "castle": false,
+      "leapDayRule": false
+    },
+    "notes": "Candidate requested for manual review. Record app version and platform when consulted.",
+    "status": "pending_review"
+  },
+  {
+    "sourceId": "SOURCE-007",
+    "name": "Galactic Ark Dreamspell Kin Calculator",
+    "type": "online_decoder",
+    "methodology": "Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "public_code_review",
+    "urlOrReference": "https://galacticark.org/dreamspell-kin-calculator",
+    "codeReference": "https://galacticark.org/wp-content/plugins/dreamspell_KIN_calculator_v1.3/dreamspell-calculator.js?ver=1.0.0",
+    "consultedAt": "2026-06-07",
+    "supports": {
+      "kinByDate": true,
+      "seal": true,
+      "tone": true,
+      "color": true,
+      "earthFamily": false,
+      "oracle": true,
+      "waveSpell": true,
+      "castle": false,
+      "leapDayRule": true
+    },
+    "notes": "Accepted for Kin/date comparison. Public code uses Julian days, an independent anchor, and removes February 29 from the sequence. Its direct date calculator still displays the prior Kin on February 29.",
+    "status": "reviewed_compatible",
+    "phaseA2": {
+      "reviewedAt": "2026-06-07",
+      "casesChecked": 96,
+      "agreementsWithOtherAcceptedSource": 96,
+      "disagreementsWithOtherAcceptedSource": 0
+    }
+  },
+  {
+    "sourceId": "SOURCE-008",
+    "name": "Calculators Ocean Galactic Signature Calculator",
+    "type": "online_decoder",
+    "methodology": "Claims Dreamspell / Sincronario das 13 Luas",
+    "accessMode": "public_code_review",
+    "urlOrReference": "https://calculatorsocean.com/galactic-signature-calculator/",
+    "consultedAt": "2026-06-07",
+    "supports": {
+      "kinByDate": false,
+      "seal": false,
+      "tone": false,
+      "color": false,
+      "earthFamily": false,
+      "oracle": false,
+      "waveSpell": false,
+      "castle": false,
+      "leapDayRule": false,
+      "strictGregorianValidation": true
+    },
+    "notes": "Rejected as a Kin reference: page prose states 1987-07-26 is Kin 34 and leap days are excluded, but the published calculator code anchors that date at Kin 1 and counts raw Gregorian days. Used only as a second strict-date validator for 2026-02-30.",
+    "status": "rejected_for_kin_restricted_use"
+  }
+]

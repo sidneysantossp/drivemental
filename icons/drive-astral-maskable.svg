@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Drive Astral</title>
+  <defs>
+    <radialGradient id="background" cx="50%" cy="42%" r="72%">
+      <stop offset="0" stop-color="#174d35"/>
+      <stop offset="0.58" stop-color="#061b17"/>
+      <stop offset="1" stop-color="#020d0b"/>
+    </radialGradient>
+    <radialGradient id="gold" cx="38%" cy="28%" r="75%">
+      <stop offset="0" stop-color="#fff4c2"/>
+      <stop offset="0.52" stop-color="#f2c968"/>
+      <stop offset="1" stop-color="#9d6d20"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#background)"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#d6a53a" stroke-opacity=".36" stroke-width="4"/>
+  <circle cx="256" cy="256" r="126" fill="none" stroke="#f2c968" stroke-opacity=".24" stroke-width="3" stroke-dasharray="5 14"/>
+  <circle cx="256" cy="256" r="82" fill="url(#gold)" stroke="#fff0ac" stroke-width="4"/>
+  <path d="m256 177 15 54 54 15-54 15-15 54-15-54-54-15 54-15 15-54Z" fill="#062018"/>
+  <circle cx="256" cy="246" r="18" fill="none" stroke="#f2c968" stroke-width="7"/>
+  <path d="M216 310c12-23 25-35 40-35s28 12 40 35M228 225c8 8 18 12 28 12s20-4 28-12" fill="none" stroke="#f2c968" stroke-linecap="round" stroke-width="8"/>
+</svg>

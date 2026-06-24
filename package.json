@@ -1,0 +1,19 @@
+{
+  "name": "drive-astral",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Drive Astral web platform and installable PWA",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/sincronario-engine.test.js && node tests/thirteen-moons-engine.test.js && node tests/cosmic-timeline.test.js && node tests/web-platform.test.js && node tests/supabase-integration.test.js && node tests/app-render.test.js",
+    "check": "npm.cmd test",
+    "validation:generate": "node tests/generate-sincronario-validation-fixtures.js",
+    "validation:a1": "node tests/apply-sincronario-phase-a1-evidence.js",
+    "validation:a2": "node tests/apply-sincronario-phase-a2-evidence.js",
+    "validation:policy": "node tests/apply-sincronario-post-validation-policy.js",
+    "validation:compare": "node tests/validate-sincronario-reference-cases.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

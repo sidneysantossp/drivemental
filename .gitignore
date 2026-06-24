@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+runtime-config.production.js
+.supabase/
+*-qa.png
+resultado-drive-astral.png
