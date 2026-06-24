@@ -201,7 +201,18 @@ assert.ok(styles.includes("@media (prefers-reduced-motion: reduce)"));
 assert.ok(styles.includes(".cosmic-nebula"));
 assert.ok(styles.includes("pointer-events: none"));
 assert.ok(styles.includes(".admin-settings-grid"));
+assert.ok(styles.includes(".admin-overview-strip"));
+assert.ok(styles.includes(".admin-management-grid"));
+assert.ok(styles.includes(".admin-table"));
 assert.ok(styles.includes(".admin-field input"));
+
+const adminDashboardContext = createBrowserLikeContext("http://localhost:4173/admin");
+const adminDashboardHtml = adminDashboardContext.__getHtml();
+assert.strictEqual(vm.runInContext("state.route", adminDashboardContext), "admin-dashboard");
+assert.ok(adminDashboardHtml.includes("Gerenciar Usu&aacute;rios"));
+assert.ok(adminDashboardHtml.includes("Gerenciar Planos"));
+assert.ok(adminDashboardHtml.includes("Abrir Usu&aacute;rios"));
+assert.ok(adminDashboardHtml.includes("Abrir Planos"));
 
 const adminContext = createBrowserLikeContext("http://localhost:4173/admin/configuracoes");
 const adminHtml = adminContext.__getHtml();
@@ -215,6 +226,22 @@ assert.ok(adminHtml.includes("29,90"));
 assert.ok(adminHtml.includes("97,00"));
 assert.ok(adminHtml.includes("INICIAR A MINHA JORNADA"));
 assert.ok(adminHtml.includes('id="admin-settings-form"'));
+
+const adminUsersContext = createBrowserLikeContext("http://localhost:4173/admin/usuarios");
+const adminUsersHtml = adminUsersContext.__getHtml();
+assert.strictEqual(vm.runInContext("state.route", adminUsersContext), "admin-users");
+assert.ok(adminUsersHtml.includes("Gerenciamento de usu&aacute;rios"));
+assert.ok(adminUsersHtml.includes("Usu&aacute;rios cadastrados"));
+assert.ok(adminUsersHtml.includes("Pessoa Teste"));
+
+const adminPlansContext = createBrowserLikeContext("http://localhost:4173/admin/planos");
+const adminPlansHtml = adminPlansContext.__getHtml();
+assert.strictEqual(vm.runInContext("state.route", adminPlansContext), "admin-plans");
+assert.ok(adminPlansHtml.includes("Gerenciamento de planos"));
+assert.ok(adminPlansHtml.includes("Drive Astral"));
+assert.ok(adminPlansHtml.includes("Jornada Guiada"));
+assert.ok(adminPlansHtml.includes("R$ 29,90"));
+assert.ok(adminPlansHtml.includes("R$ 97,00"));
 
 const adminDeniedContext = createBrowserLikeContext(
   "http://localhost:4173/admin",

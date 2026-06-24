@@ -13,6 +13,10 @@ const adminMigration = fs.readFileSync(
   "supabase/migrations/202606240002_admin_foundation.sql",
   "utf8",
 );
+const adminUsersPlansMigration = fs.readFileSync(
+  "supabase/migrations/202606240003_admin_users_plans.sql",
+  "utf8",
+);
 const deleteAccount = fs.readFileSync(
   "supabase/functions/delete-account/index.ts",
   "utf8",
@@ -59,6 +63,15 @@ assert.ok(adminMigration.includes("grant select, update on public.app_settings t
 assert.ok(adminMigration.includes("'plans.display'"));
 assert.ok(adminMigration.includes('"premiumPrice": "29,90"'));
 assert.ok(adminMigration.includes('"mentorPrice": "97,00"'));
+assert.ok(adminUsersPlansMigration.includes("create table if not exists public.plan_catalog"));
+assert.ok(adminUsersPlansMigration.includes("create table if not exists public.user_access_plans"));
+assert.ok(adminUsersPlansMigration.includes("create policy profiles_select_admin"));
+assert.ok(adminUsersPlansMigration.includes("create policy plan_catalog_update_admin"));
+assert.ok(adminUsersPlansMigration.includes("create policy user_access_plans_select_admin"));
+assert.ok(adminUsersPlansMigration.includes("grant select, insert, update on public.plan_catalog to authenticated"));
+assert.ok(adminUsersPlansMigration.includes("grant select, insert, update on public.user_access_plans to authenticated"));
+assert.ok(adminUsersPlansMigration.includes("'premium'"));
+assert.ok(adminUsersPlansMigration.includes("'mentor'"));
 
 assert.ok(deleteAccount.includes("auth.admin.deleteUser"));
 assert.ok(deleteAccount.includes("auth.getUser"));
@@ -73,8 +86,13 @@ assert.ok(!clientSource.includes('from("access_entitlements")'));
 assert.ok(clientSource.includes("getAdminRole"));
 assert.ok(clientSource.includes("loadAdminSettings"));
 assert.ok(clientSource.includes("saveAdminSettings"));
+assert.ok(clientSource.includes("listAdminUsers"));
+assert.ok(clientSource.includes("listAdminPlans"));
 assert.ok(clientSource.includes('from("admin_roles")'));
 assert.ok(clientSource.includes('from("app_settings")'));
+assert.ok(clientSource.includes('from("profiles")'));
+assert.ok(clientSource.includes('from("plan_catalog")'));
+assert.ok(clientSource.includes('from("user_access_plans")'));
 assert.ok(deployScript.includes("npx.cmd"));
 assert.ok(deployScript.includes("--db-url"));
 assert.ok(runtimeExample.includes('authMode: "supabase"'));

@@ -73,7 +73,7 @@ function environmentLabel() {
 }
 
 function isAdminRoute(route) {
-  return route === "admin-dashboard" || route === "admin-settings";
+  return ["admin-dashboard", "admin-users", "admin-plans", "admin-settings"].includes(route);
 }
 
 function defaultAdminSettings() {
@@ -593,6 +593,8 @@ function routeStateFromLocation() {
     "/app/historico": "history",
     "/app/perfil": "profile",
     "/admin": "admin-dashboard",
+    "/admin/usuarios": "admin-users",
+    "/admin/planos": "admin-plans",
     "/admin/configuracoes": "admin-settings",
   };
 
@@ -625,6 +627,8 @@ function updateLocationForState(nextState, replace = false) {
     profile: "/app/perfil",
     "legacy-history": "/app/historico/leitura",
     "admin-dashboard": "/admin",
+    "admin-users": "/admin/usuarios",
+    "admin-plans": "/admin/planos",
     "admin-settings": "/admin/configuracoes",
   };
   let nextUrl = routeUrls[nextState.route] || "/";
@@ -669,6 +673,13 @@ const defaultState = {
   adminSettingsLoading: false,
   adminNotice: "",
   adminNoticeKind: "",
+  adminUsers: [],
+  adminUserAccessPlans: [],
+  adminUsersLoaded: false,
+  adminUsersLoading: false,
+  adminPlans: [],
+  adminPlansLoaded: false,
+  adminPlansLoading: false,
   timelineDraft: {
     title: "",
     eventDate: "",
@@ -2690,9 +2701,64 @@ function mergedAdminSettings(source = state.adminSettings) {
   };
 }
 
+function adminFallbackPlans(settings = mergedAdminSettings()) {
+  return [
+    {
+      plan_id: "free",
+      display_name: "Consulta gratuita",
+      badge: "BASE",
+      price_label: "0,00",
+      billing_label: "primeiro acesso",
+      description: "Entrada inicial para gerar a primeira leitura e conhecer a plataforma.",
+      cta_text: "CRIAR MEU MAPA",
+      is_visible: true,
+      features: ["Primeira consulta", "Mapa essencial", "Historico local"],
+    },
+    {
+      plan_id: "premium",
+      display_name: "Drive Astral",
+      badge: settings.plans.premiumBadge,
+      price_label: settings.plans.premiumPrice,
+      billing_label: "mensal",
+      description: "Consultas recorrentes, historico e recursos premium da plataforma.",
+      cta_text: settings.plans.ctaText,
+      is_visible: settings.plans.premiumVisible,
+      features: ["Novas consultas mensais", "Historico e snapshots", "Protocolos pessoais"],
+    },
+    {
+      plan_id: "mentor",
+      display_name: "Jornada Guiada",
+      badge: settings.plans.mentorBadge,
+      price_label: settings.plans.mentorPrice,
+      billing_label: "acompanhamento",
+      description: "Plano acompanhado para transformar consultas em plano de acao.",
+      cta_text: settings.plans.ctaText,
+      is_visible: settings.plans.mentorVisible,
+      features: ["Dashboard de evolucao", "Check-ins", "Metas e alertas da jornada"],
+    },
+  ];
+}
+
+function adminPlanRows() {
+  return state.adminPlans && state.adminPlans.length
+    ? state.adminPlans
+    : adminFallbackPlans();
+}
+
+function adminAccessForUser(userId) {
+  const plans = Array.isArray(state.adminUserAccessPlans) ? state.adminUserAccessPlans : [];
+  return plans.find((plan) => plan.user_id === userId) || null;
+}
+
+function adminUserDisplayName(user) {
+  return user.display_name || user.email || "Usuario sem nome";
+}
+
 function AdminSidebar() {
   const items = [
     ["admin-dashboard", "chart", "Dashboard"],
+    ["admin-users", "user", "Usu&aacute;rios"],
+    ["admin-plans", "dollar", "Planos"],
     ["admin-settings", "spark", "Configura&ccedil;&otilde;es"],
   ];
   return `
@@ -2758,30 +2824,120 @@ function AdminAccessDeniedScreen() {
 
 function AdminDashboardScreen() {
   const settings = mergedAdminSettings();
+  const userCount = state.adminUsersLoaded ? state.adminUsers.length : "-";
+  const planCount = adminPlanRows().filter((plan) => plan.is_visible !== false).length;
   return AdminShell(`
-    <section class="admin-dashboard-grid">
+    <section class="admin-overview-strip">
       ${GoldenCard(`
-        <span class="admin-kpi-label">Plano Premium</span>
-        <strong class="admin-kpi-value">R$ ${escapeHtml(settings.plans.premiumPrice)}</strong>
-        <small>${escapeHtml(settings.plans.premiumBadge)} &middot; ${escapeHtml(settings.plans.ctaText)}</small>
+        <span class="admin-kpi-label">Usu&aacute;rios</span>
+        <strong class="admin-kpi-value">${escapeHtml(String(userCount))}</strong>
+        <small>Cadastros e libera&ccedil;&atilde;o manual de acesso.</small>
       `, "admin-kpi-card")}
       ${GoldenCard(`
-        <span class="admin-kpi-label">Plano Mentor</span>
-        <strong class="admin-kpi-value">R$ ${escapeHtml(settings.plans.mentorPrice)}</strong>
-        <small>${escapeHtml(settings.plans.mentorBadge)} &middot; acompanhamento guiado</small>
+        <span class="admin-kpi-label">Planos vis&iacute;veis</span>
+        <strong class="admin-kpi-value">${escapeHtml(String(planCount))}</strong>
+        <small>Drive Astral, Mentor e varia&ccedil;&otilde;es comerciais.</small>
       `, "admin-kpi-card")}
       ${GoldenCard(`
         <span class="admin-kpi-label">Checkout</span>
-        <strong class="admin-kpi-value">${escapeHtml(settings.checkout.provider)}</strong>
-        <small>Links externos configurados em Configura&ccedil;&otilde;es</small>
+        <strong class="admin-kpi-value">${escapeHtml(settings.checkout.provider.toUpperCase())}</strong>
+        <small>Pagamento externo, acesso liberado manualmente.</small>
       `, "admin-kpi-card")}
     </section>
-    ${GoldenCard(`
-      <h2 class="settings-title">Configura&ccedil;&otilde;es da plataforma</h2>
-      <p class="transparency-note">Controle nomes, pre&ccedil;os, badges, links de checkout, metodologia lunar e regras operacionais em uma &aacute;rea centralizada.</p>
-      <button class="button-primary" data-route="admin-settings" type="button">Abrir Configura&ccedil;&otilde;es ${icon("arrow")}</button>
-    `, "admin-wide-card")}
+    <section class="admin-management-grid">
+      ${GoldenCard(`
+        <span class="admin-card-icon">${icon("user")}</span>
+        <h2 class="settings-title">Gerenciar Usu&aacute;rios</h2>
+        <p class="transparency-note">Consulte cadastros, veja plano atual e prepare libera&ccedil;&atilde;o manual depois da compra externa.</p>
+        <button class="button-primary" data-route="admin-users" type="button">Abrir Usu&aacute;rios ${icon("arrow")}</button>
+      `, "admin-management-card")}
+      ${GoldenCard(`
+        <span class="admin-card-icon">${icon("dollar")}</span>
+        <h2 class="settings-title">Gerenciar Planos</h2>
+        <p class="transparency-note">Revise nomes, valores, badges, visibilidade e rela&ccedil;&atilde;o com checkout externo.</p>
+        <button class="button-primary" data-route="admin-plans" type="button">Abrir Planos ${icon("arrow")}</button>
+      `, "admin-management-card")}
+      ${GoldenCard(`
+        <span class="admin-card-icon">${icon("spark")}</span>
+        <h2 class="settings-title">Configura&ccedil;&otilde;es</h2>
+        <p class="transparency-note">Controle plataforma, CTAs, links de checkout e regras da metodologia lunar.</p>
+        <button class="button-ghost" data-route="admin-settings" type="button">Abrir Configura&ccedil;&otilde;es ${icon("arrow")}</button>
+      `, "admin-management-card")}
+    </section>
   `, "Painel Admin", "Resumo operacional e atalhos de gest&atilde;o");
+}
+
+function AdminUsersScreen() {
+  const users = Array.isArray(state.adminUsers) ? state.adminUsers : [];
+  const rows = users.map((user) => {
+    const access = adminAccessForUser(user.user_id);
+    return `
+      <tr>
+        <td><strong>${escapeHtml(adminUserDisplayName(user))}</strong><small>${escapeHtml(user.email || "")}</small></td>
+        <td>${escapeHtml(user.primary_area_id || "Sem area")}</td>
+        <td><span class="admin-status-pill">${escapeHtml(access ? access.plan_id : "sem plano")}</span></td>
+        <td>${escapeHtml(access ? access.status : "pendente")}</td>
+        <td>${escapeHtml(user.created_at ? formatDatePtBr(user.created_at.slice(0, 10)) : "-")}</td>
+      </tr>
+    `;
+  }).join("");
+
+  return AdminShell(`
+    <section class="admin-page-heading">
+      <div>
+        <span class="eyebrow">ACESSOS</span>
+        <h2>Gerenciamento de usu&aacute;rios</h2>
+        <p>Esta tela lista os perfis cadastrados e prepara a libera&ccedil;&atilde;o manual de Premium ou Mentor ap&oacute;s pagamento externo.</p>
+      </div>
+      <button class="button-primary" data-route="admin-settings" type="button">Configurar checkout ${icon("arrow")}</button>
+    </section>
+    ${GoldenCard(`
+      <div class="admin-table-header">
+        <div><h2 class="settings-title">Usu&aacute;rios cadastrados</h2><p class="transparency-note">${state.adminUsersLoading ? "Carregando dados..." : "Perfis vis&iacute;veis para administradores."}</p></div>
+      </div>
+      ${rows ? `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Usu&aacute;rio</th><th>&Aacute;rea</th><th>Plano</th><th>Status</th><th>Cadastro</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      ` : `
+        <div class="admin-empty-state">
+          <strong>Nenhum usu&aacute;rio listado ainda</strong>
+          <span>Quando houver cadastros com permiss&atilde;o de leitura admin, eles aparecer&atilde;o aqui.</span>
+        </div>
+      `}
+    `, "admin-wide-card admin-table-card")}
+  `, "Usu&aacute;rios", "Cadastros, acessos e planos manuais");
+}
+
+function AdminPlansScreen() {
+  const plans = adminPlanRows();
+  return AdminShell(`
+    <section class="admin-page-heading">
+      <div>
+        <span class="eyebrow">COMERCIAL</span>
+        <h2>Gerenciamento de planos</h2>
+        <p>Controle a oferta exibida, os valores comerciais e a rela&ccedil;&atilde;o com os links externos de checkout.</p>
+      </div>
+      <button class="button-primary" data-route="admin-settings" type="button">Editar valores ${icon("arrow")}</button>
+    </section>
+    <section class="admin-plan-grid">
+      ${plans.map((plan) => GoldenCard(`
+        <div class="admin-plan-heading">
+          <span class="admin-status-pill">${escapeHtml(plan.badge || plan.plan_id)}</span>
+          <span>${plan.is_visible === false ? "Oculto" : "Vis&iacute;vel"}</span>
+        </div>
+        <h2>${escapeHtml(plan.display_name || plan.plan_id)}</h2>
+        <strong class="admin-plan-price">R$ ${escapeHtml(plan.price_label || "0,00")}</strong>
+        <p>${escapeHtml(plan.description || "Sem descri&ccedil;&atilde;o publicada.")}</p>
+        <ul>
+          ${(Array.isArray(plan.features) ? plan.features : []).slice(0, 4).map((feature) => `<li>${icon("check")}<span>${escapeHtml(feature)}</span></li>`).join("")}
+        </ul>
+      `, "admin-plan-card")).join("")}
+    </section>
+  `, "Planos", "Catalogo comercial e visibilidade");
 }
 
 function AdminSettingsScreen() {
@@ -4658,6 +4814,72 @@ function requestAdminSettings() {
   });
 }
 
+function requestAdminUsers() {
+  if (state.adminUsersLoading || state.adminUsersLoaded) {
+    return;
+  }
+
+  if (!isSupabaseMode()) {
+    setState({
+      adminUsers: [{
+        user_id: "local-preview",
+        email: (state.account && state.account.email) || "admin@preview.local",
+        display_name: (state.account && state.account.name) || "Admin Preview",
+        primary_area_id: "preview",
+        created_at: new Date().toISOString(),
+      }],
+      adminUserAccessPlans: [],
+      adminUsersLoaded: true,
+    });
+    return;
+  }
+
+  setState({ adminUsersLoading: true, adminNotice: "", adminNoticeKind: "" });
+  supabaseService().listAdminUsers().then((payload) => {
+    setState({
+      adminUsers: payload.profiles || [],
+      adminUserAccessPlans: payload.accessPlans || [],
+      adminUsersLoaded: true,
+      adminUsersLoading: false,
+    });
+  }).catch(() => {
+    setState({
+      adminUsersLoading: false,
+      adminNotice: "N&atilde;o foi poss&iacute;vel carregar usu&aacute;rios.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
+function requestAdminPlans() {
+  if (state.adminPlansLoading || state.adminPlansLoaded) {
+    return;
+  }
+
+  if (!isSupabaseMode()) {
+    setState({
+      adminPlans: adminFallbackPlans(),
+      adminPlansLoaded: true,
+    });
+    return;
+  }
+
+  setState({ adminPlansLoading: true, adminNotice: "", adminNoticeKind: "" });
+  supabaseService().listAdminPlans().then((plans) => {
+    setState({
+      adminPlans: plans && plans.length ? plans : adminFallbackPlans(),
+      adminPlansLoaded: true,
+      adminPlansLoading: false,
+    });
+  }).catch(() => {
+    setState({
+      adminPlansLoading: false,
+      adminNotice: "N&atilde;o foi poss&iacute;vel carregar planos.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
 function adminSettingsFromForm(formData) {
   return {
     general: {
@@ -4918,6 +5140,8 @@ function render() {
     "timeline-event": TimelineEventDetailScreen,
     profile: ProfileScreen,
     "admin-dashboard": AdminDashboardScreen,
+    "admin-users": AdminUsersScreen,
+    "admin-plans": AdminPlansScreen,
     "admin-settings": AdminSettingsScreen,
   };
 
@@ -4929,6 +5153,8 @@ function render() {
   let selectedScreen = screens[state.route] || LandingScreen;
   let shouldRequestAdminAccess = false;
   let shouldRequestAdminSettings = false;
+  let shouldRequestAdminUsers = false;
+  let shouldRequestAdminPlans = false;
 
   if (!state.authenticated && !publicRoutes.includes(state.route)) {
     state.route = "login";
@@ -4943,12 +5169,28 @@ function render() {
         shouldRequestAdminAccess = true;
       } else if (!state.adminRole) {
         selectedScreen = AdminAccessDeniedScreen;
-      } else if (state.route === "admin-settings" && !state.adminSettingsLoaded && !state.adminSettingsLoading) {
-        shouldRequestAdminSettings = true;
+      } else {
+        if (!state.adminSettingsLoaded && !state.adminSettingsLoading) {
+          shouldRequestAdminSettings = true;
+        }
+        if ((state.route === "admin-users" || state.route === "admin-dashboard") && !state.adminUsersLoaded && !state.adminUsersLoading) {
+          shouldRequestAdminUsers = true;
+        }
+        if ((state.route === "admin-plans" || state.route === "admin-dashboard") && !state.adminPlansLoaded && !state.adminPlansLoading) {
+          shouldRequestAdminPlans = true;
+        }
       }
-    } else if (!state.adminAccessChecked) {
-      state.adminAccessChecked = true;
-      state.adminRole = "owner";
+    } else {
+      if (!state.adminAccessChecked) {
+        state.adminAccessChecked = true;
+        state.adminRole = "owner";
+      }
+      if ((state.route === "admin-users" || state.route === "admin-dashboard") && !state.adminUsersLoaded) {
+        shouldRequestAdminUsers = true;
+      }
+      if ((state.route === "admin-plans" || state.route === "admin-dashboard") && !state.adminPlansLoaded) {
+        shouldRequestAdminPlans = true;
+      }
     }
   }
 
@@ -4961,6 +5203,12 @@ function render() {
   }
   if (shouldRequestAdminSettings) {
     requestAdminSettings();
+  }
+  if (shouldRequestAdminUsers) {
+    requestAdminUsers();
+  }
+  if (shouldRequestAdminPlans) {
+    requestAdminPlans();
   }
 }
 

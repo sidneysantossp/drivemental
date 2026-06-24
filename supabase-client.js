@@ -416,6 +416,49 @@
     }
   }
 
+  async function listAdminUsers() {
+    const client = await getClient();
+    if (!client) {
+      return { profiles: [], accessPlans: [] };
+    }
+    const [profilesResult, accessResult] = await Promise.all([
+      client
+        .from("profiles")
+        .select("user_id,email,display_name,birth_date,primary_area_id,created_at,updated_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      client
+        .from("user_access_plans")
+        .select("assignment_id,user_id,plan_id,status,starts_at,expires_at,updated_at")
+        .order("updated_at", { ascending: false }),
+    ]);
+    if (profilesResult.error) {
+      throw profilesResult.error;
+    }
+    if (accessResult.error) {
+      throw accessResult.error;
+    }
+    return {
+      profiles: profilesResult.data || [],
+      accessPlans: accessResult.data || [],
+    };
+  }
+
+  async function listAdminPlans() {
+    const client = await getClient();
+    if (!client) {
+      return [];
+    }
+    const { data, error } = await client
+      .from("plan_catalog")
+      .select("plan_id,display_name,badge,price_label,billing_label,description,cta_text,checkout_url,is_visible,sort_order,features,updated_at")
+      .order("sort_order", { ascending: true });
+    if (error) {
+      throw error;
+    }
+    return data || [];
+  }
+
   async function deleteAccount() {
     const client = await getClient();
     if (!client) {
@@ -449,6 +492,8 @@
     getAdminRole,
     loadAdminSettings,
     saveAdminSettings,
+    listAdminUsers,
+    listAdminPlans,
     deleteAccount,
   });
 })(window);

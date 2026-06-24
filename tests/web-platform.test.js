@@ -53,7 +53,7 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-astral-web-v14"));
+assert.ok(serviceWorker.includes("drive-astral-web-v15"));
 
 assert.ok(platformSource.includes('navigator.serviceWorker.register("/sw.js")'));
 assert.ok(platformSource.includes('"beforeinstallprompt"'));
@@ -88,5 +88,6 @@ assert.ok(fs.existsSync("docs/producao/checklist-lancamento.md"));
 assert.ok(fs.existsSync("docs/producao/admin-planejamento.md"));
 assert.ok(fs.existsSync("infra/postgres/schema.sql"));
 assert.ok(fs.existsSync("supabase/migrations/202606240002_admin_foundation.sql"));
+assert.ok(fs.existsSync("supabase/migrations/202606240003_admin_users_plans.sql"));
 
 console.log("web-platform tests passed");
