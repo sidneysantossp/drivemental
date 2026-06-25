@@ -1,4 +1,4 @@
-const CACHE_VERSION = "drive-astral-web-v22";
+const CACHE_VERSION = "drive-astral-web-v23";
 const APP_SHELL = [
   "/",
   "/index.html",

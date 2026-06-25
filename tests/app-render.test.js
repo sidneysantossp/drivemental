@@ -212,8 +212,10 @@ assert.ok(styles.includes(".energy-cycle-shortcut"));
 assert.ok(styles.includes(".energy-cycle-main-card"));
 assert.ok(styles.includes("grid-template-columns: repeat(5, 1fr)"));
 assert.ok(appSource.includes("function DashboardEvolutionSection()"));
+assert.ok(appSource.includes("function MyDayScreen()"));
 assert.ok(appSource.includes("function UpgradeModal()"));
 assert.ok(appSource.includes("function EnergyCycleScreen()"));
+assert.ok(appSource.includes('"/app/meu-dia": "my-day"'));
 assert.ok(appSource.includes('"/app/ciclo-energetico": "energy-cycle"'));
 
 const adminDashboardContext = createBrowserLikeContext("http://localhost:4173/admin");
@@ -275,6 +277,10 @@ assert.strictEqual(demoState.authenticated, true);
 assert.strictEqual(demoState.account.accessMode, "local-demo");
 assert.strictEqual(demoState.reading.personal_map.kin.value, 168);
 assert.ok(demoContext.__getHtml().includes("Conta Demonstra"));
+
+const myDayRouteContext = createBrowserLikeContext("http://localhost:4173/app/meu-dia");
+assert.strictEqual(vm.runInContext("state.route", myDayRouteContext), "my-day");
+assert.ok(myDayRouteContext.__getHtml().includes("Meu dia"));
 
 assert.ok(homeHtml.includes("Onde voc&ecirc; deseja aplicar sua leitura de hoje?"));
 assert.ok(homeHtml.includes("A escolha contextualiza a pr&aacute;tica, sem alterar os c&aacute;lculos"));
@@ -499,11 +505,33 @@ const freeDashboardHtml = freeDashboardContext.__getHtml();
 assert.ok(freeDashboardHtml.includes("Evolu&ccedil;&atilde;o por &aacute;reas"));
 assert.ok(freeDashboardHtml.includes("Acesso gratuito"));
 assert.ok(freeDashboardHtml.includes("FREE</span>"));
+assert.ok(freeDashboardHtml.includes(">Home</span>"));
+assert.ok(freeDashboardHtml.includes(">Meu dia</span>"));
 assert.ok(!freeDashboardHtml.includes("Conta sincronizada"));
+assert.ok(!freeDashboardHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
+assert.ok(!freeDashboardHtml.includes("Abrir Ciclo Energ&eacute;tico"));
 assert.ok(freeDashboardHtml.includes("Desbloquear"));
 assert.ok(freeDashboardHtml.includes("data-open-upgrade-modal"));
-assert.ok(freeDashboardHtml.includes("Desbloquear consultas"));
-assert.ok(!freeDashboardHtml.includes("<strong>Nova consulta</strong>"));
+assert.ok(freeDashboardHtml.includes("<strong>Nova consulta</strong>"));
+assert.ok(freeDashboardHtml.includes("Libere outras &aacute;reas de vida"));
+assert.ok(freeDashboardHtml.includes("JORNADA DE 30 DIAS"));
+assert.ok(freeDashboardHtml.includes("PR&Aacute;TICA DE AGORA"));
+
+const myDayContext = createBrowserLikeContext("http://localhost:4173/app/meu-dia");
+myDayContext.setState({
+  route: "my-day",
+  name: "Gabriel Ferreira",
+  birth: "1996-06-25",
+  selectedAreaId: "work-prosperity",
+  reading,
+  activeHistoryId: firstHistoryEntry.readingId,
+  history: [cloneForTest(firstHistoryEntry)],
+});
+const myDayHtml = myDayContext.__getHtml();
+assert.ok(myDayHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
+assert.ok(myDayHtml.includes("Frase do dia"));
+assert.ok(myDayHtml.includes("A&ccedil;&atilde;o do dia"));
+assert.ok(myDayHtml.includes("Abrir Ciclo Energ&eacute;tico"));
 
 freeDashboardContext.setState({ route: "home", selectedAreaId: "love-relationships", upgradeModalOpen: false });
 const lockedHomeHtml = freeDashboardContext.__getHtml();

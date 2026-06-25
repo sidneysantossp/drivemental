@@ -714,6 +714,7 @@ function routeStateFromLocation() {
     "/cadastro": "signup",
     "/onboarding": "onboarding",
     "/app": "dashboard",
+    "/app/meu-dia": "my-day",
     "/app/consulta": "home",
     "/app/protocolo": "protocol",
     "/app/jornada": "journey",
@@ -746,6 +747,7 @@ function updateLocationForState(nextState, replace = false) {
     signup: "/cadastro",
     onboarding: "/onboarding",
     dashboard: "/app",
+    "my-day": "/app/meu-dia",
     home: "/app/consulta",
     chakras: "/app/consulta/resultado",
     "energy-cycle": "/app/ciclo-energetico",
@@ -2957,7 +2959,8 @@ function PortalSidebar() {
   const accountName = state.account && state.account.name ? state.account.name : state.name || "Minha conta";
   const activeRoute = state.route === "chakra-detail" ? "energy-cycle" : state.route;
   const items = [
-    ["dashboard", "home", "Hoje"],
+    ["dashboard", "home", "Home"],
+    ["my-day", "spark", "Meu dia"],
     ["home", "compass", "Nova consulta"],
     ["energy-cycle", "lotus", "Ciclo Energ&eacute;tico"],
     ["journey", "calendar", "Jornada de 30 dias"],
@@ -2987,7 +2990,8 @@ function PortalSidebar() {
 
 function PortalTopbar() {
   const titles = {
-    dashboard: ["Hoje", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
+    dashboard: ["Home", "Resumo da sua plataforma"],
+    "my-day": ["Meu dia", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
     home: ["Nova consulta", "Escolha uma &aacute;rea e gere suas coordenadas"],
     chakras: ["Resultado da consulta", "Seu mapa completo foi calculado"],
     "energy-cycle": ["Ciclo Energ&eacute;tico", "Plasmas, chakras e ciclo natural"],
@@ -3588,9 +3592,9 @@ function EmptyState() {
 
 function BottomNavigation() {
   const items = [
-    { route: "dashboard", label: "In&iacute;cio", iconName: "home" },
+    { route: "dashboard", label: "Home", iconName: "home" },
+    { route: "my-day", label: "Meu dia", iconName: "spark" },
     { route: "home", label: "Consulta", iconName: "compass" },
-    { route: "energy-cycle", label: "Ciclo", iconName: "lotus" },
     { route: "journey", label: "Jornada", iconName: "calendar" },
     { route: "profile", label: "Perfil", iconName: "profile" },
   ];
@@ -3666,9 +3670,8 @@ function DashboardEvolutionSection() {
   `;
 }
 
-function DashboardScreen() {
+function DailyDirectionSection() {
   const name = (state.account && state.account.name) || state.name || "viajante";
-  const history = normalizedHistoryList(state.history);
   const kin = personalKin(state.reading);
   const guidance = readingGuidance(state.reading);
   const interpretation = guidance && guidance.interpretation;
@@ -3684,6 +3687,64 @@ function DashboardScreen() {
   const todayAction = journeyToday
     ? decodeStoredText(journeyToday.action)
     : decodeStoredText(suggestedAction || "Escolha uma a&ccedil;&atilde;o simples e conclua antes de iniciar outra.");
+
+  if (!kin) {
+    return `
+      <section class="dashboard-start-card">
+        <span class="dashboard-start-symbol">${icon("spark")}</span>
+        <div>
+          <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()}</span>
+          <h2>Comece com uma &uacute;nica pergunta.</h2>
+          <p>Escolha a &aacute;rea da vida que pede clareza. Sua primeira leitura entregar&aacute; uma dire&ccedil;&atilde;o, uma frase e uma a&ccedil;&atilde;o para hoje.</p>
+          <button class="button-primary" data-route="home" type="button">${icon("compass")} Fazer primeira consulta</button>
+        </div>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="dashboard-today-card">
+      <div class="dashboard-today-heading">
+        <div>
+          <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()} &middot; SUA DIRE&Ccedil;&Atilde;O DE HOJE</span>
+          <h2>${direction.headline}</h2>
+          <p>${direction.direction}</p>
+        </div>
+        <span class="dashboard-today-symbol">${icon("compass")}</span>
+      </div>
+      <div class="dashboard-today-guidance">
+        <article>
+          <span>${icon("spark")} Frase do dia</span>
+          <strong>&ldquo;${escapeHtml(todayMantra)}&rdquo;</strong>
+        </article>
+        <article>
+          <span>${icon("target")} A&ccedil;&atilde;o do dia</span>
+          <strong>${escapeHtml(todayAction)}</strong>
+        </article>
+      </div>
+      <div class="dashboard-today-actions">
+        <button class="button-primary" data-route="journey" type="button">${icon("calendar")} ${journeyProgress ? "Abrir meu dia" : "Iniciar jornada de 30 dias"}</button>
+        <button class="button-ghost" data-route="chakras" type="button">Ver minha leitura ${icon("arrow")}</button>
+      </div>
+    </section>
+  `;
+}
+
+function MyDayScreen() {
+  return PlatformShell(`
+    ${DailyDirectionSection()}
+    ${personalKin(state.reading) ? EnergyCycleShortcutCard("is-dashboard") : ""}
+  `);
+}
+
+function DashboardScreen() {
+  const name = (state.account && state.account.name) || state.name || "viajante";
+  const history = normalizedHistoryList(state.history);
+  const kin = personalKin(state.reading);
+  const journeyProgress = kin ? loadJourneyProgress() : null;
+  const journeyDay = journeyProgress ? currentJourneyDay(journeyProgress) : 1;
+  const journeyCompleted = journeyProgress ? journeyProgress.completedDays.length : 0;
+  const journeyPercent = Math.round((journeyCompleted / 30) * 100);
   const moments = protocolMoments();
   const currentMoment = moments.find((moment) => moment.id === currentProtocolMomentId()) || moments[0];
   const protocolProgress = loadProtocolProgress();
@@ -3691,33 +3752,6 @@ function DashboardScreen() {
 
   return PlatformShell(`
     ${kin ? `
-      <section class="dashboard-today-card">
-        <div class="dashboard-today-heading">
-          <div>
-            <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()} &middot; SUA DIRE&Ccedil;&Atilde;O DE HOJE</span>
-            <h2>${direction.headline}</h2>
-            <p>${direction.direction}</p>
-          </div>
-          <span class="dashboard-today-symbol">${icon("compass")}</span>
-        </div>
-        <div class="dashboard-today-guidance">
-          <article>
-            <span>${icon("spark")} Frase do dia</span>
-            <strong>&ldquo;${escapeHtml(todayMantra)}&rdquo;</strong>
-          </article>
-          <article>
-            <span>${icon("target")} A&ccedil;&atilde;o do dia</span>
-            <strong>${escapeHtml(todayAction)}</strong>
-          </article>
-        </div>
-        <div class="dashboard-today-actions">
-          <button class="button-primary" data-route="journey" type="button">${icon("calendar")} ${journeyProgress ? "Abrir meu dia" : "Iniciar jornada de 30 dias"}</button>
-          <button class="button-ghost" data-route="chakras" type="button">Ver minha leitura ${icon("arrow")}</button>
-        </div>
-      </section>
-
-      ${EnergyCycleShortcutCard("is-dashboard")}
-
       ${DashboardEvolutionSection()}
 
       <section class="dashboard-continuity-grid">
@@ -3757,7 +3791,7 @@ function DashboardScreen() {
     <section class="dashboard-secondary-actions" aria-label="Outros acessos">
       <button ${freeConsultationUsed() ? 'data-open-upgrade-modal' : 'data-route="home"'} type="button">
         <span>${icon("compass")}</span>
-        <div><strong>${freeConsultationUsed() ? "Desbloquear consultas" : "Nova consulta"}</strong><small>${freeConsultationUsed() ? "Libere outras &aacute;reas de vida" : "Escolha outra &aacute;rea de vida"}</small></div>
+        <div><strong>Nova consulta</strong><small>${freeConsultationUsed() ? "Libere outras &aacute;reas de vida" : "Escolha outra &aacute;rea de vida"}</small></div>
         ${icon("arrow")}
       </button>
       <button data-route="history" type="button">
@@ -5795,6 +5829,7 @@ function render() {
     signup: SignupScreen,
     onboarding: OnboardingScreen,
     dashboard: DashboardScreen,
+    "my-day": MyDayScreen,
     home: HomeScreen,
     chakras: ChakrasScreen,
     "energy-cycle": EnergyCycleScreen,
