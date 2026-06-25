@@ -88,6 +88,8 @@ assert.ok(clientSource.includes("loadAdminSettings"));
 assert.ok(clientSource.includes("saveAdminSettings"));
 assert.ok(clientSource.includes("listAdminUsers"));
 assert.ok(clientSource.includes("listAdminPlans"));
+assert.ok(clientSource.includes("saveAdminPlan"));
+assert.ok(clientSource.includes("assignAdminUserPlan"));
 assert.ok(clientSource.includes('from("admin_roles")'));
 assert.ok(clientSource.includes('from("app_settings")'));
 assert.ok(clientSource.includes('from("profiles")'));

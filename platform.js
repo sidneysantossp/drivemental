@@ -50,7 +50,21 @@
     updateInstallButtons();
   });
 
-  if ("serviceWorker" in navigator) {
+  const isLocalDevelopmentHost = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+
+  if ("serviceWorker" in navigator && isLocalDevelopmentHost) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => Promise.all(
+          registrations.map((registration) => registration.unregister()),
+        ))
+        .then(() => (window.caches ? window.caches.keys() : []))
+        .then((cacheKeys) => Promise.all(cacheKeys.map((cacheKey) => window.caches.delete(cacheKey))))
+        .catch(() => {
+          // Local development must keep working even when cache cleanup is unavailable.
+        });
+    });
+  } else if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         // The web app remains usable without offline installation support.

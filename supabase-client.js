@@ -459,6 +459,41 @@
     return data || [];
   }
 
+  async function saveAdminPlan(plan) {
+    const client = await getClient();
+    if (!client) {
+      return;
+    }
+    const { error } = await client
+      .from("plan_catalog")
+      .upsert(plan, { onConflict: "plan_id" });
+    if (error) {
+      throw error;
+    }
+  }
+
+  async function assignAdminUserPlan(access) {
+    const client = await getClient();
+    if (!client) {
+      return;
+    }
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError || !userData.user) {
+      throw userError || new Error("AUTH_REQUIRED");
+    }
+    const payload = {
+      ...access,
+      created_by: userData.user.id,
+      starts_at: access.starts_at || new Date().toISOString(),
+    };
+    const { error } = await client
+      .from("user_access_plans")
+      .upsert(payload, { onConflict: "user_id,plan_id" });
+    if (error) {
+      throw error;
+    }
+  }
+
   async function deleteAccount() {
     const client = await getClient();
     if (!client) {
@@ -494,6 +529,8 @@
     saveAdminSettings,
     listAdminUsers,
     listAdminPlans,
+    saveAdminPlan,
+    assignAdminUserPlan,
     deleteAccount,
   });
 })(window);

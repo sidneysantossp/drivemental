@@ -680,6 +680,7 @@ const defaultState = {
   adminPlans: [],
   adminPlansLoaded: false,
   adminPlansLoading: false,
+  adminSaving: false,
   timelineDraft: {
     title: "",
     eventDate: "",
@@ -2754,6 +2755,44 @@ function adminUserDisplayName(user) {
   return user.display_name || user.email || "Usuario sem nome";
 }
 
+function adminAccessStatusOptions() {
+  return [
+    ["active", "Ativo"],
+    ["paused", "Pausado"],
+    ["expired", "Expirado"],
+    ["canceled", "Cancelado"],
+    ["courtesy", "Cortesia"],
+  ];
+}
+
+function adminNoticeMarkup() {
+  if (!state.adminNotice) {
+    return "";
+  }
+  return `<p class="form-notice ${state.adminNoticeKind === "error" ? "is-error" : ""}" role="status">${state.adminNotice}</p>`;
+}
+
+function adminPlanFeaturesText(plan) {
+  if (Array.isArray(plan.features)) {
+    return plan.features.join("\n");
+  }
+  return String(plan.features || "");
+}
+
+function adminPlansWithUpdate(plan) {
+  const existing = adminPlanRows().filter((item) => item.plan_id !== plan.plan_id);
+  return [...existing, plan].sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
+}
+
+function adminAccessPlansWithUpdate(access) {
+  return [
+    access,
+    ...(Array.isArray(state.adminUserAccessPlans)
+      ? state.adminUserAccessPlans.filter((item) => item.user_id !== access.user_id)
+      : []),
+  ];
+}
+
 function AdminSidebar() {
   const items = [
     ["admin-dashboard", "chart", "Dashboard"],
@@ -2869,20 +2908,43 @@ function AdminDashboardScreen() {
 
 function AdminUsersScreen() {
   const users = Array.isArray(state.adminUsers) ? state.adminUsers : [];
+  const planOptions = adminPlanRows();
+  const statusOptions = adminAccessStatusOptions();
   const rows = users.map((user) => {
     const access = adminAccessForUser(user.user_id);
+    const currentPlanId = access ? access.plan_id : "free";
+    const currentStatus = access ? access.status : "active";
     return `
       <tr>
         <td><strong>${escapeHtml(adminUserDisplayName(user))}</strong><small>${escapeHtml(user.email || "")}</small></td>
         <td>${escapeHtml(user.primary_area_id || "Sem area")}</td>
-        <td><span class="admin-status-pill">${escapeHtml(access ? access.plan_id : "sem plano")}</span></td>
-        <td>${escapeHtml(access ? access.status : "pendente")}</td>
+        <td><span class="admin-status-pill">${escapeHtml(currentPlanId)}</span></td>
+        <td>${escapeHtml(currentStatus)}</td>
         <td>${escapeHtml(user.created_at ? formatDatePtBr(user.created_at.slice(0, 10)) : "-")}</td>
+        <td>
+          <form class="admin-access-form" data-admin-access-form>
+            <input name="userId" type="hidden" value="${escapeHtml(user.user_id)}" />
+            <label class="admin-compact-field">
+              <span>Plano</span>
+              <select name="planId">
+                ${planOptions.map((plan) => `<option value="${escapeHtml(plan.plan_id)}" ${currentPlanId === plan.plan_id ? "selected" : ""}>${escapeHtml(plan.display_name || plan.plan_id)}</option>`).join("")}
+              </select>
+            </label>
+            <label class="admin-compact-field">
+              <span>Status</span>
+              <select name="status">
+                ${statusOptions.map(([value, label]) => `<option value="${value}" ${currentStatus === value ? "selected" : ""}>${label}</option>`).join("")}
+              </select>
+            </label>
+            <button class="button-primary" type="submit" ${state.adminSaving ? "disabled" : ""}>Salvar</button>
+          </form>
+        </td>
       </tr>
     `;
   }).join("");
 
   return AdminShell(`
+    ${adminNoticeMarkup()}
     <section class="admin-page-heading">
       <div>
         <span class="eyebrow">ACESSOS</span>
@@ -2898,7 +2960,7 @@ function AdminUsersScreen() {
       ${rows ? `
         <div class="admin-table-wrap">
           <table class="admin-table">
-            <thead><tr><th>Usu&aacute;rio</th><th>&Aacute;rea</th><th>Plano</th><th>Status</th><th>Cadastro</th></tr></thead>
+            <thead><tr><th>Usu&aacute;rio</th><th>&Aacute;rea</th><th>Plano</th><th>Status</th><th>Cadastro</th><th>Acesso</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -2915,6 +2977,7 @@ function AdminUsersScreen() {
 function AdminPlansScreen() {
   const plans = adminPlanRows();
   return AdminShell(`
+    ${adminNoticeMarkup()}
     <section class="admin-page-heading">
       <div>
         <span class="eyebrow">COMERCIAL</span>
@@ -2925,16 +2988,25 @@ function AdminPlansScreen() {
     </section>
     <section class="admin-plan-grid">
       ${plans.map((plan) => GoldenCard(`
-        <div class="admin-plan-heading">
-          <span class="admin-status-pill">${escapeHtml(plan.badge || plan.plan_id)}</span>
-          <span>${plan.is_visible === false ? "Oculto" : "Vis&iacute;vel"}</span>
-        </div>
-        <h2>${escapeHtml(plan.display_name || plan.plan_id)}</h2>
-        <strong class="admin-plan-price">R$ ${escapeHtml(plan.price_label || "0,00")}</strong>
-        <p>${escapeHtml(plan.description || "Sem descri&ccedil;&atilde;o publicada.")}</p>
-        <ul>
-          ${(Array.isArray(plan.features) ? plan.features : []).slice(0, 4).map((feature) => `<li>${icon("check")}<span>${escapeHtml(feature)}</span></li>`).join("")}
-        </ul>
+        <form class="admin-plan-edit-form" data-admin-plan-form>
+          <input name="planId" type="hidden" value="${escapeHtml(plan.plan_id)}" />
+          <input name="sortOrder" type="hidden" value="${escapeHtml(String(plan.sort_order || 0))}" />
+          <div class="admin-plan-heading">
+            <span class="admin-status-pill">${escapeHtml(plan.badge || plan.plan_id)}</span>
+            <label class="admin-check"><input name="isVisible" type="checkbox" ${plan.is_visible === false ? "" : "checked"} /> <span>Vis&iacute;vel</span></label>
+          </div>
+          <label class="admin-field"><span>Nome do plano</span><input name="displayName" value="${escapeHtml(plan.display_name || plan.plan_id)}" /></label>
+          <div class="admin-two-columns">
+            <label class="admin-field"><span>Badge</span><input name="badge" value="${escapeHtml(plan.badge || "")}" /></label>
+            <label class="admin-field"><span>Valor</span><input name="priceLabel" value="${escapeHtml(plan.price_label || "0,00")}" /></label>
+          </div>
+          <label class="admin-field"><span>Cobran&ccedil;a</span><input name="billingLabel" value="${escapeHtml(plan.billing_label || "")}" /></label>
+          <label class="admin-field"><span>Texto do bot&atilde;o</span><input name="ctaText" value="${escapeHtml(plan.cta_text || "INICIAR A MINHA JORNADA")}" /></label>
+          <label class="admin-field"><span>URL do checkout externo</span><input name="checkoutUrl" type="url" value="${escapeHtml(plan.checkout_url || "")}" placeholder="https://..." /></label>
+          <label class="admin-field"><span>Descri&ccedil;&atilde;o</span><textarea name="description" rows="3">${escapeHtml(plan.description || "")}</textarea></label>
+          <label class="admin-field"><span>Benef&iacute;cios, um por linha</span><textarea name="features" rows="4">${escapeHtml(adminPlanFeaturesText(plan))}</textarea></label>
+          <button class="button-primary" type="submit" ${state.adminSaving ? "disabled" : ""}>Salvar plano ${icon("arrow")}</button>
+        </form>
       `, "admin-plan-card")).join("")}
     </section>
   `, "Planos", "Catalogo comercial e visibilidade");
@@ -2948,7 +3020,7 @@ function AdminSettingsScreen() {
 
   return AdminShell(`
     <form id="admin-settings-form" class="admin-settings-form">
-      ${state.adminNotice ? `<p class="form-notice ${state.adminNoticeKind === "error" ? "is-error" : ""}" role="status">${state.adminNotice}</p>` : ""}
+      ${adminNoticeMarkup()}
       ${isSupabaseMode() && state.adminSettingsLoading ? `<p class="transparency-note">Carregando configura&ccedil;&otilde;es publicadas...</p>` : ""}
       <section class="admin-settings-grid">
         ${GoldenCard(`
@@ -3887,9 +3959,41 @@ function currentJourneyDay(progress) {
   return Math.min(30, Math.max(1, journeyDayDifference(progress.startDate, todayForEngine()) + 1));
 }
 
+function normalizeJourneyDayNumber(dayNumber) {
+  return Math.min(30, Math.max(1, Number(dayNumber) || 1));
+}
+
+function isAdminProfile() {
+  return ["owner", "admin"].includes(String(state.adminRole || "").toLowerCase());
+}
+
+function canAccessJourneyDay(dayNumber, currentDay) {
+  return isAdminProfile() || normalizeJourneyDayNumber(dayNumber) <= currentDay;
+}
+
+function accessibleJourneyDayNumber(dayNumber, currentDay) {
+  const normalizedDay = normalizeJourneyDayNumber(dayNumber || currentDay);
+  return canAccessJourneyDay(normalizedDay, currentDay) ? normalizedDay : currentDay;
+}
+
+function visibleJourneyCompletedDays(progress, currentDay) {
+  const completedDays = Array.isArray(progress.completedDays) ? progress.completedDays : [];
+  return [...new Set(completedDays)]
+    .map((day) => normalizeJourneyDayNumber(day))
+    .filter((day) => canAccessJourneyDay(day, currentDay))
+    .sort((left, right) => left - right);
+}
+
 function toggleJourneyDay(dayNumber) {
   const progress = ensureJourneyProgress();
-  const normalizedDay = Math.min(30, Math.max(1, Number(dayNumber) || 1));
+  const currentDay = currentJourneyDay(progress);
+  const normalizedDay = normalizeJourneyDayNumber(dayNumber);
+  if (!canAccessJourneyDay(normalizedDay, currentDay)) {
+    state.journeySelectedDay = currentDay;
+    render();
+    return;
+  }
+
   const completedDays = progress.completedDays.includes(normalizedDay)
     ? progress.completedDays.filter((day) => day !== normalizedDay)
     : [...progress.completedDays, normalizedDay].sort((left, right) => left - right);
@@ -3954,13 +4058,15 @@ function JourneyDayButton(day, progress, currentDay, selectedDay) {
   const isCompleted = progress.completedDays.includes(day.number);
   const isCurrent = day.number === currentDay;
   const isSelected = day.number === selectedDay;
+  const isLocked = !canAccessJourneyDay(day.number, currentDay);
 
   return `
     <button
-      class="journey-day-button ${isCompleted ? "is-completed" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""}"
+      class="journey-day-button ${isCompleted ? "is-completed" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${isLocked ? "is-locked" : ""}"
       data-journey-day="${day.number}"
       type="button"
-      aria-label="Dia ${day.number}, ${journeyDisplayDate(date)}"
+      aria-label="Dia ${day.number}, ${journeyDisplayDate(date)}${isLocked ? ", bloqueado at&eacute; a data chegar" : ""}"
+      ${isLocked ? 'aria-disabled="true" disabled' : ""}
     >
       <span>${isCompleted ? icon("check") : day.number}</span>
       <small>${journeyDisplayDate(date)}</small>
@@ -3972,12 +4078,14 @@ function JourneyScreen() {
   const progress = ensureJourneyProgress();
   const plan = journeyPlan();
   const currentDay = currentJourneyDay(progress);
-  const selectedDayNumber = state.journeySelectedDay || currentDay;
+  const selectedDayNumber = accessibleJourneyDayNumber(state.journeySelectedDay, currentDay);
   const selectedDay = plan[selectedDayNumber - 1] || plan[0];
+  const visibleCompletedDays = visibleJourneyCompletedDays(progress, currentDay);
+  const visibleProgress = { ...progress, completedDays: visibleCompletedDays };
   const weekStart = Math.floor((selectedDay.number - 1) / 7) * 7;
   const weekDays = plan.slice(weekStart, Math.min(weekStart + 7, plan.length));
-  const completionPercent = Math.round((progress.completedDays.length / 30) * 100);
-  const selectedCompleted = progress.completedDays.includes(selectedDay.number);
+  const completionPercent = Math.round((visibleCompletedDays.length / 30) * 100);
+  const selectedCompleted = visibleCompletedDays.includes(selectedDay.number);
   const selectedDate = addDaysToDateOnly(progress.startDate, selectedDay.number - 1);
 
   return PlatformShell(`
@@ -3990,7 +4098,7 @@ function JourneyScreen() {
           <p>${selectedDay.phaseDescription}</p>
         </div>
         <div class="journey-total-progress">
-          <div><span>Progresso da jornada</span><strong>${progress.completedDays.length}/30</strong></div>
+          <div><span>Progresso da jornada</span><strong>${visibleCompletedDays.length}/30</strong></div>
           <div class="journey-progress-track"><span style="width: ${completionPercent}%"></span></div>
           <small>In&iacute;cio em ${formatDatePtBr(progress.startDate)}</small>
         </div>
@@ -4020,10 +4128,10 @@ function JourneyScreen() {
       <section class="journey-week-section">
         <div class="journey-section-heading">
           <div><span>Semana ${Math.floor((selectedDay.number - 1) / 7) + 1}</span><h2>Seu ciclo atual</h2></div>
-          <p>Toque em um dia para rever ou antecipar sua frase e sua a&ccedil;&atilde;o.</p>
+          <p>${isAdminProfile() ? "Perfil admin: todos os dias est&atilde;o liberados para revis&atilde;o." : "Dias futuros ficam bloqueados. Os dias de hoje e anteriores permanecem dispon&iacute;veis."}</p>
         </div>
         <div class="journey-week-strip">
-          ${weekDays.map((day) => JourneyDayButton(day, progress, currentDay, selectedDay.number)).join("")}
+          ${weekDays.map((day) => JourneyDayButton(day, visibleProgress, currentDay, selectedDay.number)).join("")}
         </div>
       </section>
 
@@ -4041,7 +4149,7 @@ function JourneyScreen() {
                 <section>
                   <div><span>${phase.title}</span><small>${phase.subtitle}</small></div>
                   <div class="journey-phase-days">
-                    ${phaseDays.map((day) => JourneyDayButton(day, progress, currentDay, selectedDay.number)).join("")}
+                    ${phaseDays.map((day) => JourneyDayButton(day, visibleProgress, currentDay, selectedDay.number)).join("")}
                   </div>
                 </section>
               `;
@@ -4914,6 +5022,119 @@ function adminSettingsFromForm(formData) {
   };
 }
 
+function adminPlanFromForm(formData) {
+  const features = String(formData.get("features") || "")
+    .split("\n")
+    .map((feature) => feature.trim())
+    .filter(Boolean);
+  return {
+    plan_id: String(formData.get("planId") || "").trim(),
+    display_name: String(formData.get("displayName") || "").trim(),
+    badge: String(formData.get("badge") || "").trim(),
+    price_label: String(formData.get("priceLabel") || "").trim(),
+    billing_label: String(formData.get("billingLabel") || "").trim(),
+    description: String(formData.get("description") || "").trim(),
+    cta_text: String(formData.get("ctaText") || "").trim(),
+    checkout_url: String(formData.get("checkoutUrl") || "").trim(),
+    is_visible: formData.get("isVisible") === "on",
+    sort_order: Number(formData.get("sortOrder")) || 0,
+    features,
+  };
+}
+
+function submitAdminPlan(formData) {
+  const plan = adminPlanFromForm(formData);
+  if (!plan.plan_id || !plan.display_name) {
+    setState({
+      adminNotice: "Informe pelo menos o nome do plano.",
+      adminNoticeKind: "error",
+    });
+    return;
+  }
+
+  if (!isSupabaseMode()) {
+    setState({
+      adminPlans: adminPlansWithUpdate(plan),
+      adminPlansLoaded: true,
+      adminNotice: "Plano atualizado na pr&eacute;via local.",
+      adminNoticeKind: "",
+    });
+    return;
+  }
+
+  setState({
+    adminSaving: true,
+    adminNotice: "Salvando plano...",
+    adminNoticeKind: "",
+  });
+  supabaseService().saveAdminPlan(plan).then(() => {
+    setState({
+      adminPlans: adminPlansWithUpdate(plan),
+      adminPlansLoaded: true,
+      adminSaving: false,
+      adminNotice: "Plano salvo com sucesso.",
+      adminNoticeKind: "",
+    });
+  }).catch(() => {
+    setState({
+      adminSaving: false,
+      adminNotice: "N&atilde;o foi poss&iacute;vel salvar o plano.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
+function adminUserAccessFromForm(formData) {
+  return {
+    user_id: String(formData.get("userId") || "").trim(),
+    plan_id: String(formData.get("planId") || "").trim(),
+    status: String(formData.get("status") || "active"),
+    source: "manual",
+  };
+}
+
+function submitAdminUserAccess(formData) {
+  const access = adminUserAccessFromForm(formData);
+  if (!access.user_id || !access.plan_id) {
+    setState({
+      adminNotice: "Escolha um usu&aacute;rio e um plano para liberar acesso.",
+      adminNoticeKind: "error",
+    });
+    return;
+  }
+
+  if (!isSupabaseMode()) {
+    setState({
+      adminUserAccessPlans: adminAccessPlansWithUpdate(access),
+      adminUsersLoaded: true,
+      adminNotice: "Acesso atualizado na pr&eacute;via local.",
+      adminNoticeKind: "",
+    });
+    return;
+  }
+
+  setState({
+    adminSaving: true,
+    adminNotice: "Salvando acesso do usu&aacute;rio...",
+    adminNoticeKind: "",
+  });
+  supabaseService().assignAdminUserPlan(access).then(() => {
+    setState({
+      adminUserAccessPlans: adminAccessPlansWithUpdate(access),
+      adminUsersLoaded: true,
+      adminSaving: false,
+      adminNotice: "Acesso atualizado com sucesso.",
+      adminNoticeKind: "",
+    });
+  }).catch(() => {
+    setState({
+      adminSaving: false,
+      adminNotice: "N&atilde;o foi poss&iacute;vel atualizar o acesso.",
+      adminNoticeKind: "error",
+    });
+  });
+}
+
 function submitAdminSettings(formData) {
   const settings = adminSettingsFromForm(formData);
   if (!isSupabaseMode()) {
@@ -5156,6 +5377,10 @@ function render() {
   let shouldRequestAdminUsers = false;
   let shouldRequestAdminPlans = false;
 
+  if (state.authenticated && isSupabaseMode() && !state.adminAccessChecked && !state.adminLoading) {
+    shouldRequestAdminAccess = true;
+  }
+
   if (!state.authenticated && !publicRoutes.includes(state.route)) {
     state.route = "login";
     selectedScreen = LoginScreen;
@@ -5388,6 +5613,20 @@ function bindEvents() {
     });
   }
 
+  document.querySelectorAll("[data-admin-plan-form]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitAdminPlan(new FormData(form));
+    });
+  });
+
+  document.querySelectorAll("[data-admin-access-form]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitAdminUserAccess(new FormData(form));
+    });
+  });
+
   document.querySelectorAll("[data-chakra-id]").forEach((element) => {
     element.addEventListener("click", () => {
       setState({
@@ -5610,7 +5849,13 @@ function bindEvents() {
 
   document.querySelectorAll("[data-journey-day]").forEach((button) => {
     button.addEventListener("click", () => {
-      setState({ journeySelectedDay: Number(button.dataset.journeyDay) || 1 });
+      const progress = ensureJourneyProgress();
+      const currentDay = currentJourneyDay(progress);
+      const journeyDay = normalizeJourneyDayNumber(button.dataset.journeyDay);
+      if (!canAccessJourneyDay(journeyDay, currentDay)) {
+        return;
+      }
+      setState({ journeySelectedDay: journeyDay });
     });
   });
 

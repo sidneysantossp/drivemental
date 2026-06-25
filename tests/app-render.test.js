@@ -233,6 +233,8 @@ assert.strictEqual(vm.runInContext("state.route", adminUsersContext), "admin-use
 assert.ok(adminUsersHtml.includes("Gerenciamento de usu&aacute;rios"));
 assert.ok(adminUsersHtml.includes("Usu&aacute;rios cadastrados"));
 assert.ok(adminUsersHtml.includes("Pessoa Teste"));
+assert.ok(adminUsersHtml.includes("data-admin-access-form"));
+assert.ok(adminUsersHtml.includes("Salvar"));
 
 const adminPlansContext = createBrowserLikeContext("http://localhost:4173/admin/planos");
 const adminPlansHtml = adminPlansContext.__getHtml();
@@ -240,8 +242,10 @@ assert.strictEqual(vm.runInContext("state.route", adminPlansContext), "admin-pla
 assert.ok(adminPlansHtml.includes("Gerenciamento de planos"));
 assert.ok(adminPlansHtml.includes("Drive Astral"));
 assert.ok(adminPlansHtml.includes("Jornada Guiada"));
-assert.ok(adminPlansHtml.includes("R$ 29,90"));
-assert.ok(adminPlansHtml.includes("R$ 97,00"));
+assert.ok(adminPlansHtml.includes('value="29,90"'));
+assert.ok(adminPlansHtml.includes('value="97,00"'));
+assert.ok(adminPlansHtml.includes("data-admin-plan-form"));
+assert.ok(adminPlansHtml.includes("Salvar plano"));
 
 const adminDeniedContext = createBrowserLikeContext(
   "http://localhost:4173/admin",
@@ -503,6 +507,13 @@ assert.ok(journeyHtml.includes("Ver os 30 dias"));
 assert.ok(journeyHtml.includes(resultContext.escapeHtml(resultContext.decodeStoredText(journeyPlan[0].action))));
 assert.ok((journeyHtml.match(/data-journey-day="/g) || []).length >= 30);
 assert.strictEqual((journeyHtml.match(/data-complete-journey-day="/g) || []).length, 1);
+assert.ok(journeyHtml.includes("Dias futuros ficam bloqueados"));
+assert.ok(/data-journey-day="2"[\s\S]*?disabled/.test(journeyHtml));
+
+resultContext.toggleJourneyDay(8);
+const lockedJourneyProgress = JSON.parse(resultContext.localStorage.getItem("drive-astral-journey-progress"));
+assert.deepStrictEqual(lockedJourneyProgress.completedDays, []);
+assert.ok(resultContext.__getHtml().includes("Dia 1 de 30 &middot; Hoje"));
 
 resultContext.toggleJourneyDay(1);
 const completedJourneyHtml = resultContext.__getHtml();
@@ -513,8 +524,16 @@ assert.ok(completedJourneyHtml.includes("Dia conclu&iacute;do"));
 
 resultContext.setState({ journeySelectedDay: 8 });
 const secondWeekJourneyHtml = resultContext.__getHtml();
-assert.ok(secondWeekJourneyHtml.includes("Dia 8 de 30"));
-assert.ok(secondWeekJourneyHtml.includes("Organizar: Ordem para sustentar o caminho"));
+assert.ok(secondWeekJourneyHtml.includes("Dia 1 de 30 &middot; Hoje"));
+assert.ok(!secondWeekJourneyHtml.includes("Dia 8 de 30"));
+assert.ok(!secondWeekJourneyHtml.includes("Organizar: Ordem para sustentar o caminho"));
+
+resultContext.setState({ adminRole: "owner", journeySelectedDay: 8 });
+const adminJourneyHtml = resultContext.__getHtml();
+assert.ok(adminJourneyHtml.includes("Dia 8 de 30"));
+assert.ok(adminJourneyHtml.includes("Organizar: Ordem para sustentar o caminho"));
+assert.ok(adminJourneyHtml.includes("Perfil admin: todos os dias est&atilde;o liberados"));
+assert.ok(!adminJourneyHtml.includes('aria-disabled="true" disabled'));
 
 const directJourneyContext = createBrowserLikeContext("http://localhost:4173/app/jornada");
 assert.strictEqual(vm.runInContext("state.route", directJourneyContext), "journey");

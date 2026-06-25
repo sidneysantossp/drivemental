@@ -3141,6 +3141,24 @@ svg {
   color: #8bcf90;
 }
 
+.journey-day-button.is-locked,
+.journey-day-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  filter: grayscale(0.45);
+}
+
+.journey-day-button.is-locked > span,
+.journey-day-button:disabled > span {
+  background: rgba(243, 228, 195, 0.05);
+  color: rgba(243, 228, 195, 0.54);
+}
+
+.journey-day-button.is-locked small,
+.journey-day-button:disabled small {
+  color: rgba(243, 228, 195, 0.5);
+}
+
 .journey-overview {
   overflow: hidden;
   border: 1px solid rgba(214, 165, 58, 0.18);
@@ -6313,6 +6331,45 @@ body {
   color: rgba(243, 228, 195, 0.45);
 }
 
+.admin-access-form {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(110px, 0.8fr) auto;
+  align-items: end;
+  gap: 9px;
+}
+
+.admin-compact-field {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-compact-field span {
+  color: rgba(243, 228, 195, 0.5);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-compact-field select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid rgba(214, 165, 58, 0.24);
+  border-radius: 9px;
+  background: rgba(1, 12, 10, 0.64);
+  color: #f3e4c3;
+  font: inherit;
+  font-size: 0.78rem;
+  outline: none;
+  padding: 0 9px;
+}
+
+.admin-access-form .button-primary {
+  min-height: 36px;
+  padding: 0 13px;
+  font-size: 0.72rem;
+}
+
 .admin-status-pill {
   display: inline-flex;
   align-items: center;
@@ -7408,6 +7465,10 @@ body {
 
   .admin-page-heading .button-primary {
     width: 100%;
+  }
+
+  .admin-access-form {
+    grid-template-columns: 1fr;
   }
 
   .admin-wide-card .button-primary,
