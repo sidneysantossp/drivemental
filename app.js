@@ -286,6 +286,128 @@ const chakras = Object.freeze([
   },
 ]);
 
+const chakraSummaryProfiles = Object.freeze({
+  crown: {
+    theme: "Deus &bull; Prop&oacute;sito &bull; Entrega &bull; F&eacute; &bull; Consci&ecirc;ncia",
+    state: "Pedindo alinhamento",
+    stateTone: "#F5C51B",
+    stateDescription: "A orienta&ccedil;&atilde;o pede voltar ao sentido maior antes de decidir ou reagir.",
+    symptoms: [
+      "Coloca Deus em &uacute;ltimo lugar",
+      "Falta de entrega",
+      "Sensa&ccedil;&atilde;o de vazio espiritual",
+    ],
+    practices: [
+      "Ora&ccedil;&atilde;o di&aacute;ria",
+      "Sil&ecirc;ncio",
+      "Medita&ccedil;&atilde;o",
+      "Entrega e confian&ccedil;a",
+    ],
+  },
+  thirdEye: {
+    theme: "Intui&ccedil;&atilde;o &bull; Vis&atilde;o &bull; Imagina&ccedil;&atilde;o &bull; Sabedoria",
+    state: "Hiperativo",
+    stateTone: "#3F7DD6",
+    stateDescription: "A mente pode estar trabalhando demais; o pr&oacute;ximo passo precisa de clareza simples.",
+    symptoms: [
+      "Overthinking",
+      "Excesso de pensamentos",
+      "Preocupa&ccedil;&atilde;o com o futuro",
+    ],
+    practices: [
+      "Medita&ccedil;&atilde;o",
+      "Respirar profundo",
+      "Aten&ccedil;&atilde;o plena",
+      "Presen&ccedil;a",
+    ],
+  },
+  throat: {
+    theme: "Express&atilde;o &bull; Verdade &bull; Comunica&ccedil;&atilde;o",
+    state: "Bom",
+    stateTone: "#5CC21A",
+    stateDescription: "A comunica&ccedil;&atilde;o est&aacute; favor&aacute;vel quando existe verdade com respeito e escuta.",
+    symptoms: [
+      "Consegue se expressar",
+      "Fala verdades",
+      "Comunica&ccedil;&atilde;o funcional",
+    ],
+    practices: [
+      "Manter integridade",
+      "Falar com amor",
+      "Ouvir mais",
+    ],
+  },
+  heart: {
+    theme: "Amor &bull; Confian&ccedil;a &bull; Perd&atilde;o &bull; Conex&atilde;o",
+    state: "Ferido",
+    stateTone: "#F5C51B",
+    stateDescription: "O ponto de aten&ccedil;&atilde;o est&aacute; nas trocas, nos limites e no cuidado emocional.",
+    symptoms: [
+      "Feridas antigas",
+      "Trai&ccedil;&atilde;o ou quebra de confian&ccedil;a",
+      "Medo de se abrir novamente",
+    ],
+    practices: [
+      "Perd&atilde;o",
+      "Cura emocional",
+      "Gratid&atilde;o",
+      "Amor pr&oacute;prio",
+    ],
+  },
+  solarPlexus: {
+    theme: "Poder pessoal &bull; Decis&atilde;o &bull; A&ccedil;&atilde;o &bull; Autoconfian&ccedil;a",
+    state: "Drenado",
+    stateTone: "#F57C19",
+    stateDescription: "A energia pede foco em uma a&ccedil;&atilde;o principal e menos dispers&atilde;o.",
+    symptoms: [
+      "Procrastina&ccedil;&atilde;o",
+      "Muitos projetos n&atilde;o conclu&iacute;dos",
+      "Falta de disciplina e const&acirc;ncia",
+    ],
+    practices: [
+      "A&ccedil;&atilde;o di&aacute;ria",
+      "Metas claras",
+      "Disciplina",
+      "Foco no essencial",
+    ],
+  },
+  sacral: {
+    theme: "Prazer &bull; Desejo &bull; Relacionamentos &bull; Criatividade",
+    state: "Protegido",
+    stateTone: "#F5C51B",
+    stateDescription: "Existe sensibilidade emocional; avance com abertura, mas sem atropelar seus limites.",
+    symptoms: [
+      "Desejo de conex&atilde;o",
+      "Medo de se envolver",
+      "Bloqueios emocionais",
+    ],
+    practices: [
+      "Fluidez",
+      "Permitir sentir",
+      "Criatividade",
+      "Relacionamentos saud&aacute;veis",
+    ],
+  },
+  root: {
+    theme: "Seguran&ccedil;a &bull; Dinheiro &bull; Casa &bull; Territ&oacute;rio &bull; Sobreviv&ecirc;ncia",
+    state: "Cr&iacute;tico",
+    stateTone: "#EF3B2D",
+    stateDescription: "A prioridade &eacute; organizar base, rotina e decis&otilde;es materiais com calma.",
+    symptoms: [
+      "Press&atilde;o financeira",
+      "Medo do futuro",
+      "Urg&ecirc;ncia",
+      "Casa inst&aacute;vel",
+    ],
+    practices: [
+      "Rotina",
+      "Aterramento",
+      "Plano financeiro",
+      "Ordem e organiza&ccedil;&atilde;o",
+    ],
+  },
+});
+
 const icons = {
   home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.8 12 3l9 7.8"/><path d="M5.2 9.6v10h5.1v-5.7h3.4v5.7h5.1v-10"/></svg>',
   protocol: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8l2 2v14H6V6l2-2Z"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>',
@@ -3705,38 +3827,44 @@ function EnergyCycleScreen() {
   `);
 }
 
-function ChakraSection({ title, content, className = "" }) {
+function ChakraSummaryList(items) {
   return `
-    <section class="chakra-detail-card ${className}">
-      <h2>${title}</h2>
-      ${content}
-    </section>
-  `;
-}
-
-function ChakraChips(items) {
-  return `
-    <div class="chakra-chip-list">
-      ${items.map((item) => `<span>${item}</span>`).join("")}
-    </div>
-  `;
-}
-
-function ChakraBulletList(items) {
-  return `
-    <ul class="chakra-detail-list">
+    <ul class="chakra-summary-list">
       ${items.map((item) => `<li>${item}</li>`).join("")}
     </ul>
+  `;
+}
+
+function ChakraSimpleDiagnosis(profile, areaTitle) {
+  return `
+    <section class="chakra-simple-diagnosis" style="--state-tone:${profile.stateTone}">
+      <article class="chakra-simple-cell chakra-theme-cell">
+        <span>Tema principal</span>
+        <strong>${profile.theme}</strong>
+      </article>
+      <article class="chakra-simple-cell chakra-state-cell">
+        <span>Situa&ccedil;&atilde;o atual</span>
+        <strong><i></i>${profile.state}</strong>
+        <p>${profile.stateDescription}</p>
+        <small>Consulta: ${areaTitle}</small>
+      </article>
+      <article class="chakra-simple-cell">
+        <span>Sinais / sintomas</span>
+        ${ChakraSummaryList(profile.symptoms)}
+      </article>
+      <article class="chakra-simple-cell">
+        <span>Corre&ccedil;&atilde;o / pr&aacute;ticas</span>
+        ${ChakraSummaryList(profile.practices)}
+      </article>
+    </section>
   `;
 }
 
 function ChakraDetailScreen() {
   const chakra = selectedChakra();
   const area = selectedConsultationArea();
-  const areaId = area ? area.id : "general";
   const areaTitle = area ? area.title : "Vis&atilde;o Geral";
-  const interpretation = (areaChakraInterpretations[areaId] && areaChakraInterpretations[areaId][chakra.id])
-    || areaChakraInterpretations.general[chakra.id];
+  const profile = chakraSummaryProfiles[chakra.id];
   const orderedChakras = [...chakras].sort((a, b) => a.number - b.number);
   const currentIndex = orderedChakras.findIndex((item) => item.id === chakra.id);
   const previousChakra = orderedChakras[(currentIndex - 1 + orderedChakras.length) % orderedChakras.length];
@@ -3744,8 +3872,8 @@ function ChakraDetailScreen() {
 
   return PlatformShell(`
     ${AppHeader(`Chakra ${chakra.name}`, `${chakra.traditional} &bull; Chakra ${chakra.number}`, { back: true, backRoute: "energy-cycle" })}
-    <section class="chakra-detail-stack" style="--chakra:${chakra.color}">
-      <section class="chakra-detail-hero">
+    <section class="chakra-detail-stack chakra-simple-stack" style="--chakra:${chakra.color}">
+      <section class="chakra-detail-hero chakra-simple-hero">
         <div class="chakra-hero-symbol">
           ${icon(chakra.symbol)}
         </div>
@@ -3757,52 +3885,11 @@ function ChakraDetailScreen() {
         </div>
       </section>
 
-      ${ChakraSection({
-        title: "O que este chakra representa",
-        content: `<p>${chakra.essence}</p>`,
-      })}
-
-      ${ChakraSection({
-        title: "&Aacute;reas da vida relacionadas",
-        content: ChakraChips(chakra.lifeAreas),
-      })}
-
-      ${ChakraSection({
-        title: "Quando esta energia est&aacute; bem direcionada",
-        content: ChakraBulletList(chakra.balancedExpressions),
-      })}
-
-      ${ChakraSection({
-        title: "Sinais para observar em sua rotina",
-        content: `
-          ${ChakraBulletList(chakra.observationSignals)}
-          <p class="chakra-reflection-note">Esses sinais s&atilde;o convites &agrave; reflex&atilde;o e n&atilde;o constituem diagn&oacute;stico.</p>
-        `,
-      })}
-
-      ${ChakraSection({
-        title: `Como o Chakra ${chakra.name} se relaciona com ${areaTitle}`,
-        content: `<p>${interpretation}</p>`,
-        className: "chakra-area-card",
-      })}
-
-      ${ChakraSection({
-        title: "Perguntas para reflex&atilde;o",
-        content: ChakraBulletList(chakra.reflectionQuestions),
-      })}
-
-      ${ChakraSection({
-        title: "Pr&aacute;ticas de alinhamento",
-        content: `
-          ${ChakraChips(chakra.practices)}
-          <button class="secondary-energy-button" data-add-practice="${chakra.id}" type="button">${icon("check")}<span>Adicionar ao meu protocolo</span></button>
-          ${state.notice ? `<p class="form-notice">${state.notice}</p>` : ""}
-        `,
-      })}
+      ${ChakraSimpleDiagnosis(profile, areaTitle)}
 
       <section class="chakra-detail-transparency">
-        <h2>Sobre esta leitura</h2>
-        <p>Esta p&aacute;gina apresenta associa&ccedil;&otilde;es simb&oacute;licas utilizadas para autoconhecimento e reflex&atilde;o. Ela n&atilde;o avalia individualmente o estado do seu chakra e n&atilde;o substitui orienta&ccedil;&atilde;o m&eacute;dica, psicol&oacute;gica ou profissional.</p>
+        <h2>Observa&ccedil;&atilde;o</h2>
+        <p>Esta leitura &eacute; simb&oacute;lica e serve para direcionamento pessoal. N&atilde;o substitui orienta&ccedil;&atilde;o m&eacute;dica, psicol&oacute;gica, financeira ou jur&iacute;dica.</p>
       </section>
 
       <nav class="chakra-detail-nav" aria-label="Navega&ccedil;&atilde;o entre chakras">

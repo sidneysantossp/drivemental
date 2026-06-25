@@ -1308,6 +1308,13 @@ svg {
   padding: 17px;
 }
 
+.chakra-simple-hero {
+  min-height: 112px;
+  background:
+    radial-gradient(circle at 8% 16%, color-mix(in srgb, var(--chakra), transparent 56%), transparent 24rem),
+    linear-gradient(110deg, rgba(9, 39, 31, 0.98), rgba(3, 18, 15, 0.94));
+}
+
 .chakra-hero-symbol {
   display: grid;
   width: 64px;
@@ -1369,6 +1376,126 @@ svg {
 .chakra-detail-card h2,
 .chakra-detail-transparency h2 {
   margin-bottom: 10px;
+}
+
+.chakra-simple-diagnosis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.chakra-simple-cell {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  padding: clamp(16px, 2.2vw, 22px);
+  border: 1px solid color-mix(in srgb, var(--chakra), var(--gold) 24%);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--chakra), transparent 78%), transparent 18rem),
+    rgba(4, 22, 18, 0.92);
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, 0.22),
+    inset 0 0 18px rgba(255, 255, 255, 0.018);
+}
+
+.chakra-simple-cell::before {
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 0;
+  width: 3px;
+  background: color-mix(in srgb, var(--chakra), var(--gold-light) 24%);
+  content: "";
+  opacity: 0.75;
+}
+
+.chakra-simple-cell > span {
+  display: block;
+  margin-bottom: 12px;
+  color: color-mix(in srgb, var(--chakra), #f3e4c3 38%);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.chakra-theme-cell strong {
+  display: block;
+  max-width: 620px;
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: clamp(1.35rem, 3vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.22;
+}
+
+.chakra-state-cell strong {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: clamp(1.55rem, 3vw, 2.25rem);
+  line-height: 1;
+}
+
+.chakra-state-cell strong i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--state-tone);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--state-tone), transparent 35%);
+}
+
+.chakra-state-cell p {
+  max-width: 560px;
+  margin: 12px 0 0;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.chakra-state-cell small {
+  display: inline-flex;
+  margin-top: 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba(242, 201, 104, 0.28);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.chakra-summary-list {
+  display: grid;
+  gap: 11px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chakra-summary-list li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--text);
+  font-size: clamp(0.9rem, 1.6vw, 1.04rem);
+  font-weight: 650;
+  line-height: 1.38;
+}
+
+.chakra-summary-list li::before {
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--chakra), var(--gold-light) 30%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--chakra), transparent 46%);
+  content: "";
 }
 
 .chakra-area-card {
@@ -9662,6 +9789,14 @@ html {
 }
 
 @media (max-width: 760px) {
+  .chakra-simple-diagnosis {
+    grid-template-columns: 1fr;
+  }
+
+  .chakra-simple-cell {
+    min-height: auto;
+  }
+
   .journey-hero {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -9855,6 +9990,21 @@ html {
 
   .reading-details-content {
     padding: 0 8px 8px;
+  }
+}
+
+@media (max-width: 520px) {
+  .chakra-detail-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .chakra-hero-symbol {
+    justify-self: center;
+  }
+
+  .chakra-detail-nav {
+    grid-template-columns: 1fr;
   }
 }
 

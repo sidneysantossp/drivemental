@@ -817,33 +817,36 @@ assert.ok(platformProfileHtml.includes('href="/terms.html"'));
 assert.ok(platformProfileHtml.includes("Excluir meus dados deste dispositivo"));
 
 const chakraExpectations = [
-  ["root", "1", "Raiz", "Muladhara", "Seguran&ccedil;a", "organiza&ccedil;&atilde;o da rotina"],
-  ["sacral", "2", "Sacral", "Svadhisthana", "Emo&ccedil;&otilde;es", "atividade criativa"],
-  ["solarPlexus", "3", "Plexo Solar", "Manipura", "Autoconfian&ccedil;a", "defini&ccedil;&atilde;o de uma tarefa principal"],
-  ["heart", "4", "Card&iacute;aco", "Anahata", "Amor", "pr&aacute;tica de gratid&atilde;o"],
-  ["throat", "5", "Lar&iacute;ngeo", "Vishuddha", "Comunica&ccedil;&atilde;o", "conversa honesta"],
-  ["thirdEye", "6", "Terceiro Olho", "Ajna", "Clareza", "mapa de prioridades"],
-  ["crown", "7", "Coron&aacute;rio", "Sahasrara", "Prop&oacute;sito", "ora&ccedil;&atilde;o ou pausa contemplativa"],
+  ["root", "1", "Raiz", "Muladhara", "Seguran&ccedil;a", "Cr&iacute;tico", "Press&atilde;o financeira", "Plano financeiro"],
+  ["sacral", "2", "Sacral", "Svadhisthana", "Criatividade", "Protegido", "Medo de se envolver", "Permitir sentir"],
+  ["solarPlexus", "3", "Plexo Solar", "Manipura", "Autoconfian&ccedil;a", "Drenado", "Procrastina&ccedil;&atilde;o", "Foco no essencial"],
+  ["heart", "4", "Card&iacute;aco", "Anahata", "Amor", "Ferido", "Feridas antigas", "Amor pr&oacute;prio"],
+  ["throat", "5", "Lar&iacute;ngeo", "Vishuddha", "Comunica&ccedil;&atilde;o", "Bom", "Fala verdades", "Ouvir mais"],
+  ["thirdEye", "6", "Terceiro Olho", "Ajna", "Sabedoria", "Hiperativo", "Overthinking", "Presen&ccedil;a"],
+  ["crown", "7", "Coron&aacute;rio", "Sahasrara", "Prop&oacute;sito", "Pedindo alinhamento", "Falta de entrega", "Ora&ccedil;&atilde;o di&aacute;ria"],
 ];
 
-for (const [id, number, name, traditional, lifeArea, practice] of chakraExpectations) {
+for (const [id, number, name, traditional, theme, status, symptom, practice] of chakraExpectations) {
   const chakraContext = createBrowserLikeContext(`http://localhost:4173/chakras/${id}?area=work-prosperity`);
   const chakraHtml = chakraContext.__getHtml();
   assert.ok(chakraHtml.includes(`Chakra ${number}`), id);
   assert.ok(chakraHtml.includes(name), id);
   assert.ok(chakraHtml.includes(traditional), id);
-  assert.ok(chakraHtml.includes(lifeArea), id);
+  assert.ok(chakraHtml.includes("Tema principal"), id);
+  assert.ok(chakraHtml.includes("Situa&ccedil;&atilde;o atual"), id);
+  assert.ok(chakraHtml.includes("Sinais / sintomas"), id);
+  assert.ok(chakraHtml.includes("Corre&ccedil;&atilde;o / pr&aacute;ticas"), id);
+  assert.ok(chakraHtml.includes(theme), id);
+  assert.ok(chakraHtml.includes(status), id);
+  assert.ok(chakraHtml.includes(symptom), id);
   assert.ok(chakraHtml.includes(practice), id);
   assert.ok(chakraHtml.includes("Trabalho e Prosperidade"), id);
-  assert.ok(chakraHtml.includes("Adicionar ao meu protocolo"), id);
   assert.ok(chakraHtml.includes('data-route="energy-cycle"'), id);
   assert.ok(chakraHtml.includes("Navega&ccedil;&atilde;o entre chakras"), id);
-  assert.ok(chakraHtml.includes("Esses sinais s&atilde;o convites"), id);
-  assert.ok(chakraHtml.includes("n&atilde;o avalia individualmente"), id);
-  assert.ok(!chakraHtml.includes("hiperativo"), id);
-  assert.ok(!chakraHtml.includes("ferido"), id);
-  assert.ok(!chakraHtml.includes("drenado"), id);
-  assert.ok(!chakraHtml.includes("sintoma"), id);
+  assert.ok(chakraHtml.includes("Esta leitura &eacute; simb&oacute;lica"), id);
+  assert.ok(!chakraHtml.includes("O que este chakra representa"), id);
+  assert.ok(!chakraHtml.includes("Perguntas para reflex&atilde;o"), id);
+  assert.ok(!chakraHtml.includes("Adicionar ao meu protocolo"), id);
   const headerMatch = chakraHtml.match(/<header class="app-header">[\s\S]*?<\/header>/);
   assert.ok(headerMatch, id);
   assert.ok(!headerMatch[0].includes("#"), id);
@@ -851,8 +854,8 @@ for (const [id, number, name, traditional, lifeArea, practice] of chakraExpectat
 
 const directGeneralContext = createBrowserLikeContext("http://localhost:4173/chakras/root");
 const directGeneralHtml = directGeneralContext.__getHtml();
-assert.ok(directGeneralHtml.includes("Como o Chakra Raiz se relaciona com Vis&atilde;o Geral"));
-assert.ok(directGeneralHtml.includes("Na Vis&atilde;o Geral, o Chakra Raiz"));
+assert.ok(directGeneralHtml.includes("Consulta: Vis&atilde;o Geral"));
+assert.ok(directGeneralHtml.includes("Cr&iacute;tico"));
 assert.ok(!directGeneralHtml.includes("Trabalho e Prosperidade"));
 
 const timelineContext = createBrowserLikeContext();
