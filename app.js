@@ -66,12 +66,6 @@ function isSupabaseMode() {
     && service.isEnabled();
 }
 
-function environmentLabel() {
-  return isSupabaseMode()
-    ? "Conta sincronizada"
-    : "Beta local";
-}
-
 function isAdminRoute(route) {
   return ["admin-dashboard", "admin-users", "admin-plans", "admin-settings"].includes(route);
 }
@@ -286,126 +280,14 @@ const chakras = Object.freeze([
   },
 ]);
 
-const chakraSummaryProfiles = Object.freeze({
-  crown: {
-    theme: "Deus &bull; Prop&oacute;sito &bull; Entrega &bull; F&eacute; &bull; Consci&ecirc;ncia",
-    state: "Pedindo alinhamento",
-    stateTone: "#F5C51B",
-    stateDescription: "A orienta&ccedil;&atilde;o pede voltar ao sentido maior antes de decidir ou reagir.",
-    symptoms: [
-      "Coloca Deus em &uacute;ltimo lugar",
-      "Falta de entrega",
-      "Sensa&ccedil;&atilde;o de vazio espiritual",
-    ],
-    practices: [
-      "Ora&ccedil;&atilde;o di&aacute;ria",
-      "Sil&ecirc;ncio",
-      "Medita&ccedil;&atilde;o",
-      "Entrega e confian&ccedil;a",
-    ],
-  },
-  thirdEye: {
-    theme: "Intui&ccedil;&atilde;o &bull; Vis&atilde;o &bull; Imagina&ccedil;&atilde;o &bull; Sabedoria",
-    state: "Hiperativo",
-    stateTone: "#3F7DD6",
-    stateDescription: "A mente pode estar trabalhando demais; o pr&oacute;ximo passo precisa de clareza simples.",
-    symptoms: [
-      "Overthinking",
-      "Excesso de pensamentos",
-      "Preocupa&ccedil;&atilde;o com o futuro",
-    ],
-    practices: [
-      "Medita&ccedil;&atilde;o",
-      "Respirar profundo",
-      "Aten&ccedil;&atilde;o plena",
-      "Presen&ccedil;a",
-    ],
-  },
-  throat: {
-    theme: "Express&atilde;o &bull; Verdade &bull; Comunica&ccedil;&atilde;o",
-    state: "Bom",
-    stateTone: "#5CC21A",
-    stateDescription: "A comunica&ccedil;&atilde;o est&aacute; favor&aacute;vel quando existe verdade com respeito e escuta.",
-    symptoms: [
-      "Consegue se expressar",
-      "Fala verdades",
-      "Comunica&ccedil;&atilde;o funcional",
-    ],
-    practices: [
-      "Manter integridade",
-      "Falar com amor",
-      "Ouvir mais",
-    ],
-  },
-  heart: {
-    theme: "Amor &bull; Confian&ccedil;a &bull; Perd&atilde;o &bull; Conex&atilde;o",
-    state: "Ferido",
-    stateTone: "#F5C51B",
-    stateDescription: "O ponto de aten&ccedil;&atilde;o est&aacute; nas trocas, nos limites e no cuidado emocional.",
-    symptoms: [
-      "Feridas antigas",
-      "Trai&ccedil;&atilde;o ou quebra de confian&ccedil;a",
-      "Medo de se abrir novamente",
-    ],
-    practices: [
-      "Perd&atilde;o",
-      "Cura emocional",
-      "Gratid&atilde;o",
-      "Amor pr&oacute;prio",
-    ],
-  },
-  solarPlexus: {
-    theme: "Poder pessoal &bull; Decis&atilde;o &bull; A&ccedil;&atilde;o &bull; Autoconfian&ccedil;a",
-    state: "Drenado",
-    stateTone: "#F57C19",
-    stateDescription: "A energia pede foco em uma a&ccedil;&atilde;o principal e menos dispers&atilde;o.",
-    symptoms: [
-      "Procrastina&ccedil;&atilde;o",
-      "Muitos projetos n&atilde;o conclu&iacute;dos",
-      "Falta de disciplina e const&acirc;ncia",
-    ],
-    practices: [
-      "A&ccedil;&atilde;o di&aacute;ria",
-      "Metas claras",
-      "Disciplina",
-      "Foco no essencial",
-    ],
-  },
-  sacral: {
-    theme: "Prazer &bull; Desejo &bull; Relacionamentos &bull; Criatividade",
-    state: "Protegido",
-    stateTone: "#F5C51B",
-    stateDescription: "Existe sensibilidade emocional; avance com abertura, mas sem atropelar seus limites.",
-    symptoms: [
-      "Desejo de conex&atilde;o",
-      "Medo de se envolver",
-      "Bloqueios emocionais",
-    ],
-    practices: [
-      "Fluidez",
-      "Permitir sentir",
-      "Criatividade",
-      "Relacionamentos saud&aacute;veis",
-    ],
-  },
-  root: {
-    theme: "Seguran&ccedil;a &bull; Dinheiro &bull; Casa &bull; Territ&oacute;rio &bull; Sobreviv&ecirc;ncia",
-    state: "Cr&iacute;tico",
-    stateTone: "#EF3B2D",
-    stateDescription: "A prioridade &eacute; organizar base, rotina e decis&otilde;es materiais com calma.",
-    symptoms: [
-      "Press&atilde;o financeira",
-      "Medo do futuro",
-      "Urg&ecirc;ncia",
-      "Casa inst&aacute;vel",
-    ],
-    practices: [
-      "Rotina",
-      "Aterramento",
-      "Plano financeiro",
-      "Ordem e organiza&ccedil;&atilde;o",
-    ],
-  },
+const chakraPlasmaNames = Object.freeze({
+  crown: "Dali",
+  root: "Seli",
+  thirdEye: "Gama",
+  sacral: "Kali",
+  throat: "Alfa",
+  solarPlexus: "Limi",
+  heart: "Silio",
 });
 
 const icons = {
@@ -681,6 +563,129 @@ function normalizeChakraId(value) {
 
 function selectedChakra() {
   return chakras.find((chakra) => chakra.id === state.selectedChakraId) || chakras[chakras.length - 1];
+}
+
+function normalizeTextKey(value) {
+  return decodeStoredText(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function chakraIdFromLabel(value) {
+  const text = normalizeTextKey(value);
+  if (text.includes("coroa")) return "crown";
+  if (text.includes("raiz")) return "root";
+  if (text.includes("terceiro olho")) return "thirdEye";
+  if (text.includes("sacral") || text.includes("sexual")) return "sacral";
+  if (text.includes("laringeo") || text.includes("garganta")) return "throat";
+  if (text.includes("plexo solar")) return "solarPlexus";
+  if (text.includes("cardiaco") || text.includes("coracao")) return "heart";
+  return "";
+}
+
+function chakraIdFromCoordinate(chakraCoordinate) {
+  if (!chakraCoordinate) {
+    return "";
+  }
+  return chakraIdFromLabel(chakraCoordinate.label || chakraCoordinate.name || "");
+}
+
+function chakraMethodologyPlasma(chakraId) {
+  const plasmaName = chakraPlasmaNames[chakraId] || "";
+  const constants = window.DriveAstralThirteenMoons
+    && window.DriveAstralThirteenMoons.constants
+    ? window.DriveAstralThirteenMoons.constants
+    : {};
+  const plasma = Array.isArray(constants.PLASMAS)
+    ? constants.PLASMAS.find((item) => item.name === plasmaName)
+    : null;
+
+  return plasma || {
+    name: plasmaName,
+    number: "",
+    observation_guidance: "",
+  };
+}
+
+function chakraAreaApplication(areaId) {
+  const areaKnowledge = window.DriveAstralAreaKnowledge;
+  const applications = areaKnowledge && areaKnowledge.areaApplications
+    ? areaKnowledge.areaApplications
+    : {};
+  return applications[areaId] || applications.general || null;
+}
+
+function coordinateChakraSummary(calendar) {
+  const chakra = calendar && calendar.chakra ? calendar.chakra : {};
+  const plasma = calendar && calendar.plasma ? calendar.plasma : {};
+  return {
+    chakraId: chakraIdFromCoordinate(chakra),
+    chakraLabel: chakra.label || chakra.name || "",
+    plasmaName: plasma.name || "",
+    date: calendar && calendar.reference_date ? calendar.reference_date : "",
+  };
+}
+
+function chakraConsultationSummary(chakra, areaId, areaTitle) {
+  const guidance = readingGuidance(state.reading);
+  const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
+  const coordinates = readingCoordinates(state.reading) || {};
+  const birthCalendar = coordinates.birth && coordinates.birth.thirteen_moons
+    ? coordinates.birth.thirteen_moons
+    : {};
+  const dayCalendar = coordinates.day && coordinates.day.thirteen_moons
+    ? coordinates.day.thirteen_moons
+    : {};
+  const birth = coordinateChakraSummary(birthCalendar);
+  const day = coordinateChakraSummary(dayCalendar);
+  const plasma = chakraMethodologyPlasma(chakra.id);
+  const application = chakraAreaApplication(areaId);
+  const plasmaTranslation = application
+    && application.plasmaTranslations
+    && application.plasmaTranslations[plasma.name]
+      ? application.plasmaTranslations[plasma.name]
+      : plasma.observation_guidance || chakra.phrase;
+  const birthMatch = birth.chakraId === chakra.id;
+  const dayMatch = day.chakraId === chakra.id;
+  const currentPractice = interpretation.dailyPractice || interpretation.suggestedPractice || "";
+  const observationItems = [
+    plasmaTranslation,
+    birthMatch
+      ? `No nascimento, este chakra aparece pela coordenada ${birth.plasmaName} / ${birth.chakraLabel}.`
+      : "",
+    dayMatch
+      ? `Na data da leitura, este chakra aparece pela coordenada ${day.plasmaName} / ${day.chakraLabel}.`
+      : "",
+    !birthMatch && !dayMatch
+      ? "Nesta consulta, ele aparece como refer&ecirc;ncia do ciclo dos sete plasmas, sem indicar estado individual."
+      : "",
+  ].filter(Boolean);
+  const practiceItems = [
+    currentPractice
+      ? `Pr&aacute;tica validada da leitura: ${currentPractice}`
+      : "Nenhuma pr&aacute;tica espec&iacute;fica foi calculada para esta leitura.",
+    "A pr&aacute;tica vem da &aacute;rea escolhida e da semana crom&aacute;tica, n&atilde;o de um diagn&oacute;stico do chakra.",
+  ];
+  const matchLabels = [
+    birthMatch ? "nascimento" : "",
+    dayMatch ? "dia atual" : "",
+  ].filter(Boolean);
+  const status = matchLabels.length
+    ? `Coordenada calculada: ${matchLabels.join(" e ")}`
+    : "Refer&ecirc;ncia do ciclo";
+  const statusDescription = matchLabels.length
+    ? `Este chakra aparece nas coordenadas calculadas da sua consulta em ${decodeStoredText(areaTitle)}.`
+    : "A metodologia atual n&atilde;o marcou este chakra como coordenada de nascimento ou do dia nesta consulta.";
+
+  return {
+    theme: `Plasma ${plasma.name || "n&atilde;o dispon&iacute;vel"} &bull; ${plasma.observation_guidance || chakra.phrase}`,
+    status,
+    statusDescription,
+    stateTone: chakra.color,
+    observationItems,
+    practiceItems,
+  };
 }
 
 function routeStateFromLocation() {
@@ -1130,6 +1135,10 @@ function decodeStoredText(value) {
   return decoded;
 }
 
+function readableText(value) {
+  return escapeHtml(decodeStoredText(value));
+}
+
 function todayForEngine() {
   if (window.DriveAstralSincronario && window.DriveAstralSincronario.formatDateOnly) {
     return window.DriveAstralSincronario.formatDateOnly(new Date());
@@ -1559,6 +1568,42 @@ function hasPremiumAccess() {
   }
   return Array.isArray(account.accessPlans)
     && account.accessPlans.some(isActiveAccessPlan);
+}
+
+function currentPlanId() {
+  if (isAdminProfile()) {
+    return "admin";
+  }
+  const account = state.account || {};
+  if (account.accessMode === "local-demo") {
+    return "mentor";
+  }
+  if (isPaidPlanId(account.planId)) {
+    return normalizePlanId(account.planId);
+  }
+  if (Array.isArray(account.accessPlans)) {
+    const activePlan = account.accessPlans.find(isActiveAccessPlan);
+    if (activePlan) {
+      return normalizePlanId(activePlan.plan_id || activePlan.planId);
+    }
+  }
+  return "free";
+}
+
+function currentPlanBadge() {
+  const planId = currentPlanId();
+  const labels = {
+    admin: "ADMIN",
+    mentor: "MENTOR",
+    guided: "MENTOR",
+    "jornada-guiada": "MENTOR",
+    premium: "PREMIUM",
+    monthly: "PREMIUM",
+    drive: "PREMIUM",
+    "drive-astral": "PREMIUM",
+    free: "FREE",
+  };
+  return labels[planId] || planId.toUpperCase();
 }
 
 function freeConsultationUsed() {
@@ -2938,7 +2983,7 @@ function PortalTopbar() {
     <header class="portal-topbar">
       <div><h1>${title}</h1><p>${subtitle}</p></div>
       <div class="topbar-actions">
-        <span class="premium-pill">${icon("spark")} ${environmentLabel()}</span>
+        <span class="premium-pill">${icon("spark")} ${currentPlanBadge()}</span>
         <button class="topbar-avatar" data-route="profile" type="button">${escapeHtml((state.account && state.account.name) || state.name || "D").slice(0, 1).toUpperCase()}</button>
       </div>
     </header>
@@ -3830,31 +3875,31 @@ function EnergyCycleScreen() {
 function ChakraSummaryList(items) {
   return `
     <ul class="chakra-summary-list">
-      ${items.map((item) => `<li>${item}</li>`).join("")}
+      ${items.map((item) => `<li>${readableText(item)}</li>`).join("")}
     </ul>
   `;
 }
 
-function ChakraSimpleDiagnosis(profile, areaTitle) {
+function ChakraSimpleDiagnosis(summary, areaTitle) {
   return `
-    <section class="chakra-simple-diagnosis" style="--state-tone:${profile.stateTone}">
+    <section class="chakra-simple-diagnosis" style="--state-tone:${summary.stateTone}">
       <article class="chakra-simple-cell chakra-theme-cell">
-        <span>Tema principal</span>
-        <strong>${profile.theme}</strong>
+        <span>Tema no ciclo</span>
+        <strong>${readableText(summary.theme)}</strong>
       </article>
       <article class="chakra-simple-cell chakra-state-cell">
-        <span>Situa&ccedil;&atilde;o atual</span>
-        <strong><i></i>${profile.state}</strong>
-        <p>${profile.stateDescription}</p>
-        <small>Consulta: ${areaTitle}</small>
+        <span>Situa&ccedil;&atilde;o na consulta</span>
+        <strong><i></i>${readableText(summary.status)}</strong>
+        <p>${readableText(summary.statusDescription)}</p>
+        <small>Consulta: ${readableText(areaTitle)}</small>
       </article>
       <article class="chakra-simple-cell">
-        <span>Sinais / sintomas</span>
-        ${ChakraSummaryList(profile.symptoms)}
+        <span>O que observar</span>
+        ${ChakraSummaryList(summary.observationItems)}
       </article>
       <article class="chakra-simple-cell">
-        <span>Corre&ccedil;&atilde;o / pr&aacute;ticas</span>
-        ${ChakraSummaryList(profile.practices)}
+        <span>Pr&aacute;tica da leitura</span>
+        ${ChakraSummaryList(summary.practiceItems)}
       </article>
     </section>
   `;
@@ -3863,8 +3908,17 @@ function ChakraSimpleDiagnosis(profile, areaTitle) {
 function ChakraDetailScreen() {
   const chakra = selectedChakra();
   const area = selectedConsultationArea();
-  const areaTitle = area ? area.title : "Vis&atilde;o Geral";
-  const profile = chakraSummaryProfiles[chakra.id];
+  const guidance = readingGuidance(state.reading);
+  const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
+  const areaId = normalizeAreaId(
+    area && area.id
+      ? area.id
+      : interpretation.areaId || state.selectedAreaId,
+  ) || "general";
+  const areaTitle = area
+    ? area.title
+    : interpretation.areaTitle || "Vis&atilde;o Geral";
+  const summary = chakraConsultationSummary(chakra, areaId, areaTitle);
   const orderedChakras = [...chakras].sort((a, b) => a.number - b.number);
   const currentIndex = orderedChakras.findIndex((item) => item.id === chakra.id);
   const previousChakra = orderedChakras[(currentIndex - 1 + orderedChakras.length) % orderedChakras.length];
@@ -3885,11 +3939,11 @@ function ChakraDetailScreen() {
         </div>
       </section>
 
-      ${ChakraSimpleDiagnosis(profile, areaTitle)}
+      ${ChakraSimpleDiagnosis(summary, areaTitle)}
 
       <section class="chakra-detail-transparency">
-        <h2>Observa&ccedil;&atilde;o</h2>
-        <p>Esta leitura &eacute; simb&oacute;lica e serve para direcionamento pessoal. N&atilde;o substitui orienta&ccedil;&atilde;o m&eacute;dica, psicol&oacute;gica, financeira ou jur&iacute;dica.</p>
+        <h2>Valida&ccedil;&atilde;o metodol&oacute;gica</h2>
+        <p>A metodologia atual calcula correspond&ecirc;ncias do ciclo dos sete plasmas e sua aplica&ccedil;&atilde;o por &aacute;rea. Ela n&atilde;o calcula bloqueio, hiperatividade, ferida ou estado individual do chakra.</p>
       </section>
 
       <nav class="chakra-detail-nav" aria-label="Navega&ccedil;&atilde;o entre chakras">

@@ -468,6 +468,8 @@ freeDashboardContext.setState({
 const freeDashboardHtml = freeDashboardContext.__getHtml();
 assert.ok(freeDashboardHtml.includes("Evolu&ccedil;&atilde;o por &aacute;reas"));
 assert.ok(freeDashboardHtml.includes("Acesso gratuito"));
+assert.ok(freeDashboardHtml.includes("FREE</span>"));
+assert.ok(!freeDashboardHtml.includes("Conta sincronizada"));
 assert.ok(freeDashboardHtml.includes("Desbloquear"));
 assert.ok(freeDashboardHtml.includes("data-open-upgrade-modal"));
 assert.ok(freeDashboardHtml.includes("Desbloquear consultas"));
@@ -501,10 +503,24 @@ premiumDashboardContext.setState({
 });
 const premiumDashboardHtml = premiumDashboardContext.__getHtml();
 assert.ok(premiumDashboardHtml.includes("Plano ativo"));
+assert.ok(premiumDashboardHtml.includes("PREMIUM</span>"));
+assert.ok(!premiumDashboardHtml.includes("Conta sincronizada"));
 assert.ok(premiumDashboardHtml.includes("2 de 7 &aacute;reas consultadas"));
 assert.ok(premiumDashboardHtml.includes("Precisa melhorar"));
 assert.ok(premiumDashboardHtml.includes('data-start-area-id="energy-spirituality"'));
 assert.ok(!premiumDashboardHtml.includes("area-evolution-card is-locked"));
+
+const mentorDashboardContext = createBrowserLikeContext();
+mentorDashboardContext.setState({
+  route: "dashboard",
+  account: {
+    ...vm.runInContext("state.account", mentorDashboardContext),
+    planId: "mentor",
+    accessPlans: [{ plan_id: "mentor", status: "active" }],
+  },
+  reading,
+});
+assert.ok(mentorDashboardContext.__getHtml().includes("MENTOR</span>"));
 
 const summaryIndex = resultHtml.indexOf("Resumo do GPS de Hoje");
 const essentialIndex = resultHtml.indexOf("Sua resposta essencial");
@@ -817,45 +833,65 @@ assert.ok(platformProfileHtml.includes('href="/terms.html"'));
 assert.ok(platformProfileHtml.includes("Excluir meus dados deste dispositivo"));
 
 const chakraExpectations = [
-  ["root", "1", "Raiz", "Muladhara", "Seguran&ccedil;a", "Cr&iacute;tico", "Press&atilde;o financeira", "Plano financeiro"],
-  ["sacral", "2", "Sacral", "Svadhisthana", "Criatividade", "Protegido", "Medo de se envolver", "Permitir sentir"],
-  ["solarPlexus", "3", "Plexo Solar", "Manipura", "Autoconfian&ccedil;a", "Drenado", "Procrastina&ccedil;&atilde;o", "Foco no essencial"],
-  ["heart", "4", "Card&iacute;aco", "Anahata", "Amor", "Ferido", "Feridas antigas", "Amor pr&oacute;prio"],
-  ["throat", "5", "Lar&iacute;ngeo", "Vishuddha", "Comunica&ccedil;&atilde;o", "Bom", "Fala verdades", "Ouvir mais"],
-  ["thirdEye", "6", "Terceiro Olho", "Ajna", "Sabedoria", "Hiperativo", "Overthinking", "Presen&ccedil;a"],
-  ["crown", "7", "Coron&aacute;rio", "Sahasrara", "Prop&oacute;sito", "Pedindo alinhamento", "Falta de entrega", "Ora&ccedil;&atilde;o di&aacute;ria"],
+  ["root", "1", "Raiz", "Muladhara", "Seli"],
+  ["sacral", "2", "Sacral", "Svadhisthana", "Kali"],
+  ["solarPlexus", "3", "Plexo Solar", "Manipura", "Limi"],
+  ["heart", "4", "Card&iacute;aco", "Anahata", "Silio"],
+  ["throat", "5", "Lar&iacute;ngeo", "Vishuddha", "Alfa"],
+  ["thirdEye", "6", "Terceiro Olho", "Ajna", "Gama"],
+  ["crown", "7", "Coron&aacute;rio", "Sahasrara", "Dali"],
 ];
 
-for (const [id, number, name, traditional, theme, status, symptom, practice] of chakraExpectations) {
+for (const [id, number, name, traditional, plasmaName] of chakraExpectations) {
   const chakraContext = createBrowserLikeContext(`http://localhost:4173/chakras/${id}?area=work-prosperity`);
   const chakraHtml = chakraContext.__getHtml();
   assert.ok(chakraHtml.includes(`Chakra ${number}`), id);
   assert.ok(chakraHtml.includes(name), id);
   assert.ok(chakraHtml.includes(traditional), id);
-  assert.ok(chakraHtml.includes("Tema principal"), id);
-  assert.ok(chakraHtml.includes("Situa&ccedil;&atilde;o atual"), id);
-  assert.ok(chakraHtml.includes("Sinais / sintomas"), id);
-  assert.ok(chakraHtml.includes("Corre&ccedil;&atilde;o / pr&aacute;ticas"), id);
-  assert.ok(chakraHtml.includes(theme), id);
-  assert.ok(chakraHtml.includes(status), id);
-  assert.ok(chakraHtml.includes(symptom), id);
-  assert.ok(chakraHtml.includes(practice), id);
+  assert.ok(chakraHtml.includes("Tema no ciclo"), id);
+  assert.ok(chakraHtml.includes("Situa&ccedil;&atilde;o na consulta"), id);
+  assert.ok(chakraHtml.includes("O que observar"), id);
+  assert.ok(chakraHtml.includes("Pr&aacute;tica da leitura"), id);
+  assert.ok(chakraHtml.includes(`Plasma ${plasmaName}`), id);
+  assert.ok(chakraHtml.includes("Refer\u00eancia do ciclo"), id);
+  assert.ok(chakraHtml.includes("sem indicar estado individual"), id);
   assert.ok(chakraHtml.includes("Trabalho e Prosperidade"), id);
   assert.ok(chakraHtml.includes('data-route="energy-cycle"'), id);
   assert.ok(chakraHtml.includes("Navega&ccedil;&atilde;o entre chakras"), id);
-  assert.ok(chakraHtml.includes("Esta leitura &eacute; simb&oacute;lica"), id);
+  assert.ok(chakraHtml.includes("A metodologia atual calcula correspond&ecirc;ncias"), id);
   assert.ok(!chakraHtml.includes("O que este chakra representa"), id);
   assert.ok(!chakraHtml.includes("Perguntas para reflex&atilde;o"), id);
   assert.ok(!chakraHtml.includes("Adicionar ao meu protocolo"), id);
+  assert.ok(!chakraHtml.includes("Sinais / sintomas"), id);
+  assert.ok(!chakraHtml.includes("Corre&ccedil;&atilde;o / pr&aacute;ticas"), id);
+  assert.ok(!chakraHtml.includes("Cr&iacute;tico"), id);
+  assert.ok(!chakraHtml.includes("Protegido"), id);
+  assert.ok(!chakraHtml.includes("Drenado"), id);
+  assert.ok(!chakraHtml.includes("Ferido"), id);
+  assert.ok(!chakraHtml.includes("Hiperativo"), id);
   const headerMatch = chakraHtml.match(/<header class="app-header">[\s\S]*?<\/header>/);
   assert.ok(headerMatch, id);
   assert.ok(!headerMatch[0].includes("#"), id);
 }
 
+const calculatedChakraContext = createBrowserLikeContext();
+calculatedChakraContext.setState({
+  route: "chakra-detail",
+  selectedChakraId: "heart",
+  selectedAreaId: "work-prosperity",
+  reading,
+});
+const calculatedChakraHtml = calculatedChakraContext.__getHtml();
+assert.ok(calculatedChakraHtml.includes("Coordenada calculada: dia atual"));
+assert.ok(calculatedChakraHtml.includes("Silio / Cora\u00e7\u00e3o / Card\u00edaco"));
+assert.ok(calculatedChakraHtml.includes("Pr\u00e1tica validada da leitura"));
+assert.ok(calculatedChakraHtml.includes("Levante informa\u00e7\u00f5es, n\u00fameros e prioridades antes de decidir"));
+assert.ok(!calculatedChakraHtml.includes("Ferido"));
+
 const directGeneralContext = createBrowserLikeContext("http://localhost:4173/chakras/root");
 const directGeneralHtml = directGeneralContext.__getHtml();
-assert.ok(directGeneralHtml.includes("Consulta: Vis&atilde;o Geral"));
-assert.ok(directGeneralHtml.includes("Cr&iacute;tico"));
+assert.ok(directGeneralHtml.includes("Consulta: Vis\u00e3o Geral"));
+assert.ok(directGeneralHtml.includes("Refer\u00eancia do ciclo"));
 assert.ok(!directGeneralHtml.includes("Trabalho e Prosperidade"));
 
 const timelineContext = createBrowserLikeContext();
