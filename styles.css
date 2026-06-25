@@ -935,7 +935,7 @@ svg {
   position: relative;
   z-index: 5;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   width: 100%;
   min-height: calc(var(--bottom-navigation-height) + env(safe-area-inset-bottom));
   padding: 9px 10px calc(8px + env(safe-area-inset-bottom));
@@ -1040,6 +1040,9 @@ svg {
   position: relative;
   min-height: 575px;
   border-radius: 120px;
+  background:
+    radial-gradient(ellipse at 50% 44%, rgba(39, 169, 223, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(2, 13, 11, 0.1), rgba(2, 13, 11, 0.34));
 }
 
 .body-aura {
@@ -1058,31 +1061,99 @@ svg {
   position: absolute;
   inset: 58px 9px 28px;
   color: rgba(124, 167, 255, 0.42);
-  filter: drop-shadow(0 0 18px rgba(39, 169, 223, 0.34));
+  filter:
+    drop-shadow(0 0 16px rgba(39, 169, 223, 0.26))
+    drop-shadow(0 0 32px rgba(84, 184, 90, 0.08));
+}
+
+.body-silhouette::before {
+  content: "";
+  position: absolute;
+  top: 36px;
+  right: 16%;
+  bottom: 12px;
+  left: 16%;
+  border: 1px solid rgba(39, 169, 223, 0.18);
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(ellipse at 50% 28%, rgba(197, 62, 219, 0.08), transparent 24%),
+    radial-gradient(ellipse at 50% 52%, rgba(39, 169, 223, 0.09), transparent 32%),
+    radial-gradient(ellipse at 50% 78%, rgba(245, 181, 27, 0.08), transparent 28%);
+}
+
+.body-silhouette .halo {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  width: 88px;
+  height: 88px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(197, 62, 219, 0.22);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 62, 219, 0.09), transparent 62%);
 }
 
 .body-silhouette .head {
   position: absolute;
-  top: 0;
+  top: 2px;
   left: 50%;
-  width: 48px;
-  height: 60px;
+  width: 52px;
+  height: 64px;
   transform: translateX(-50%);
-  border: 1px solid currentColor;
+  border: 1px solid rgba(124, 167, 255, 0.5);
   border-radius: 50% 50% 44% 44%;
-  background: radial-gradient(circle at 50% 24%, rgba(197, 62, 219, 0.16), rgba(39, 169, 223, 0.04));
+  background:
+    radial-gradient(circle at 50% 24%, rgba(197, 62, 219, 0.18), transparent 44%),
+    linear-gradient(180deg, rgba(39, 169, 223, 0.08), rgba(2, 13, 11, 0.16));
+}
+
+.body-silhouette .spine {
+  position: absolute;
+  top: 70px;
+  bottom: 92px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, rgba(243, 228, 195, 0.2), rgba(84, 184, 90, 0.24), transparent);
+  box-shadow: 0 0 16px rgba(39, 169, 223, 0.28);
+}
+
+.body-silhouette .shoulders,
+.body-silhouette .pelvis {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid rgba(39, 169, 223, 0.26);
+  border-top: 0;
+}
+
+.body-silhouette .shoulders {
+  top: 96px;
+  width: 154px;
+  height: 46px;
+  border-radius: 0 0 80px 80px;
+}
+
+.body-silhouette .pelvis {
+  bottom: 116px;
+  width: 108px;
+  height: 42px;
+  border-radius: 0 0 70px 70px;
 }
 
 .body-silhouette .torso {
   position: absolute;
-  top: 64px;
+  top: 66px;
   left: 50%;
-  width: 82px;
-  height: 215px;
+  width: 92px;
+  height: 226px;
   transform: translateX(-50%);
-  border: 1px solid currentColor;
-  border-radius: 50% 50% 44% 44%;
-  background: linear-gradient(180deg, rgba(81, 69, 198, 0.1), rgba(39, 169, 223, 0.08), rgba(84, 184, 90, 0.06));
+  border: 1px solid rgba(124, 167, 255, 0.36);
+  border-radius: 48% 48% 42% 42%;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(81, 69, 198, 0.13), transparent 45%),
+    radial-gradient(ellipse at 50% 62%, rgba(84, 184, 90, 0.1), transparent 42%),
+    linear-gradient(180deg, rgba(39, 169, 223, 0.05), rgba(2, 13, 11, 0.12));
 }
 
 .body-silhouette .arms,
@@ -1095,16 +1166,20 @@ svg {
 }
 
 .body-silhouette .arms {
-  top: 178px;
-  height: 100px;
-  border-radius: 0 0 80px 80px;
+  top: 158px;
+  right: 10px;
+  left: 10px;
+  height: 122px;
+  border-color: rgba(39, 169, 223, 0.28);
+  border-radius: 0 0 96px 96px;
 }
 
 .body-silhouette .legs {
   bottom: 0;
-  height: 150px;
-  border-radius: 0 0 110px 110px;
-  transform: scaleX(0.92);
+  height: 164px;
+  border-color: rgba(39, 169, 223, 0.22);
+  border-radius: 0 0 120px 120px;
+  transform: scaleX(0.82);
 }
 
 .chakra-point {
@@ -7217,6 +7292,139 @@ body {
   background: linear-gradient(90deg, #a77d2c, #e6c36e);
 }
 
+.energy-cycle-shortcut {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid rgba(214, 165, 58, 0.24);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(84, 184, 90, 0.13), transparent 16rem),
+    radial-gradient(circle at 90% 100%, rgba(39, 169, 223, 0.1), transparent 17rem),
+    rgba(3, 21, 17, 0.78);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(13px);
+}
+
+.energy-cycle-shortcut-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid rgba(214, 165, 58, 0.24);
+  border-radius: 14px;
+  background: rgba(214, 165, 58, 0.09);
+  color: var(--gold-light);
+}
+
+.energy-cycle-shortcut-icon svg {
+  width: 24px;
+}
+
+.energy-cycle-shortcut > div {
+  display: grid;
+  gap: 5px;
+}
+
+.energy-cycle-shortcut > div > span,
+.energy-cycle-hero > div > span {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.energy-cycle-shortcut h2,
+.energy-cycle-hero h2 {
+  margin: 0;
+  color: #f1dfb9;
+  font-family: var(--font-title);
+  font-size: clamp(1.12rem, 1.8vw, 1.45rem);
+  font-weight: 500;
+  line-height: 1.28;
+}
+
+.energy-cycle-shortcut p,
+.energy-cycle-hero p {
+  max-width: 740px;
+  margin: 0;
+  color: rgba(243, 228, 195, 0.58);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.energy-cycle-shortcut .button-primary {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.energy-cycle-page {
+  display: grid;
+  width: min(100%, 1080px);
+  gap: 18px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.energy-cycle-hero,
+.energy-cycle-main-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(214, 165, 58, 0.26);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(197, 62, 219, 0.12), transparent 18rem),
+    radial-gradient(circle at 8% 100%, rgba(84, 184, 90, 0.14), transparent 22rem),
+    rgba(3, 21, 17, 0.88);
+  box-shadow: 0 22px 58px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(15px);
+}
+
+.energy-cycle-hero {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.energy-cycle-hero-icon {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  border: 1px solid rgba(214, 165, 58, 0.32);
+  border-radius: 50%;
+  background: rgba(214, 165, 58, 0.1);
+  color: var(--gold-light);
+  box-shadow: 0 0 34px rgba(214, 165, 58, 0.13);
+}
+
+.energy-cycle-hero-icon svg {
+  width: 30px;
+}
+
+.energy-cycle-main-card {
+  padding: clamp(18px, 2.6vw, 28px);
+}
+
+.energy-cycle-main-card .chakra-layout {
+  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.1fr);
+  gap: clamp(20px, 4vw, 44px);
+}
+
+.energy-cycle-main-card .chakra-body-map {
+  min-height: 620px;
+}
+
+.energy-cycle-disclaimer {
+  margin-top: 0;
+}
+
 .dashboard-evolution-panel {
   display: grid;
   gap: 18px;
@@ -7864,6 +8072,19 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .energy-cycle-shortcut {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .energy-cycle-shortcut .button-primary {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .energy-cycle-main-card .chakra-layout {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-evolution-heading {
     grid-template-columns: 1fr;
   }
@@ -8112,6 +8333,24 @@ body {
   .dashboard-today-actions button {
     justify-content: center;
     width: 100%;
+  }
+
+  .energy-cycle-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .energy-cycle-hero-icon {
+    justify-self: center;
+  }
+
+  .energy-cycle-shortcut {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .energy-cycle-shortcut-icon {
+    justify-self: center;
   }
 
   .dashboard-progress-card {

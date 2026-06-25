@@ -590,6 +590,7 @@ function routeStateFromLocation() {
     "/app/consulta": "home",
     "/app/protocolo": "protocol",
     "/app/jornada": "journey",
+    "/app/ciclo-energetico": "energy-cycle",
     "/app/historico": "history",
     "/app/perfil": "profile",
     "/admin": "admin-dashboard",
@@ -620,6 +621,7 @@ function updateLocationForState(nextState, replace = false) {
     dashboard: "/app",
     home: "/app/consulta",
     chakras: "/app/consulta/resultado",
+    "energy-cycle": "/app/ciclo-energetico",
     protocol: "/app/protocolo",
     journey: "/app/jornada",
     history: "/app/historico",
@@ -2116,28 +2118,30 @@ function DailyPracticeCard(guidance) {
   `, "coordinate-card daily-practice-card");
 }
 
-function ChakraCycleCard() {
-  return GoldenCard(`
-    <details class="coordinate-details chakra-cycle-details">
-      <summary>
-        <span class="coordinate-step">7</span>
-        <span class="coordinate-summary-copy">
-          <strong>Ciclo dos Plasmas e Chakras</strong>
-          <small>Sequ&ecirc;ncia simb&oacute;lica do ciclo natural</small>
-        </span>
-        <span class="coordinate-summary-toggle" aria-hidden="true">${icon("arrow")}</span>
-      </summary>
-      <div class="coordinate-details-content chakra-cycle-content">
-        <p class="chakra-cycle-note">Esta se&ccedil;&atilde;o mostra a sequ&ecirc;ncia simb&oacute;lica dos plasmas e chakras no ciclo natural do Sincron&aacute;rio. N&atilde;o representa diagn&oacute;stico individual dos seus chakras.</p>
-        <div class="chakra-layout">
-          ${ChakraBodyMap()}
-          <div class="chakra-list">
-            ${chakras.map(ChakraCard).join("")}
-          </div>
-        </div>
+function EnergyCycleContent() {
+  return `
+    <p class="chakra-cycle-note">Esta se&ccedil;&atilde;o mostra a sequ&ecirc;ncia simb&oacute;lica dos plasmas e chakras no ciclo natural do Sincron&aacute;rio. N&atilde;o representa diagn&oacute;stico individual nem avalia o estado energ&eacute;tico dos seus chakras.</p>
+    <div class="chakra-layout">
+      ${ChakraBodyMap()}
+      <div class="chakra-list">
+        ${chakras.map(ChakraCard).join("")}
       </div>
-    </details>
-  `, "coordinate-card chakra-cycle-card");
+    </div>
+  `;
+}
+
+function EnergyCycleShortcutCard(className = "") {
+  return `
+    <section class="energy-cycle-shortcut ${className}">
+      <span class="energy-cycle-shortcut-icon">${icon("lotus")}</span>
+      <div>
+        <span>Ciclo Energ&eacute;tico</span>
+        <h2>Veja a sequ&ecirc;ncia dos plasmas e chakras com mais clareza.</h2>
+        <p>Uma p&aacute;gina dedicada para entender o ciclo simb&oacute;lico natural sem misturar com o resultado principal.</p>
+      </div>
+      <button class="button-primary" data-route="energy-cycle" type="button">Abrir Ciclo Energ&eacute;tico ${icon("arrow")}</button>
+    </section>
+  `;
 }
 
 function ReadingDetailsSection(reading, guidance) {
@@ -2148,7 +2152,7 @@ function ReadingDetailsSection(reading, guidance) {
           <span class="reading-details-icon">${icon("info")}</span>
           <span class="reading-details-summary">
             <strong>Entenda sua leitura</strong>
-            <small>Veja Kins, coordenadas e o ciclo dos chakras.</small>
+            <small>Veja Kins, coordenadas e aplica&ccedil;&otilde;es da leitura.</small>
           </span>
           <span class="reading-details-toggle" aria-hidden="true">${icon("arrow")}</span>
         </summary>
@@ -2159,7 +2163,6 @@ function ReadingDetailsSection(reading, guidance) {
           ${DayCoordinatesCard(reading)}
           ${DailySynchronizationCard(reading)}
           ${guidance ? DailyPracticeCard(guidance) : ""}
-          ${ChakraCycleCard()}
         </div>
       </details>
     </section>
@@ -2766,10 +2769,11 @@ function OnboardingScreen() {
 
 function PortalSidebar() {
   const accountName = state.account && state.account.name ? state.account.name : state.name || "Minha conta";
-  const activeRoute = ["chakras", "chakra-detail"].includes(state.route) ? "home" : state.route;
+  const activeRoute = state.route === "chakra-detail" ? "energy-cycle" : state.route;
   const items = [
     ["dashboard", "home", "Hoje"],
     ["home", "compass", "Nova consulta"],
+    ["energy-cycle", "lotus", "Ciclo Energ&eacute;tico"],
     ["journey", "calendar", "Jornada de 30 dias"],
     ["protocol", "protocol", "Protocolo di&aacute;rio"],
     ["profile", "user", "Meu perfil"],
@@ -2800,6 +2804,7 @@ function PortalTopbar() {
     dashboard: ["Hoje", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
     home: ["Nova consulta", "Escolha uma &aacute;rea e gere suas coordenadas"],
     chakras: ["Resultado da consulta", "Seu mapa completo foi calculado"],
+    "energy-cycle": ["Ciclo Energ&eacute;tico", "Plasmas, chakras e ciclo natural"],
     history: ["Hist&oacute;rico", "Leituras e marcos preservados"],
     protocol: ["Protocolo di&aacute;rio", "Pr&aacute;ticas para trazer a leitura ao cotidiano"],
     journey: ["Jornada de 30 dias", "Frases e a&ccedil;&otilde;es para acompanhar seu ciclo"],
@@ -3399,6 +3404,7 @@ function BottomNavigation() {
   const items = [
     { route: "dashboard", label: "In&iacute;cio", iconName: "home" },
     { route: "home", label: "Consulta", iconName: "compass" },
+    { route: "energy-cycle", label: "Ciclo", iconName: "lotus" },
     { route: "journey", label: "Jornada", iconName: "calendar" },
     { route: "profile", label: "Perfil", iconName: "profile" },
   ];
@@ -3524,6 +3530,8 @@ function DashboardScreen() {
         </div>
       </section>
 
+      ${EnergyCycleShortcutCard("is-dashboard")}
+
       ${DashboardEvolutionSection()}
 
       <section class="dashboard-continuity-grid">
@@ -3640,8 +3648,12 @@ function ChakraBodyMap() {
     <div class="chakra-body-map" aria-label="Mapa luminoso dos chakras">
       <div class="body-aura"></div>
       <div class="body-silhouette">
+        <div class="halo"></div>
         <div class="head"></div>
+        <div class="spine"></div>
+        <div class="shoulders"></div>
         <div class="torso"></div>
+        <div class="pelvis"></div>
         <div class="legs"></div>
         <div class="arms"></div>
       </div>
@@ -3663,6 +3675,34 @@ function ChakraCard(chakra) {
       ${icon("arrow")}
     </button>
   `;
+}
+
+function EnergyCycleScreen() {
+  const guidance = readingGuidance(state.reading);
+  const areaTitle = guidance && guidance.interpretation
+    ? guidance.interpretation.areaTitle
+    : "Vis&atilde;o Geral";
+
+  return PlatformShell(`
+    ${AppHeader("Ciclo Energ&eacute;tico", `${areaTitle} &bull; plasmas e chakras`, { back: true, backRoute: "dashboard" })}
+    <section class="energy-cycle-page">
+      <section class="energy-cycle-hero">
+        <span class="energy-cycle-hero-icon">${icon("lotus")}</span>
+        <div>
+          <span>Ciclo natural do Sincron&aacute;rio</span>
+          <h2>Ciclo Energ&eacute;tico</h2>
+          <p>Uma leitura visual da sequ&ecirc;ncia simb&oacute;lica dos plasmas e chakras para apoiar reflex&atilde;o, organiza&ccedil;&atilde;o e presen&ccedil;a.</p>
+        </div>
+      </section>
+      <section class="energy-cycle-main-card">
+        ${EnergyCycleContent()}
+      </section>
+      <section class="dashboard-disclaimer energy-cycle-disclaimer">
+        ${icon("info")}
+        <p>Esta p&aacute;gina n&atilde;o mede bloqueios, doen&ccedil;as, hiperatividade ou estado individual dos chakras. Ela organiza correspond&ecirc;ncias simb&oacute;licas para autoconhecimento.</p>
+      </section>
+    </section>
+  `);
 }
 
 function ChakraSection({ title, content, className = "" }) {
@@ -3703,7 +3743,7 @@ function ChakraDetailScreen() {
   const nextChakra = orderedChakras[(currentIndex + 1) % orderedChakras.length];
 
   return PlatformShell(`
-    ${AppHeader(`Chakra ${chakra.name}`, `${chakra.traditional} &bull; Chakra ${chakra.number}`, { back: true, backRoute: "chakras" })}
+    ${AppHeader(`Chakra ${chakra.name}`, `${chakra.traditional} &bull; Chakra ${chakra.number}`, { back: true, backRoute: "energy-cycle" })}
     <section class="chakra-detail-stack" style="--chakra:${chakra.color}">
       <section class="chakra-detail-hero">
         <div class="chakra-hero-symbol">
@@ -3783,6 +3823,7 @@ function ChakrasScreen() {
     ${AppHeader("Dire&ccedil;&atilde;o de hoje", areaTitle, { back: true })}
     <section class="result-stack">
       ${EssentialDirectionCard(state.reading, guidance)}
+      ${EnergyCycleShortcutCard("is-result")}
       ${ReadingDetailsSection(state.reading, guidance)}
     </section>
   `);
@@ -5596,6 +5637,7 @@ function render() {
     dashboard: DashboardScreen,
     home: HomeScreen,
     chakras: ChakrasScreen,
+    "energy-cycle": EnergyCycleScreen,
     "chakra-detail": ChakraDetailScreen,
     "legacy-history": LegacyHistoryScreen,
     protocol: ProtocolScreen,

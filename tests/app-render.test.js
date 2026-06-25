@@ -208,8 +208,13 @@ assert.ok(styles.includes(".admin-field input"));
 assert.ok(styles.includes(".dashboard-evolution-panel"));
 assert.ok(styles.includes(".area-evolution-card.is-locked"));
 assert.ok(styles.includes(".upgrade-modal"));
+assert.ok(styles.includes(".energy-cycle-shortcut"));
+assert.ok(styles.includes(".energy-cycle-main-card"));
+assert.ok(styles.includes("grid-template-columns: repeat(5, 1fr)"));
 assert.ok(appSource.includes("function DashboardEvolutionSection()"));
 assert.ok(appSource.includes("function UpgradeModal()"));
+assert.ok(appSource.includes("function EnergyCycleScreen()"));
+assert.ok(appSource.includes('"/app/ciclo-energetico": "energy-cycle"'));
 
 const adminDashboardContext = createBrowserLikeContext("http://localhost:4173/admin");
 const adminDashboardHtml = adminDashboardContext.__getHtml();
@@ -413,7 +418,9 @@ assert.ok(resultHtml.includes("A&ccedil;&atilde;o de hoje"));
 assert.ok(resultHtml.includes("Pergunta para confirmar"));
 assert.ok(resultHtml.includes("Abrir protocolo di&aacute;rio"));
 assert.ok(resultHtml.includes("Entenda sua leitura"));
-assert.ok(resultHtml.includes("Veja Kins, coordenadas e o ciclo dos chakras."));
+assert.ok(resultHtml.includes("Veja Kins, coordenadas e aplica&ccedil;&otilde;es da leitura."));
+assert.ok(resultHtml.includes("Ciclo Energ&eacute;tico"));
+assert.ok(resultHtml.includes("Abrir Ciclo Energ&eacute;tico"));
 assert.ok(resultHtml.includes("Resumo do GPS de Hoje"));
 assert.ok(resultHtml.includes("Suas Coordenadas de Nascimento"));
 assert.ok(resultHtml.includes("Coordenadas do Dia"));
@@ -423,9 +430,8 @@ assert.ok(resultHtml.includes("Pr&aacute;tica de Sincroniza&ccedil;&atilde;o do 
 assert.ok(!resultHtml.includes("Como esta leitura foi criada"));
 assert.ok(!resultHtml.includes("Matriz de 260 Kins"));
 assert.ok(!resultHtml.includes("SHA-256"));
-assert.ok(resultHtml.includes("Ciclo dos Plasmas e Chakras"));
+assert.ok(!resultHtml.includes("Ciclo dos Plasmas e Chakras"));
 assert.ok(!resultHtml.includes("Mapa visual dos 7 chakras"));
-assert.ok(resultHtml.includes("N&atilde;o representa diagn&oacute;stico individual dos seus chakras."));
 assert.ok(resultHtml.includes("Kin pessoal"));
 assert.ok(resultHtml.includes("<strong>168</strong>"));
 assert.ok(resultHtml.includes("Branco Solar Espelho"));
@@ -447,10 +453,7 @@ assert.ok(!resultHtml.includes("Motor v0.4.0"));
 assert.ok(!resultHtml.includes("Pendente"));
 assert.ok(!resultHtml.toLowerCase().includes("previs&atilde;o absoluta do futuro"));
 assert.ok(!resultHtml.includes("Inten&ccedil;&atilde;o Declarada"));
-assert.strictEqual((resultHtml.match(/data-chakra-id="/g) || []).length, 7);
-assert.ok(resultHtml.includes('data-chakra-id="root"'));
-assert.ok(resultHtml.includes('aria-label="Abrir detalhes do Chakra Raiz"'));
-assert.strictEqual((resultHtml.match(/<details class="coordinate-details/g) || []).length, 4);
+assert.strictEqual((resultHtml.match(/<details class="coordinate-details/g) || []).length, 3);
 
 const freeDashboardContext = createBrowserLikeContext();
 freeDashboardContext.setState({
@@ -506,22 +509,41 @@ assert.ok(!premiumDashboardHtml.includes("area-evolution-card is-locked"));
 const summaryIndex = resultHtml.indexOf("Resumo do GPS de Hoje");
 const essentialIndex = resultHtml.indexOf("Sua resposta essencial");
 const detailsIndex = resultHtml.indexOf("Entenda sua leitura");
+const energyCycleShortcutIndex = resultHtml.indexOf("Abrir Ciclo Energ&eacute;tico");
 const applicationIndex = resultHtml.indexOf("Aplica&ccedil;&atilde;o na &Aacute;rea Escolhida");
 const birthCoordinatesIndex = resultHtml.indexOf("Suas Coordenadas de Nascimento");
 const dayCoordinatesIndex = resultHtml.indexOf("Coordenadas do Dia");
 const synchronizationIndex = resultHtml.indexOf("Sua Sincroniza&ccedil;&atilde;o com Hoje");
 const practiceIndex = resultHtml.indexOf("Pr&aacute;tica de Sincroniza&ccedil;&atilde;o do Dia");
-const chakraCycleIndex = resultHtml.indexOf("Ciclo dos Plasmas e Chakras");
 
-assert.ok(essentialIndex < detailsIndex);
+assert.ok(essentialIndex < energyCycleShortcutIndex);
+assert.ok(energyCycleShortcutIndex < detailsIndex);
 assert.ok(detailsIndex < summaryIndex);
 assert.ok(summaryIndex < applicationIndex);
 assert.ok(applicationIndex < birthCoordinatesIndex);
 assert.ok(birthCoordinatesIndex < dayCoordinatesIndex);
 assert.ok(dayCoordinatesIndex < synchronizationIndex);
 assert.ok(synchronizationIndex < practiceIndex);
-assert.ok(practiceIndex < chakraCycleIndex);
 assert.ok(resultHtml.includes("Como aplicar minhas coordenadas de hoje em Trabalho e Prosperidade?"));
+
+const energyCycleContext = createBrowserLikeContext("http://localhost:4173/app/ciclo-energetico");
+energyCycleContext.setState({
+  route: "energy-cycle",
+  name: "Gabriel Ferreira",
+  birth: "1996-06-25",
+  selectedAreaId: "work-prosperity",
+  reading,
+  history: [firstHistoryEntry, secondHistoryEntry],
+});
+const energyCycleHtml = energyCycleContext.__getHtml();
+assert.strictEqual(vm.runInContext("state.route", energyCycleContext), "energy-cycle");
+assert.ok(energyCycleHtml.includes("Ciclo Energ&eacute;tico"));
+assert.ok(energyCycleHtml.includes("Ciclo natural do Sincron&aacute;rio"));
+assert.ok(energyCycleHtml.includes("energy-cycle-main-card"));
+assert.ok(energyCycleHtml.includes("N&atilde;o representa diagn&oacute;stico individual"));
+assert.strictEqual((energyCycleHtml.match(/data-chakra-id="/g) || []).length, 7);
+assert.ok(energyCycleHtml.includes('data-chakra-id="root"'));
+assert.ok(energyCycleHtml.includes('aria-label="Abrir detalhes do Chakra Raiz"'));
 
 resultContext.setState({ route: "protocol" });
 const protocolHtml = resultContext.__getHtml();
@@ -814,7 +836,7 @@ for (const [id, number, name, traditional, lifeArea, practice] of chakraExpectat
   assert.ok(chakraHtml.includes(practice), id);
   assert.ok(chakraHtml.includes("Trabalho e Prosperidade"), id);
   assert.ok(chakraHtml.includes("Adicionar ao meu protocolo"), id);
-  assert.ok(chakraHtml.includes('data-route="chakras"'), id);
+  assert.ok(chakraHtml.includes('data-route="energy-cycle"'), id);
   assert.ok(chakraHtml.includes("Navega&ccedil;&atilde;o entre chakras"), id);
   assert.ok(chakraHtml.includes("Esses sinais s&atilde;o convites"), id);
   assert.ok(chakraHtml.includes("n&atilde;o avalia individualmente"), id);
