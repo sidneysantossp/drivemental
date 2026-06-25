@@ -280,7 +280,7 @@ assert.ok(demoContext.__getHtml().includes("Conta Demonstra"));
 
 const myDayRouteContext = createBrowserLikeContext("http://localhost:4173/app/meu-dia");
 assert.strictEqual(vm.runInContext("state.route", myDayRouteContext), "my-day");
-assert.ok(myDayRouteContext.__getHtml().includes("Meu dia"));
+assert.ok(myDayRouteContext.__getHtml().includes("A&ccedil;&atilde;o do dia"));
 
 assert.ok(homeHtml.includes("Onde voc&ecirc; deseja aplicar sua leitura de hoje?"));
 assert.ok(homeHtml.includes("A escolha contextualiza a pr&aacute;tica, sem alterar os c&aacute;lculos"));
@@ -506,7 +506,7 @@ assert.ok(freeDashboardHtml.includes("Evolu&ccedil;&atilde;o por &aacute;reas"))
 assert.ok(freeDashboardHtml.includes("Acesso gratuito"));
 assert.ok(freeDashboardHtml.includes("FREE</span>"));
 assert.ok(freeDashboardHtml.includes(">Home</span>"));
-assert.ok(freeDashboardHtml.includes(">Meu dia</span>"));
+assert.ok(freeDashboardHtml.includes(">A&ccedil;&atilde;o do dia</span>"));
 assert.ok(!freeDashboardHtml.includes("Conta sincronizada"));
 assert.ok(!freeDashboardHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
 assert.ok(!freeDashboardHtml.includes("Abrir Ciclo Energ&eacute;tico"));

@@ -2960,7 +2960,7 @@ function PortalSidebar() {
   const activeRoute = state.route === "chakra-detail" ? "energy-cycle" : state.route;
   const items = [
     ["dashboard", "home", "Home"],
-    ["my-day", "spark", "Meu dia"],
+    ["my-day", "spark", "A&ccedil;&atilde;o do dia"],
     ["home", "compass", "Nova consulta"],
     ["energy-cycle", "lotus", "Ciclo Energ&eacute;tico"],
     ["journey", "calendar", "Jornada de 30 dias"],
@@ -2991,7 +2991,7 @@ function PortalSidebar() {
 function PortalTopbar() {
   const titles = {
     dashboard: ["Home", "Resumo da sua plataforma"],
-    "my-day": ["Meu dia", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
+    "my-day": ["A&ccedil;&atilde;o do dia", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
     home: ["Nova consulta", "Escolha uma &aacute;rea e gere suas coordenadas"],
     chakras: ["Resultado da consulta", "Seu mapa completo foi calculado"],
     "energy-cycle": ["Ciclo Energ&eacute;tico", "Plasmas, chakras e ciclo natural"],
@@ -3593,7 +3593,7 @@ function EmptyState() {
 function BottomNavigation() {
   const items = [
     { route: "dashboard", label: "Home", iconName: "home" },
-    { route: "my-day", label: "Meu dia", iconName: "spark" },
+    { route: "my-day", label: "A&ccedil;&atilde;o", iconName: "spark" },
     { route: "home", label: "Consulta", iconName: "compass" },
     { route: "journey", label: "Jornada", iconName: "calendar" },
     { route: "profile", label: "Perfil", iconName: "profile" },
