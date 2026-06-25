@@ -681,6 +681,8 @@ const defaultState = {
   adminPlansLoaded: false,
   adminPlansLoading: false,
   adminSaving: false,
+  upgradeModalOpen: false,
+  upgradeAreaId: "",
   timelineDraft: {
     title: "",
     eventDate: "",
@@ -1393,6 +1395,124 @@ function historyEntryById(readingId) {
   return state.history.find((item) => item.readingId === readingId) || null;
 }
 
+function normalizePlanId(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function paidPlanIds() {
+  return ["premium", "mentor", "monthly", "guided", "drive", "drive-astral", "jornada-guiada"];
+}
+
+function isPaidPlanId(planId) {
+  return paidPlanIds().includes(normalizePlanId(planId));
+}
+
+function isActiveAccessPlan(access) {
+  if (!access || !isPaidPlanId(access.plan_id || access.planId)) {
+    return false;
+  }
+  const status = String(access.status || "active").toLowerCase();
+  if (!["active", "courtesy"].includes(status)) {
+    return false;
+  }
+  if (!access.expires_at && !access.expiresAt) {
+    return true;
+  }
+  const expiresAt = Date.parse(access.expires_at || access.expiresAt);
+  return Number.isNaN(expiresAt) || expiresAt > Date.now();
+}
+
+function hasPremiumAccess() {
+  if (isAdminProfile()) {
+    return true;
+  }
+  const account = state.account || {};
+  if (account.accessMode === "local-demo") {
+    return true;
+  }
+  if (isPaidPlanId(account.planId)) {
+    return true;
+  }
+  return Array.isArray(account.accessPlans)
+    && account.accessPlans.some(isActiveAccessPlan);
+}
+
+function freeConsultationUsed() {
+  return !hasPremiumAccess() && normalizedHistoryList(state.history).length > 0;
+}
+
+function firstConsultedAreaId() {
+  const history = normalizedHistoryList(state.history);
+  const firstEntry = history[history.length - 1] || history[0] || null;
+  const historyArea = firstEntry ? normalizeAreaId(firstEntry.areaId) : "";
+  if (historyArea) {
+    return historyArea;
+  }
+
+  const guidance = readingGuidance(state.reading);
+  const interpretationArea = guidance && guidance.interpretation
+    ? normalizeAreaId(guidance.interpretation.areaId)
+    : "";
+  return interpretationArea || normalizeAreaId(state.selectedAreaId) || normalizeAreaId(state.account && state.account.primaryAreaId) || "general";
+}
+
+function canStartConsultationForArea(areaId) {
+  if (hasPremiumAccess()) {
+    return true;
+  }
+  return normalizedHistoryList(state.history).length === 0 && Boolean(normalizeAreaId(areaId));
+}
+
+function canViewEvolutionArea(areaId) {
+  return hasPremiumAccess() || normalizeAreaId(areaId) === firstConsultedAreaId();
+}
+
+function daysSince(value) {
+  const timestamp = Date.parse(value || "");
+  if (Number.isNaN(timestamp)) {
+    return 999;
+  }
+  return Math.max(0, Math.round((Date.now() - timestamp) / 86400000));
+}
+
+function areaEvolutionRows() {
+  const history = normalizedHistoryList(state.history);
+  const currentAreaId = readingGuidance(state.reading)?.interpretation?.areaId || normalizeAreaId(state.selectedAreaId);
+
+  return consultationAreas.map((area) => {
+    const entries = history.filter((entry) => normalizeAreaId(entry.areaId) === area.id);
+    const lastEntry = entries[0] || null;
+    const recency = lastEntry ? daysSince(lastEntry.createdAt) : 999;
+    const consulted = entries.length > 0;
+    const score = consulted
+      ? Math.min(94, 46 + (entries.length * 16) + (recency <= 7 ? 12 : recency <= 30 ? 7 : 0))
+      : 18;
+    const locked = !canViewEvolutionArea(area.id);
+    const status = locked
+      ? "Bloqueado"
+      : consulted && score >= 68
+        ? "Melhorando"
+        : consulted
+          ? "Em acompanhamento"
+          : "Precisa melhorar";
+
+    return {
+      area,
+      entries,
+      consulted,
+      score,
+      locked,
+      status,
+      isCurrent: area.id === currentAreaId,
+      note: locked
+        ? "Assine para comparar esta &aacute;rea."
+        : consulted
+          ? `${entries.length} consulta${entries.length === 1 ? "" : "s"} salva${entries.length === 1 ? "" : "s"}`
+          : "Ainda sem consulta nesta &aacute;rea.",
+    };
+  });
+}
+
 function normalizedTimelineEvents(events) {
   if (!window.DriveAstralCosmicTimeline) {
     return [];
@@ -2090,6 +2210,48 @@ function CommercialPlanAction(planId) {
   return '<button class="button-primary button-large" type="button" disabled>INICIAR A MINHA JORNADA</button>';
 }
 
+function upgradeCheckoutUrl() {
+  const urls = runtimeConfig().checkoutUrls || {};
+  return urls.premium || urls.monthly || urls.drive || urls.mentor || urls.guided || "";
+}
+
+function UpgradeCta(className = "button-primary button-large") {
+  const checkoutUrl = upgradeCheckoutUrl();
+  const label = `QUERO INICIAR MINHA JORNADA ${icon("arrow")}`;
+  if (typeof checkoutUrl === "string" && /^https:\/\//.test(checkoutUrl)) {
+    return `<a class="${className}" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noopener">${label}</a>`;
+  }
+  return `<a class="${className}" href="/?qa=plans#premium">${label}</a>`;
+}
+
+function UpgradeModal() {
+  if (!state.upgradeModalOpen) {
+    return "";
+  }
+  const area = consultationAreas.find((item) => item.id === normalizeAreaId(state.upgradeAreaId));
+  const areaCopy = area
+    ? ` para acompanhar ${escapeHtml(area.shortTitle || area.title)}`
+    : "";
+
+  return `
+    <div class="upgrade-modal-backdrop" data-close-upgrade-modal aria-hidden="false">
+      <section class="upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="upgrade-modal-title">
+        <button class="upgrade-modal-close" data-close-upgrade-modal type="button" aria-label="Fechar aviso">${icon("back")}</button>
+        <span class="upgrade-modal-icon">${icon("unlock")}</span>
+        <span class="upgrade-modal-eyebrow">Desbloquear evolu&ccedil;&atilde;o</span>
+        <h2 id="upgrade-modal-title">Sua consulta gratuita j&aacute; abriu uma dire&ccedil;&atilde;o.</h2>
+        <p>Para ver gr&aacute;ficos de todas as &aacute;reas, comparar avan&ccedil;os${areaCopy} e liberar novas consultas, voc&ecirc; precisa ativar um plano Drive Astral.</p>
+        <div class="upgrade-modal-benefits">
+          <span>${icon("check")} Todas as &aacute;reas no dashboard</span>
+          <span>${icon("check")} Hist&oacute;rico por tema de vida</span>
+          <span>${icon("check")} Clareza sobre onde melhorar</span>
+        </div>
+        ${UpgradeCta("button-primary button-large upgrade-modal-cta")}
+      </section>
+    </div>
+  `;
+}
+
 function LandingScreen() {
   const productFoundations = [
     ["compass", "Mapa pessoal", "Veja seu Kin, suas coordenadas de nascimento e a rela&ccedil;&atilde;o simb&oacute;lica com o dia atual."],
@@ -2591,7 +2753,7 @@ function OnboardingScreen() {
           </div>
           <div class="onboarding-field">
             <label>Qual &aacute;rea voc&ecirc; deseja acompanhar primeiro?</label>
-            <p>Voc&ecirc; poder&aacute; consultar todas as &aacute;reas depois.</p>
+            <p>Esta ser&aacute; sua consulta gratuita inicial. As demais &aacute;reas ficam dispon&iacute;veis nos planos.</p>
             ${OnboardingAreaSelector()}
           </div>
           ${AuthNotice()}
@@ -2688,6 +2850,7 @@ function PlatformShell(content) {
         <main class="screen portal-content screen-${state.route}">${content}</main>
       </section>
       ${BottomNavigation()}
+      ${UpgradeModal()}
     </div>
   `;
 }
@@ -3165,33 +3328,40 @@ function HomeNotice() {
 function ConsultationAreaSelector() {
   const isMissing = state.areaCarouselTouched && !state.selectedAreaId;
   const selectedIndex = consultationAreas.findIndex((area) => area.id === state.selectedAreaId);
+  const consultationLocked = freeConsultationUsed();
 
   return `
     <div class="theme-selector area-selector ${isMissing ? "is-alert" : ""} ${state.areaCarouselTouched ? "is-touched" : ""}">
       <div class="area-selector-heading">
         <span class="selector-label">Onde voc&ecirc; deseja aplicar sua leitura de hoje?</span>
-        <small>A escolha contextualiza a pr&aacute;tica, sem alterar os c&aacute;lculos</small>
+        <small>${consultationLocked ? "Sua consulta gratuita j&aacute; foi usada. Ative um plano para liberar novas &aacute;reas." : "A escolha contextualiza a pr&aacute;tica, sem alterar os c&aacute;lculos"}</small>
       </div>
       <div class="area-carousel" role="radiogroup" aria-label="&Aacute;rea de aplica&ccedil;&atilde;o da leitura">
         ${consultationAreas
           .map(
-            (area, index) => `
+            (area, index) => {
+              const areaLocked = !canStartConsultationForArea(area.id);
+              const actionAttrs = areaLocked
+                ? `data-open-upgrade-modal data-upgrade-area-id="${escapeHtml(area.id)}" aria-disabled="true"`
+                : `data-area-id="${escapeHtml(area.id)}"`;
+              return `
               <button
-                class="theme-option area-option ${state.selectedAreaId === area.id ? "is-selected" : ""}"
-                data-area-id="${area.id}"
+                class="theme-option area-option ${state.selectedAreaId === area.id ? "is-selected" : ""} ${areaLocked ? "is-locked" : ""}"
+                ${actionAttrs}
                 role="radio"
-                aria-checked="${state.selectedAreaId === area.id ? "true" : "false"}"
+                aria-checked="${!areaLocked && state.selectedAreaId === area.id ? "true" : "false"}"
                 aria-label="${escapeHtml(area.title)}"
                 type="button"
               >
                 <span class="area-option-icon">${icon(area.icon)}</span>
                 <span class="area-option-copy">
                   <strong>${area.shortTitle || area.title}</strong>
-                  <small>${area.description}</small>
+                  <small>${areaLocked ? "Desbloqueie no plano Drive Astral." : area.description}</small>
                 </span>
-                <span class="area-option-check" aria-hidden="true">${icon("check")}</span>
+                <span class="area-option-check" aria-hidden="true">${icon(areaLocked ? "unlock" : "check")}</span>
               </button>
-            `,
+            `;
+            },
           )
           .join("")}
       </div>
@@ -3199,7 +3369,7 @@ function ConsultationAreaSelector() {
         <span class="area-carousel-hint">Deslize para ver mais &aacute;reas</span>
         <span class="area-carousel-dots" aria-hidden="true">
           ${consultationAreas
-            .map((area, index) => `<span class="${index === selectedIndex ? "is-active" : ""}"></span>`)
+            .map((area, index) => `<span class="${index === selectedIndex && !consultationLocked ? "is-active" : ""}"></span>`)
             .join("")}
         </span>
       </div>
@@ -3246,6 +3416,61 @@ function BottomNavigation() {
         )
         .join("")}
     </nav>
+  `;
+}
+
+function DashboardEvolutionSection() {
+  const rows = areaEvolutionRows();
+  const premium = hasPremiumAccess();
+  const visibleRows = rows.filter((row) => !row.locked);
+  const consultedRows = visibleRows.filter((row) => row.consulted);
+  const bestRow = consultedRows
+    .slice()
+    .sort((left, right) => right.score - left.score)[0] || visibleRows[0];
+  const needsAttention = rows
+    .filter((row) => !row.locked && (!row.consulted || row.score < 68))
+    .length;
+  const lockedCount = rows.filter((row) => row.locked).length;
+  const summary = premium
+    ? `${consultedRows.length} de ${rows.length} &aacute;reas consultadas. ${needsAttention ? `${needsAttention} ainda pedem aten&ccedil;&atilde;o.` : "Seu painel est&aacute; bem distribu&iacute;do."}`
+    : `${lockedCount} &aacute;reas est&atilde;o bloqueadas no acesso gratuito.`;
+
+  return `
+    <section class="dashboard-evolution-panel ${premium ? "is-unlocked" : "is-locked"}" aria-label="Evolu&ccedil;&atilde;o por &aacute;reas">
+      <div class="dashboard-evolution-heading">
+        <div>
+          <span>${icon("chart")} Evolu&ccedil;&atilde;o por &aacute;reas</span>
+          <h2>Veja onde voc&ecirc; est&aacute; avan&ccedil;ando e onde precisa melhorar.</h2>
+          <p>${summary}</p>
+        </div>
+        <aside>
+          <small>${premium ? "Plano ativo" : "Acesso gratuito"}</small>
+          <strong>${bestRow && bestRow.consulted ? escapeHtml(bestRow.area.shortTitle || bestRow.area.title) : "Primeira &aacute;rea"}</strong>
+          <span>${bestRow && bestRow.consulted ? "melhor evolu&ccedil;&atilde;o atual" : "comece por uma consulta"}</span>
+        </aside>
+      </div>
+      <div class="area-evolution-grid">
+        ${rows.map((row) => {
+          const title = row.area.shortTitle || row.area.title;
+          const score = row.locked ? 34 : row.score;
+          const buttonAttrs = row.locked
+            ? `data-open-upgrade-modal data-upgrade-area-id="${escapeHtml(row.area.id)}" aria-label="Desbloquear evolu&ccedil;&atilde;o em ${escapeHtml(row.area.title)}"`
+            : `data-start-area-id="${escapeHtml(row.area.id)}" aria-label="Abrir consulta em ${escapeHtml(row.area.title)}"`;
+          return `
+            <button class="area-evolution-card ${row.locked ? "is-locked" : ""} ${row.isCurrent ? "is-current" : ""}" style="--area-score:${score}%" ${buttonAttrs} type="button">
+              <span class="area-evolution-icon">${icon(row.locked ? "unlock" : row.area.icon)}</span>
+              <span class="area-evolution-copy">
+                <strong>${escapeHtml(title)}</strong>
+                <small>${row.note}</small>
+              </span>
+              <span class="area-evolution-badge">${row.locked ? "Desbloquear" : row.status}</span>
+              <span class="area-evolution-track"><i></i></span>
+              <span class="area-evolution-score">${row.locked ? "Premium" : `${row.score}%`}</span>
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </section>
   `;
 }
 
@@ -3299,6 +3524,8 @@ function DashboardScreen() {
         </div>
       </section>
 
+      ${DashboardEvolutionSection()}
+
       <section class="dashboard-continuity-grid">
         <article class="dashboard-progress-card">
           <span class="dashboard-progress-icon">${icon("calendar")}</span>
@@ -3334,9 +3561,9 @@ function DashboardScreen() {
     `}
 
     <section class="dashboard-secondary-actions" aria-label="Outros acessos">
-      <button data-route="home" type="button">
+      <button ${freeConsultationUsed() ? 'data-open-upgrade-modal' : 'data-route="home"'} type="button">
         <span>${icon("compass")}</span>
-        <div><strong>Nova consulta</strong><small>Escolha outra &aacute;rea de vida</small></div>
+        <div><strong>${freeConsultationUsed() ? "Desbloquear consultas" : "Nova consulta"}</strong><small>${freeConsultationUsed() ? "Libere outras &aacute;reas de vida" : "Escolha outra &aacute;rea de vida"}</small></div>
         ${icon("arrow")}
       </button>
       <button data-route="history" type="button">
@@ -3354,6 +3581,7 @@ function DashboardScreen() {
 }
 
 function HomeScreen() {
+  const consultationLocked = freeConsultationUsed();
   return PlatformShell(`
     <section class="consultation-heading">
       <span class="eyebrow">GPS do Sincron&aacute;rio &middot; Mapa Energ&eacute;tico Visual</span>
@@ -3384,7 +3612,9 @@ function HomeScreen() {
           iconName: "calendar",
         })}
         ${ConsultationAreaSelector()}
-        ${PrimaryEnergyButton("Calcular minhas coordenadas", `type="submit" ${state.selectedAreaId ? "" : "disabled"}`)}
+        ${consultationLocked
+          ? PrimaryEnergyButton("Desbloquear novas consultas", 'type="button" data-open-upgrade-modal')
+          : PrimaryEnergyButton("Calcular minhas coordenadas", `type="submit" ${state.selectedAreaId ? "" : "disabled"}`)}
       </form>
       ${HomeNotice()}
     `, "home-card")}
@@ -5308,6 +5538,19 @@ function submitAlignment(nameValue, birthValue) {
     return;
   }
 
+  if (!canStartConsultationForArea(area.id)) {
+    setState({
+      name,
+      birth,
+      selectedAreaId: area.id,
+      upgradeModalOpen: true,
+      upgradeAreaId: area.id,
+      notice: "",
+      noticeKind: "",
+    });
+    return;
+  }
+
   const reading = calculateReading(birth, area.id);
   const kin = personalKin(reading);
 
@@ -5597,6 +5840,48 @@ function bindEvents() {
         notice: "",
         authNotice: "",
         authNoticeKind: "",
+        upgradeModalOpen: false,
+      }, { updateUrl: true });
+    });
+  });
+
+  document.querySelectorAll("[data-open-upgrade-modal]").forEach((element) => {
+    element.addEventListener("click", (event) => {
+      event.preventDefault();
+      setState({
+        upgradeModalOpen: true,
+        upgradeAreaId: normalizeAreaId(element.dataset.upgradeAreaId),
+        notice: "",
+        noticeKind: "",
+      });
+    });
+  });
+
+  document.querySelectorAll("[data-close-upgrade-modal]").forEach((element) => {
+    element.addEventListener("click", (event) => {
+      if (element.classList.contains("upgrade-modal-backdrop") && event.target !== element) {
+        return;
+      }
+      event.preventDefault();
+      setState({ upgradeModalOpen: false, upgradeAreaId: "" });
+    });
+  });
+
+  document.querySelectorAll("[data-start-area-id]").forEach((element) => {
+    element.addEventListener("click", (event) => {
+      event.preventDefault();
+      const areaId = normalizeAreaId(element.dataset.startAreaId);
+      if (!canStartConsultationForArea(areaId) && !hasPremiumAccess()) {
+        setState({ upgradeModalOpen: true, upgradeAreaId: areaId });
+        return;
+      }
+      setState({
+        route: "home",
+        selectedAreaId: areaId,
+        areaCarouselTouched: true,
+        notice: "",
+        noticeKind: "",
+        upgradeModalOpen: false,
       }, { updateUrl: true });
     });
   });

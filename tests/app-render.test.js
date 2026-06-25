@@ -205,6 +205,11 @@ assert.ok(styles.includes(".admin-overview-strip"));
 assert.ok(styles.includes(".admin-management-grid"));
 assert.ok(styles.includes(".admin-table"));
 assert.ok(styles.includes(".admin-field input"));
+assert.ok(styles.includes(".dashboard-evolution-panel"));
+assert.ok(styles.includes(".area-evolution-card.is-locked"));
+assert.ok(styles.includes(".upgrade-modal"));
+assert.ok(appSource.includes("function DashboardEvolutionSection()"));
+assert.ok(appSource.includes("function UpgradeModal()"));
 
 const adminDashboardContext = createBrowserLikeContext("http://localhost:4173/admin");
 const adminDashboardHtml = adminDashboardContext.__getHtml();
@@ -446,6 +451,57 @@ assert.strictEqual((resultHtml.match(/data-chakra-id="/g) || []).length, 7);
 assert.ok(resultHtml.includes('data-chakra-id="root"'));
 assert.ok(resultHtml.includes('aria-label="Abrir detalhes do Chakra Raiz"'));
 assert.strictEqual((resultHtml.match(/<details class="coordinate-details/g) || []).length, 4);
+
+const freeDashboardContext = createBrowserLikeContext();
+freeDashboardContext.setState({
+  route: "dashboard",
+  name: "Gabriel Ferreira",
+  birth: "1996-06-25",
+  selectedAreaId: "work-prosperity",
+  reading,
+  activeHistoryId: firstHistoryEntry.readingId,
+  history: [cloneForTest(firstHistoryEntry)],
+});
+const freeDashboardHtml = freeDashboardContext.__getHtml();
+assert.ok(freeDashboardHtml.includes("Evolu&ccedil;&atilde;o por &aacute;reas"));
+assert.ok(freeDashboardHtml.includes("Acesso gratuito"));
+assert.ok(freeDashboardHtml.includes("Desbloquear"));
+assert.ok(freeDashboardHtml.includes("data-open-upgrade-modal"));
+assert.ok(freeDashboardHtml.includes("Desbloquear consultas"));
+assert.ok(!freeDashboardHtml.includes("<strong>Nova consulta</strong>"));
+
+freeDashboardContext.setState({ route: "home", selectedAreaId: "love-relationships", upgradeModalOpen: false });
+const lockedHomeHtml = freeDashboardContext.__getHtml();
+assert.ok(lockedHomeHtml.includes("Sua consulta gratuita j&aacute; foi usada"));
+assert.ok(lockedHomeHtml.includes("Desbloquear novas consultas"));
+freeDashboardContext.submitAlignment("Gabriel Ferreira", "1996-06-25");
+const lockedConsultState = vm.runInContext("state", freeDashboardContext);
+assert.strictEqual(lockedConsultState.upgradeModalOpen, true);
+assert.strictEqual(lockedConsultState.history.length, 1);
+assert.ok(freeDashboardContext.__getHtml().includes("QUERO INICIAR MINHA JORNADA"));
+
+const premiumDashboardContext = createBrowserLikeContext();
+const premiumAccount = {
+  ...vm.runInContext("state.account", premiumDashboardContext),
+  planId: "premium",
+  accessPlans: [{ plan_id: "premium", status: "active" }],
+};
+premiumDashboardContext.setState({
+  route: "dashboard",
+  account: premiumAccount,
+  name: "Gabriel Ferreira",
+  birth: "1996-06-25",
+  selectedAreaId: "work-prosperity",
+  reading,
+  activeHistoryId: firstHistoryEntry.readingId,
+  history: [cloneForTest(firstHistoryEntry), cloneForTest(secondHistoryEntry)],
+});
+const premiumDashboardHtml = premiumDashboardContext.__getHtml();
+assert.ok(premiumDashboardHtml.includes("Plano ativo"));
+assert.ok(premiumDashboardHtml.includes("2 de 7 &aacute;reas consultadas"));
+assert.ok(premiumDashboardHtml.includes("Precisa melhorar"));
+assert.ok(premiumDashboardHtml.includes('data-start-area-id="energy-spirituality"'));
+assert.ok(!premiumDashboardHtml.includes("area-evolution-card is-locked"));
 
 const summaryIndex = resultHtml.indexOf("Resumo do GPS de Hoje");
 const essentialIndex = resultHtml.indexOf("Sua resposta essencial");

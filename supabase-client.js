@@ -56,10 +56,30 @@
     return clientPromise;
   }
 
-  function accountFrom(user, profile) {
+  function activeAccessPlan(accessPlans) {
+    const now = Date.now();
+    const planWeight = {
+      mentor: 30,
+      guided: 30,
+      premium: 20,
+      monthly: 20,
+      free: 10,
+    };
+    return (accessPlans || [])
+      .filter((access) => {
+        const status = String(access.status || "active").toLowerCase();
+        const expiresAt = access.expires_at ? Date.parse(access.expires_at) : null;
+        return ["active", "courtesy"].includes(status)
+          && (!expiresAt || Number.isNaN(expiresAt) || expiresAt > now);
+      })
+      .sort((left, right) => (planWeight[right.plan_id] || 0) - (planWeight[left.plan_id] || 0))[0] || null;
+  }
+
+  function accountFrom(user, profile, accessPlans = []) {
     if (!user) {
       return null;
     }
+    const activeAccess = activeAccessPlan(accessPlans);
     return {
       id: user.id,
       email: user.email || profile?.email || "",
@@ -68,8 +88,25 @@
       primaryAreaId: profile?.primary_area_id || "",
       onboardingComplete: Boolean(profile?.birth_date && profile?.primary_area_id),
       accessMode: "supabase",
-      planId: "external-access",
+      planId: activeAccess?.plan_id || "free",
+      accessPlans,
     };
+  }
+
+  async function loadCurrentAccessPlans(userId) {
+    const client = await getClient();
+    if (!client || !userId) {
+      return [];
+    }
+    const { data, error } = await client
+      .from("user_access_plans")
+      .select("assignment_id,user_id,plan_id,status,starts_at,expires_at,updated_at")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false });
+    if (error) {
+      return [];
+    }
+    return data || [];
   }
 
   async function getAccount() {
@@ -90,7 +127,8 @@
     if (profileError) {
       throw profileError;
     }
-    return accountFrom(user, profile);
+    const accessPlans = await loadCurrentAccessPlans(user.id);
+    return accountFrom(user, profile, accessPlans);
   }
 
   async function signUp({ name, email, password, privacyVersion, termsVersion }) {
@@ -512,6 +550,7 @@
     isEnabled,
     getClient,
     getAccount,
+    loadCurrentAccessPlans,
     signUp,
     signIn,
     signOut,

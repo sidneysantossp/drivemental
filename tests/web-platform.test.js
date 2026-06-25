@@ -26,11 +26,11 @@ for (const icon of manifest.icons) {
 
 assert.ok(indexHtml.includes('rel="manifest" href="/manifest.webmanifest"'));
 assert.ok(indexHtml.includes('id="connection-status"'));
-assert.ok(indexHtml.includes('href="/styles.css?v=admin-v18"'));
-assert.ok(indexHtml.includes('src="/app.js?v=admin-v18"'));
-assert.ok(indexHtml.includes('src="/platform.js?v=admin-v18"'));
-assert.ok(indexHtml.includes('src="/runtime-config.js?v=admin-v18"'));
-assert.ok(indexHtml.includes('src="/supabase-client.js?v=admin-v18"'));
+assert.ok(indexHtml.includes('href="/styles.css?v=dashboard-v19"'));
+assert.ok(indexHtml.includes('src="/app.js?v=dashboard-v19"'));
+assert.ok(indexHtml.includes('src="/platform.js?v=dashboard-v19"'));
+assert.ok(indexHtml.includes('src="/runtime-config.js?v=dashboard-v19"'));
+assert.ok(indexHtml.includes('src="/supabase-client.js?v=dashboard-v19"'));
 assert.ok(indexHtml.includes('src="/src/domain/sincronario/engine.js"'));
 assert.ok(indexHtml.includes("mobile-web-app-capable"));
 
@@ -53,7 +53,7 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-astral-web-v18"));
+assert.ok(serviceWorker.includes("drive-astral-web-v19"));
 
 assert.ok(platformSource.includes('navigator.serviceWorker.register("/sw.js")'));
 assert.ok(platformSource.includes("isLocalDevelopmentHost"));

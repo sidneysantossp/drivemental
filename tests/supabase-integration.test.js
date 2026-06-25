@@ -80,6 +80,8 @@ assert.ok(supabaseConfig.includes("[functions.delete-account]"));
 assert.ok(supabaseConfig.includes("verify_jwt = true"));
 
 assert.ok(clientSource.includes("signInWithPassword"));
+assert.ok(clientSource.includes("loadCurrentAccessPlans"));
+assert.ok(clientSource.includes("planId: activeAccess?.plan_id || \"free\""));
 assert.ok(clientSource.includes("resetPasswordForEmail"));
 assert.ok(clientSource.includes('functions.invoke("delete-account"'));
 assert.ok(!clientSource.includes('from("access_entitlements")'));
