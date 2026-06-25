@@ -282,11 +282,10 @@ assert.ok(homeHtml.includes("area-carousel"));
 assert.ok(homeHtml.includes('role="radiogroup"'));
 assert.ok(homeHtml.includes('role="radio"'));
 assert.ok(homeHtml.includes("Deslize para ver mais &aacute;reas"));
-assert.ok(homeHtml.includes('data-area-id="work-prosperity"'));
-assert.strictEqual((homeHtml.match(/data-area-id="/g) || []).length, 7);
-for (const areaId of areaIds) {
-  assert.ok(homeHtml.includes(`data-area-id="${areaId}"`), areaId);
-}
+assert.ok(homeHtml.includes('data-area-id="general"'));
+assert.ok(homeHtml.includes('data-upgrade-area-id="work-prosperity"'));
+assert.strictEqual((homeHtml.match(/data-area-id="/g) || []).length, 1);
+assert.strictEqual((homeHtml.match(/data-upgrade-area-id="/g) || []).length, 6);
 assert.ok(!homeHtml.includes("area-grid"));
 assert.ok(!homeHtml.includes("theme-grid"));
 assert.ok(homeHtml.includes('type="submit" disabled'));
@@ -315,6 +314,13 @@ assert.ok(appSource.includes("__driveAstralBottomNavigationTarget !== navigation
 assert.ok(appSource.includes('window.addEventListener("resize", updateBottomNavigationOffset)'));
 
 const selectionContext = createBrowserLikeContext();
+selectionContext.setState({
+  account: {
+    ...vm.runInContext("state.account", selectionContext),
+    planId: "premium",
+    accessPlans: [{ plan_id: "premium", status: "active" }],
+  },
+});
 for (const areaId of areaIds) {
   selectionContext.setState({ route: "home", selectedAreaId: areaId });
   const selectedHtml = selectionContext.__getHtml();
@@ -323,6 +329,30 @@ for (const areaId of areaIds) {
   assert.ok(selectedHtml.includes(`data-area-id="${areaId}"`), areaId);
   assert.ok(!selectedHtml.includes('type="submit" disabled'));
 }
+
+const freeSelectionContext = createBrowserLikeContext();
+freeSelectionContext.setState({
+  route: "home",
+  selectedAreaId: "general",
+  account: {
+    ...vm.runInContext("state.account", freeSelectionContext),
+    planId: "free",
+    primaryAreaId: "general",
+    accessPlans: [],
+  },
+  history: [],
+  upgradeModalOpen: false,
+});
+const freeSelectionHtml = freeSelectionContext.__getHtml();
+assert.ok(freeSelectionHtml.includes('data-area-id="general"'));
+assert.ok(freeSelectionHtml.includes('data-upgrade-area-id="work-prosperity"'));
+assert.ok(freeSelectionHtml.includes("Desbloqueie no plano Drive Astral."));
+freeSelectionContext.setState({ selectedAreaId: "work-prosperity", upgradeModalOpen: false });
+freeSelectionContext.submitAlignment("Pessoa Free", "1996-06-25");
+const freeSelectionState = vm.runInContext("state", freeSelectionContext);
+assert.strictEqual(freeSelectionState.upgradeModalOpen, true);
+assert.strictEqual(freeSelectionState.upgradeAreaId, "work-prosperity");
+assert.strictEqual(freeSelectionState.history.length, 0);
 
 const resultContext = createBrowserLikeContext();
 const reading = resultContext.calculateReading("1996-06-25", "financas");

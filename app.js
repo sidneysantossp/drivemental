@@ -1606,10 +1606,6 @@ function currentPlanBadge() {
   return labels[planId] || planId.toUpperCase();
 }
 
-function freeConsultationUsed() {
-  return !hasPremiumAccess() && normalizedHistoryList(state.history).length > 0;
-}
-
 function firstConsultedAreaId() {
   const history = normalizedHistoryList(state.history);
   const firstEntry = history[history.length - 1] || history[0] || null;
@@ -1618,18 +1614,41 @@ function firstConsultedAreaId() {
     return historyArea;
   }
 
+  return "";
+}
+
+function freeAllowedConsultationAreaId() {
+  const firstHistoryArea = firstConsultedAreaId();
+  if (firstHistoryArea) {
+    return firstHistoryArea;
+  }
+
+  const accountArea = normalizeAreaId(state.account && state.account.primaryAreaId);
+  if (accountArea) {
+    return accountArea;
+  }
+
   const guidance = readingGuidance(state.reading);
   const interpretationArea = guidance && guidance.interpretation
     ? normalizeAreaId(guidance.interpretation.areaId)
     : "";
-  return interpretationArea || normalizeAreaId(state.selectedAreaId) || normalizeAreaId(state.account && state.account.primaryAreaId) || "general";
+  return interpretationArea || "";
+}
+
+function freeConsultationUsed() {
+  return !hasPremiumAccess() && normalizedHistoryList(state.history).length > 0;
 }
 
 function canStartConsultationForArea(areaId) {
   if (hasPremiumAccess()) {
     return true;
   }
-  return normalizedHistoryList(state.history).length === 0 && Boolean(normalizeAreaId(areaId));
+  const normalizedAreaId = normalizeAreaId(areaId);
+  const allowedAreaId = freeAllowedConsultationAreaId();
+  if (allowedAreaId) {
+    return normalizedAreaId === allowedAreaId;
+  }
+  return normalizedHistoryList(state.history).length === 0 && Boolean(normalizedAreaId);
 }
 
 function canViewEvolutionArea(areaId) {
