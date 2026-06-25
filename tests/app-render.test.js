@@ -881,6 +881,11 @@ assert.ok(!legacyHtml.includes("Ativo"));
 
 resultContext.setState({ route: "profile" });
 const platformProfileHtml = resultContext.__getHtml();
+assert.ok(platformProfileHtml.includes("Meu Perfil"));
+assert.ok(platformProfileHtml.includes("Informa&ccedil;&otilde;es pessoais"));
+assert.ok(platformProfileHtml.includes("Seguran&ccedil;a"));
+assert.ok(platformProfileHtml.includes("Prefer&ecirc;ncias"));
+assert.ok(platformProfileHtml.includes("Gerenciar assinatura"));
 assert.ok(platformProfileHtml.includes("Instalar no dispositivo"));
 assert.ok(platformProfileHtml.includes("Baixar backup"));
 assert.ok(platformProfileHtml.includes("Importar backup"));
@@ -889,6 +894,7 @@ assert.ok(platformProfileHtml.includes('href="/privacy.html"'));
 assert.ok(platformProfileHtml.includes("Termos de uso"));
 assert.ok(platformProfileHtml.includes('href="/terms.html"'));
 assert.ok(platformProfileHtml.includes("Excluir meus dados deste dispositivo"));
+assert.ok(platformProfileHtml.includes("Sair da conta"));
 
 const chakraExpectations = [
   ["root", "1", "Raiz", "Muladhara", "Seli"],

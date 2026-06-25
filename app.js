@@ -296,6 +296,17 @@ const icons = {
   history: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/><path d="M12 8v4l3 2"/></svg>',
   profile: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>',
   user: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m14 6 4 4"/></svg>',
+  camera: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4l2-3h4l2 3h4v12H4V8Z"/><path d="M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4l1 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 1v4a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 2-2Z"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12Z"/><path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3"/><path d="M5 11h14v10H5z"/><path d="M12 15v2"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3Z"/><path d="m9 12 2 2 4-5"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17h12l-1.5-2.5V10a4.5 4.5 0 0 0-9 0v4.5L6 17Z"/><path d="M10 20h4"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></svg>',
+  ruler: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4l-4-4L0 16l4 4Z" transform="translate(2 2) scale(.85)"/><path d="M8 16l-2-2"/><path d="M11 13l-2-2"/><path d="M14 10l-2-2"/></svg>',
+  logout: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5"/><path d="M14 17l5-5-5-5"/><path d="M19 12H9"/></svg>',
   calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v4"/><path d="M17 3v4"/><path d="M4 8h16"/><path d="M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"/><path d="M8 12h2"/><path d="M14 12h2"/><path d="M8 16h2"/><path d="M14 16h2"/></svg>',
   spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2Z"/><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></svg>',
   dollar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M16.5 7.5C15.5 6.5 14 6 12.3 6 9.9 6 8 7.2 8 9s1.8 2.7 4.1 3.2c2.4.5 4 1.4 4 3.2 0 1.9-1.8 3.1-4.2 3.1-1.9 0-3.6-.6-4.8-1.8"/></svg>',
@@ -4943,116 +4954,156 @@ function LegacyHistoryScreen() {
   `);
 }
 
+function ProfileActionRow({ iconName, title, subtitle, value = "", attrs = "", danger = false }) {
+  return `
+    <button class="profile-action-row ${danger ? "is-danger" : ""}" ${attrs || 'type="button"'}>
+      <span class="profile-action-icon">${icon(iconName)}</span>
+      <span class="profile-action-copy">
+        <strong>${title}</strong>
+        <small>${subtitle}</small>
+      </span>
+      ${value ? `<span class="profile-action-value">${value}</span>` : ""}
+      <span class="profile-action-arrow">${icon("arrow")}</span>
+    </button>
+  `;
+}
+
+function ProfileToggleRow({ iconName, title, subtitle, active = true }) {
+  return `
+    <div class="profile-action-row profile-toggle-row">
+      <span class="profile-action-icon">${icon(iconName)}</span>
+      <span class="profile-action-copy">
+        <strong>${title}</strong>
+        <small>${subtitle}</small>
+      </span>
+      <span class="profile-toggle ${active ? "is-active" : ""}" aria-hidden="true"><i></i></span>
+    </div>
+  `;
+}
+
+function monthYearPtBr(value) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return "data n&atilde;o informada";
+  }
+  return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+}
+
 function ProfileScreen() {
-  const kin = personalKin(state.reading);
-  const signature = personalSignature(state.reading);
-  const seal = state.reading && state.reading.personal_map ? state.reading.personal_map.seal : null;
-  const tone = state.reading && state.reading.personal_map ? state.reading.personal_map.tone : null;
-  const earthFamily = state.reading && state.reading.personal_map ? state.reading.personal_map.earth_family : null;
-  const earthFamilyName = earthFamily && earthFamily.value ? earthFamily.value : "N&atilde;o dispon&iacute;vel";
-  const daily = state.reading && state.reading.daily ? state.reading.daily : null;
-  const dailyKin = daily && daily.kin_of_day ? daily.kin_of_day.value : null;
-  const dailySignature = daily && daily.signature ? daily.signature.value : null;
-  const dailySeal = daily && daily.seal ? daily.seal : null;
-  const dailyTone = daily && daily.tone ? daily.tone : null;
-  const relationship = daily && daily.relationship_to_personal_kin ? daily.relationship_to_personal_kin : null;
-  const relationshipLabel = relationship && relationship.label ? relationship.label : "N&atilde;o dispon&iacute;vel";
-  const relationshipDistance = relationship && relationship.deltas ? relationship.deltas.kin_forward : null;
-  const oracle = oracleItems(state.reading);
+  const account = state.account || {};
+  const name = account.name || state.name || "Seu Nome";
+  const email = account.email || "seuemail@exemplo.com";
+  const birth = account.birth || state.birth || "";
+  const city = account.city || account.location || "Adicionar cidade";
+  const phone = account.phone || "Adicionar telefone";
+  const planLabel = currentPlanBadge();
+  const joinedAt = account.created_at || account.createdAt || (state.history && state.history[0] && state.history[0].createdAt) || "";
+  const memberSince = monthYearPtBr(joinedAt);
   const area = selectedConsultationArea();
   const focusArea = area
     ? area.title
     : state.reading && state.reading.input && state.reading.input.focus_area
       ? state.reading.input.focus_area.label
-      : "N&atilde;o definida";
+      : "Primeira consulta";
 
   return PlatformShell(`
-    ${AppHeader("Perfil Energ&eacute;tico", "Prefer&ecirc;ncias e Sintonia", { back: true })}
-    <section class="profile-stack">
-      ${GoldenCard(`
-        <div class="profile-head">
-          <div class="profile-emblem">${icon("spark")}</div>
-          <div>
-            <h2>${escapeHtml(state.name) || "Iniciado Astral"}</h2>
-            <p>${state.birth || "Data de nascimento n&atilde;o informada"}</p>
+    ${AppHeader("Meu Perfil", "Gerencie suas informa&ccedil;&otilde;es e prefer&ecirc;ncias", { back: true })}
+    <section class="profile-page">
+      <aside class="profile-body-rail" aria-hidden="true">
+        ${ChakraBodyMap()}
+      </aside>
+      <div class="profile-main">
+        <section class="profile-hero-card">
+          <div class="profile-avatar-wrap">
+            <span class="profile-avatar">${icon("user")}</span>
+            <button class="profile-avatar-camera" type="button" aria-label="Alterar foto">${icon("camera")}</button>
           </div>
-        </div>
-      `)}
-      ${kin ? GoldenCard(`
-        <h2 class="settings-title">Mapa Gal&aacute;ctico Inicial</h2>
-        <div class="reading-grid reading-grid-expanded">
-          <div><span>Kin</span><strong>${kin}</strong></div>
-          <div><span>Selo</span><strong>${escapeHtml(seal.name)}</strong></div>
-          <div><span>Tom</span><strong>${escapeHtml(tone.name)}</strong></div>
-          <div><span>Fam&iacute;lia</span><strong>${escapeHtml(earthFamilyName)}</strong></div>
-        </div>
-        <p class="reading-signature">${escapeHtml(signature)}</p>
-        <p class="transparency-note">Fam&iacute;lia Terrestre possui valida&ccedil;&atilde;o externa separada e n&atilde;o integra a aprova&ccedil;&atilde;o parcial dos campos b&aacute;sicos.</p>
-      `) : ""}
-      ${dailyKin ? GoldenCard(`
-        <h2 class="settings-title">Energia do Dia</h2>
-        <div class="reading-grid reading-grid-expanded">
-          <div><span>Kin do dia</span><strong>${dailyKin}</strong></div>
-          <div><span>Selo</span><strong>${escapeHtml(dailySeal.name)}</strong></div>
-          <div><span>Tom</span><strong>${escapeHtml(dailyTone.name)}</strong></div>
-          <div><span>Rela&ccedil;&atilde;o</span><strong>${escapeHtml(relationshipLabel)}</strong></div>
-        </div>
-        <p class="reading-signature">${escapeHtml(dailySignature)}</p>
-        ${relationshipDistance !== null ? `<p class="relationship-note">Dist&acirc;ncia no ciclo: ${relationshipDistance} Kin</p>` : ""}
-      `) : ""}
-      ${oracle.length ? GoldenCard(`
-        <h2 class="settings-title">Or&aacute;culo do Destino</h2>
-        <div class="oracle-list">
-          ${oracle
-            .map(
-              ([label, item]) => `
-                <div>
-                  <span>${label}</span>
-                  <strong>Kin ${item.kin}</strong>
-                  <small>${escapeHtml(item.signature)}</small>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-        <p class="transparency-note">O Or&aacute;culo do Destino &eacute; um c&aacute;lculo avan&ccedil;ado com valida&ccedil;&atilde;o externa separada.</p>
-      `) : ""}
-      ${GoldenCard(`
-        <h2 class="settings-title">Prefer&ecirc;ncias</h2>
-        <div class="settings-list">
-          <button><span>${icon("dollar")} &Aacute;rea padr&atilde;o</span><strong>${focusArea}</strong></button>
-          <button><span>${icon("lotus")} Frequencia</span><strong>Diaria</strong></button>
-          <button><span>${icon("spark")} Intensidade visual</span><strong>Premium</strong></button>
-        </div>
-      `)}
-      ${GoldenCard(`
-        <h2 class="settings-title">Plano e acesso</h2>
-        <p class="transparency-note">Seu acesso &eacute; definido pelas credenciais recebidas por e-mail ap&oacute;s a compra externa.</p>
-        ${runtimeConfig().billingMode === "external-checkout" ? `
-          <p class="transparency-note">A plataforma n&atilde;o processa pagamentos nem recebe dados financeiros. O checkout abre em uma nova aba.</p>
-          <div class="profile-plan-actions">
-            ${CommercialPlanAction("monthly")}
-            ${CommercialPlanAction("guided")}
+          <div class="profile-hero-copy">
+            <h2>${escapeHtml(name)}</h2>
+            <p>${planLabel === "FREE" ? "Caminhante da Luz" : `Plano ${planLabel}`}</p>
+            <span>${icon("calendar")} Membro desde &bull; ${escapeHtml(memberSince)}</span>
           </div>
-        ` : '<p class="transparency-note">Os planos pagos ainda n&atilde;o est&atilde;o dispon&iacute;veis nesta vers&atilde;o.</p>'}
-      `)}
-      ${GoldenCard(`
-        <h2 class="settings-title">Dados Locais</h2>
-        <p class="transparency-note">Nome, data, &aacute;rea, leitura, hist&oacute;rico e linha do tempo ficam salvos apenas neste navegador. Use o backup para trocar de dispositivo ou proteger seus registros.</p>
-        ${state.notice ? `<p class="form-notice" role="status">${state.notice}</p>` : ""}
-        <div class="data-tools">
-          <button data-install-platform type="button" hidden>${icon("device")}<span>Instalar no dispositivo</span></button>
-          <button data-export-backup type="button">${icon("download")}<span>Baixar backup</span></button>
-          <button data-import-backup type="button">${icon("upload")}<span>Importar backup</span></button>
-          <input id="backup-file-input" data-backup-file type="file" accept="application/json,.json" hidden />
-          <a href="/privacy.html" target="_blank" rel="noopener">${icon("info")}<span>Privacidade e dados</span></a>
-          <a href="/terms.html" target="_blank" rel="noopener">${icon("book")}<span>Termos de uso</span></a>
-        </div>
-        <button class="danger-action" data-clear-state type="button">${icon("trash")}<span>${isSupabaseMode()
-          ? "Excluir minha conta e todos os dados"
-          : "Excluir meus dados deste dispositivo"}</span></button>
-      `)}
-      ${PrimaryEnergyButton("Recalibrar Sintonia", 'data-route="home" type="button"')}
+          <button class="profile-edit-button" type="button" aria-label="Editar perfil">${icon("edit")}</button>
+        </section>
+
+        <section class="profile-panel">
+          <h2>Informa&ccedil;&otilde;es pessoais</h2>
+          <div class="profile-action-list">
+            ${ProfileActionRow({ iconName: "user", title: "Nome completo", subtitle: escapeHtml(name) })}
+            ${ProfileActionRow({ iconName: "calendar", title: "Data de nascimento", subtitle: birth ? escapeHtml(formatDatePtBr(birth)) : "Adicionar data" })}
+            ${ProfileActionRow({ iconName: "phone", title: "Telefone", subtitle: escapeHtml(phone) })}
+            ${ProfileActionRow({ iconName: "mail", title: "E-mail", subtitle: escapeHtml(email) })}
+            ${ProfileActionRow({ iconName: "pin", title: "Cidade", subtitle: escapeHtml(city) })}
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <h2>Seguran&ccedil;a</h2>
+          <div class="profile-action-list">
+            ${ProfileActionRow({ iconName: "lock", title: "Alterar senha", subtitle: "Atualize sua senha de acesso" })}
+            ${ProfileToggleRow({ iconName: "shield", title: "Autentica&ccedil;&atilde;o em duas etapas", subtitle: "Proteja ainda mais sua conta", active: true })}
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <h2>Prefer&ecirc;ncias</h2>
+          <div class="profile-action-list">
+            ${ProfileToggleRow({ iconName: "bell", title: "Notifica&ccedil;&otilde;es", subtitle: "Receber lembretes e mensagens", active: true })}
+            ${ProfileToggleRow({ iconName: "moon", title: "Modo escuro", subtitle: "Tema premium ativo", active: true })}
+            ${ProfileActionRow({ iconName: "leaf", title: "Idioma", subtitle: "Portugu&ecirc;s" })}
+            ${ProfileActionRow({ iconName: "ruler", title: "Unidade de medida", subtitle: "M&eacute;trica (kg, cm)" })}
+            ${ProfileActionRow({ iconName: "clock", title: "Hor&aacute;rio de pr&aacute;tica di&aacute;rio", subtitle: "06:00" })}
+            ${ProfileActionRow({ iconName: "compass", title: "&Aacute;rea padr&atilde;o", subtitle: escapeHtml(focusArea) })}
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <h2>Conta</h2>
+          ${state.notice ? `<p class="form-notice" role="status">${state.notice}</p>` : ""}
+          <div class="profile-action-list">
+            ${ProfileActionRow({ iconName: "profile", title: "Gerenciar assinatura", subtitle: `Plano atual: ${planLabel}` })}
+            <button class="profile-action-row" data-export-backup type="button">
+              <span class="profile-action-icon">${icon("download")}</span>
+              <span class="profile-action-copy"><strong>Exportar meus dados</strong><small>Baixar backup das suas informa&ccedil;&otilde;es</small></span>
+              <span class="profile-action-arrow">${icon("arrow")}</span>
+            </button>
+            <button class="profile-action-row" data-import-backup type="button">
+              <span class="profile-action-icon">${icon("upload")}</span>
+              <span class="profile-action-copy"><strong>Importar backup</strong><small>Restaurar informa&ccedil;&otilde;es salvas</small></span>
+              <span class="profile-action-arrow">${icon("arrow")}</span>
+            </button>
+            <button class="profile-action-row" data-install-platform type="button" hidden>
+              <span class="profile-action-icon">${icon("device")}</span>
+              <span class="profile-action-copy"><strong>Instalar no dispositivo</strong><small>Acessar o Drive Astral como aplicativo</small></span>
+              <span class="profile-action-arrow">${icon("arrow")}</span>
+            </button>
+            <a class="profile-action-row" href="/privacy.html" target="_blank" rel="noopener">
+              <span class="profile-action-icon">${icon("info")}</span>
+              <span class="profile-action-copy"><strong>Privacidade e dados</strong><small>Como suas informa&ccedil;&otilde;es s&atilde;o tratadas</small></span>
+              <span class="profile-action-arrow">${icon("arrow")}</span>
+            </a>
+            <a class="profile-action-row" href="/terms.html" target="_blank" rel="noopener">
+              <span class="profile-action-icon">${icon("book")}</span>
+              <span class="profile-action-copy"><strong>Termos de uso</strong><small>Condi&ccedil;&otilde;es de acesso &agrave; plataforma</small></span>
+              <span class="profile-action-arrow">${icon("arrow")}</span>
+            </a>
+            <input id="backup-file-input" data-backup-file type="file" accept="application/json,.json" hidden />
+            ${ProfileActionRow({
+              iconName: "trash",
+              title: "Excluir conta",
+              subtitle: isSupabaseMode() ? "Excluir minha conta e todos os dados" : "Excluir meus dados deste dispositivo",
+              attrs: 'data-clear-state type="button"',
+              danger: true,
+            })}
+          </div>
+        </section>
+
+        <button class="profile-signout-button" data-signout type="button">
+          <span>${icon("logout")}</span>
+          <strong>Sair da conta</strong>
+          ${icon("arrow")}
+        </button>
+      </div>
     </section>
   `);
 }
