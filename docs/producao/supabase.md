@@ -13,7 +13,7 @@
 Com a Supabase CLI autenticada:
 
 ```powershell
-npx supabase link --project-ref jjnmxkfumiwoeyyregzb
+npx supabase link --project-ref xvwbtxsryehozinshyfr
 npx supabase db push
 npx supabase functions deploy delete-account
 ```
@@ -53,7 +53,7 @@ Edite `runtime-config.js` no ambiente publicado:
 
 ```js
 authMode: "supabase",
-supabaseUrl: "https://jjnmxkfumiwoeyyregzb.supabase.co",
+supabaseUrl: "https://xvwbtxsryehozinshyfr.supabase.co",
 supabasePublishableKey: "chave anon/public do projeto",
 ```
 

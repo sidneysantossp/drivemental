@@ -26,11 +26,11 @@ for (const icon of manifest.icons) {
 
 assert.ok(indexHtml.includes('rel="manifest" href="/manifest.webmanifest"'));
 assert.ok(indexHtml.includes('id="connection-status"'));
-assert.ok(indexHtml.includes('href="/styles.css?v=dashboard-home-v23"'));
-assert.ok(indexHtml.includes('src="/app.js?v=dashboard-home-v23"'));
-assert.ok(indexHtml.includes('src="/platform.js?v=dashboard-home-v23"'));
-assert.ok(indexHtml.includes('src="/runtime-config.js?v=dashboard-home-v23"'));
-assert.ok(indexHtml.includes('src="/supabase-client.js?v=dashboard-home-v23"'));
+assert.ok(indexHtml.includes('href="/styles.css?v=dashboard-home-v25"'));
+assert.ok(indexHtml.includes('src="/app.js?v=dashboard-home-v25"'));
+assert.ok(indexHtml.includes('src="/platform.js?v=dashboard-home-v25"'));
+assert.ok(indexHtml.includes('src="/runtime-config.js?v=dashboard-home-v25"'));
+assert.ok(indexHtml.includes('src="/supabase-client.js?v=dashboard-home-v25"'));
 assert.ok(indexHtml.includes('src="/src/domain/sincronario/engine.js"'));
 assert.ok(indexHtml.includes("mobile-web-app-capable"));
 
@@ -53,7 +53,7 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-astral-web-v23"));
+assert.ok(serviceWorker.includes("drive-astral-web-v25"));
 
 assert.ok(platformSource.includes('navigator.serviceWorker.register("/sw.js")'));
 assert.ok(platformSource.includes("isLocalDevelopmentHost"));
@@ -63,7 +63,7 @@ assert.ok(platformSource.includes('"appinstalled"'));
 assert.ok(platformSource.includes('"offline"'));
 assert.ok(runtimeConfigSource.includes('environment: "production"'));
 assert.ok(runtimeConfigSource.includes('authMode: "supabase"'));
-assert.ok(runtimeConfigSource.includes("https://jjnmxkfumiwoeyyregzb.supabase.co"));
+assert.ok(runtimeConfigSource.includes("https://xvwbtxsryehozinshyfr.supabase.co"));
 assert.ok(runtimeConfigSource.includes('billingMode: "external-checkout"'));
 assert.ok(supabaseClientSource.includes("DriveAstralSupabase"));
 assert.ok(supabaseClientSource.includes("@supabase/supabase-js@2.102.0"));

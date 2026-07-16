@@ -5240,9 +5240,26 @@ function submitLogin({ email: emailValue, password }) {
         authNoticeKind: "",
       }, { persist: true, updateUrl: true });
       hydrateSupabaseProgress();
-    }).catch(() => {
+    }).catch((error) => {
+      const errorCode = String(error?.code || "").toLowerCase();
+      const errorMessage = String(error?.message || "").toLowerCase();
+      let notice = "N&atilde;o foi poss&iacute;vel entrar agora. Tente novamente.";
+
+      if (errorCode === "email_not_confirmed" || errorMessage.includes("email not confirmed")) {
+        notice = "Este e-mail ainda n&atilde;o foi confirmado no Supabase.";
+      } else if (errorCode === "invalid_credentials" || errorMessage.includes("invalid login credentials")) {
+        notice = "E-mail ou senha incorretos.";
+      } else if (errorCode.startsWith("pgrst") || errorCode === "42501") {
+        notice = "Login aceito, mas o perfil n&atilde;o p&ocirc;de ser carregado do banco.";
+      }
+
+      console.error("Supabase login failed", {
+        code: error?.code || "unknown",
+        status: error?.status || null,
+        message: error?.message || "Unknown authentication error",
+      });
       setState({
-        authNotice: "E-mail ou senha incorretos, ou conta ainda n&atilde;o confirmada.",
+        authNotice: notice,
         authNoticeKind: "error",
       });
     });
