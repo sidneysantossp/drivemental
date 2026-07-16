@@ -799,6 +799,7 @@ const defaultState = {
   route: "landing",
   account: loadLocalAccount(),
   authenticated: loadLocalSession(),
+  authLoading: isSupabaseMode(),
   onboardingStep: 1,
   authNotice: "",
   authNoticeKind: "",
@@ -1380,6 +1381,20 @@ function formatDateTimePtBr(value) {
   }).format(date);
 }
 
+function formatReadingCreatedAtLong(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) {
+    return "Data da consulta indisponível";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
 function shortHistorySummary(text) {
   const clean = decodeStoredText(text).replace(/\s+/g, " ").trim();
   if (clean.length <= 124) {
@@ -1387,6 +1402,24 @@ function shortHistorySummary(text) {
   }
 
   return `${clean.slice(0, 121).trim()}...`;
+}
+
+function completePresentationText(text, maximumLength) {
+  const clean = decodeStoredText(text).replace(/\s+/g, " ").trim();
+  if (!clean || /(?:\.\.\.|…)/.test(clean)) {
+    return "";
+  }
+
+  const sentences = clean.match(/[^.!?]+(?:[.!?]+|$)/g) || [];
+  let selected = "";
+  for (const sentence of sentences) {
+    const normalized = sentence.trim();
+    if (!normalized) continue;
+    const candidate = selected ? `${selected} ${normalized}` : normalized;
+    if (candidate.length > maximumLength) break;
+    selected = candidate;
+  }
+  return selected;
 }
 
 function relationshipExplanation(relationship) {
@@ -1677,56 +1710,6 @@ function canStartConsultationForArea(areaId) {
     return normalizedAreaId === allowedAreaId;
   }
   return normalizedHistoryList(state.history).length === 0 && Boolean(normalizedAreaId);
-}
-
-function canViewEvolutionArea(areaId) {
-  return hasPremiumAccess() || normalizeAreaId(areaId) === firstConsultedAreaId();
-}
-
-function daysSince(value) {
-  const timestamp = Date.parse(value || "");
-  if (Number.isNaN(timestamp)) {
-    return 999;
-  }
-  return Math.max(0, Math.round((Date.now() - timestamp) / 86400000));
-}
-
-function areaEvolutionRows() {
-  const history = normalizedHistoryList(state.history);
-  const currentAreaId = readingGuidance(state.reading)?.interpretation?.areaId || normalizeAreaId(state.selectedAreaId);
-
-  return consultationAreas.map((area) => {
-    const entries = history.filter((entry) => normalizeAreaId(entry.areaId) === area.id);
-    const lastEntry = entries[0] || null;
-    const recency = lastEntry ? daysSince(lastEntry.createdAt) : 999;
-    const consulted = entries.length > 0;
-    const score = consulted
-      ? Math.min(94, 46 + (entries.length * 16) + (recency <= 7 ? 12 : recency <= 30 ? 7 : 0))
-      : 18;
-    const locked = !canViewEvolutionArea(area.id);
-    const status = locked
-      ? "Bloqueado"
-      : consulted && score >= 68
-        ? "Melhorando"
-        : consulted
-          ? "Em acompanhamento"
-          : "Precisa melhorar";
-
-    return {
-      area,
-      entries,
-      consulted,
-      score,
-      locked,
-      status,
-      isCurrent: area.id === currentAreaId,
-      note: locked
-        ? "Assine para comparar esta &aacute;rea."
-        : consulted
-          ? `${entries.length} consulta${entries.length === 1 ? "" : "s"} salva${entries.length === 1 ? "" : "s"}`
-          : "Ainda sem consulta nesta &aacute;rea.",
-    };
-  });
 }
 
 function normalizedTimelineEvents(events) {
@@ -2063,6 +2046,29 @@ const essentialDirectionCopy = Object.freeze({
   },
 });
 
+function firstReadingPresentation(interpretation) {
+  const source = interpretation || {};
+  const editorial = essentialDirectionCopy[source.areaId] || essentialDirectionCopy.general;
+  const editorialTitle = decodeStoredText(editorial.headline);
+  const editorialSummary = decodeStoredText(editorial.direction);
+  const editorialAlignment = decodeStoredText(editorial.mantra);
+  const heroTitle = completePresentationText(source.synthesis, 90) || editorialTitle;
+  const savedSummary = completePresentationText(source.applicationSummary || source.synthesis, 240);
+  const savedAlignment = completePresentationText(source.synthesis, 120);
+
+  return {
+    heroTitle,
+    heroSummary: savedSummary && savedSummary !== heroTitle ? savedSummary : editorialSummary,
+    alignmentPhraseShort: savedAlignment && savedAlignment !== heroTitle
+      ? savedAlignment
+      : editorialAlignment,
+    actionShort: completePresentationText(source.dailyPractice || source.suggestedPractice, 145)
+      || "Escolha uma ação simples e possível para hoje.",
+    questionShort: completePresentationText(source.reflectionQuestion, 140)
+      || "O que merece sua atenção agora?",
+  };
+}
+
 function EssentialDirectionCard(reading, guidance) {
   const interpretation = guidance && guidance.interpretation;
   if (!interpretation) {
@@ -2305,7 +2311,10 @@ function AreaApplicationCard(guidance) {
     </div>
     <p class="application-question">Como aplicar minhas coordenadas de hoje em ${escapeHtml(interpretation.areaTitle)}?</p>
     <div class="application-copy">
-      <p>${escapeHtml(interpretation.applicationSummary || interpretation.synthesis)}</p>
+      <p>${escapeHtml(interpretation.synthesis)}</p>
+      ${interpretation.applicationSummary && interpretation.applicationSummary !== interpretation.synthesis
+        ? `<p>${escapeHtml(interpretation.applicationSummary)}</p>`
+        : ""}
     </div>
     <div class="reflection-prompt">
       <span>Pergunta para observar</span>
@@ -2391,7 +2400,7 @@ function activeReadingHistoryEntry() {
 function FirstReadingFormation(reading, guidance) {
   const personal = reading && reading.personal_map ? reading.personal_map : {};
   const daily = dailyMap(reading) || {};
-  const coordinates = readingCoordinates(reading) || {};
+  const coordinates = reading && reading.coordinates ? reading.coordinates : {};
   const dayCalendar = coordinates.day && coordinates.day.thirteen_moons
     ? coordinates.day.thirteen_moons
     : {};
@@ -2433,8 +2442,8 @@ function FirstReadingFormation(reading, guidance) {
           <div><small>A APLICA&Ccedil;&Atilde;O</small><h3>${escapeHtml(interpretation.areaTitle || "Vis&atilde;o Geral")}</h3></div>
           <dl>
             <div><dt>Tema principal</dt><dd>${escapeHtml(interpretation.areaTitle || "Vis&atilde;o Geral")}</dd></div>
-            <div><dt>Pergunta</dt><dd>${escapeHtml(interpretation.reflectionQuestion || "N&atilde;o dispon&iacute;vel")}</dd></div>
-            <div><dt>Pr&aacute;tica</dt><dd>${escapeHtml(interpretation.dailyPractice || interpretation.suggestedPractice || "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Pergunta</dt><dd>${escapeHtml(interpretation.reflectionQuestion || "Não disponível")}</dd></div>
+            <div><dt>Pr&aacute;tica</dt><dd>${escapeHtml(interpretation.dailyPractice || interpretation.suggestedPractice || "Não disponível")}</dd></div>
           </dl>
           <p>A &aacute;rea escolhida contextualiza a interpreta&ccedil;&atilde;o, sem alterar os c&aacute;lculos.</p>
         </article>
@@ -2443,17 +2452,25 @@ function FirstReadingFormation(reading, guidance) {
   `;
 }
 
-function FirstReadingResult(reading, guidance) {
+function FirstReadingResult(reading, guidance, historyEntry) {
   const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
-  const copy = essentialDirectionCopy[interpretation.areaId] || essentialDirectionCopy.general;
-  const action = interpretation.dailyPractice || interpretation.suggestedPractice;
+  const presentation = firstReadingPresentation(interpretation);
+  const areaTitle = historyEntry && historyEntry.interpretationSnapshot
+    ? historyEntry.interpretationSnapshot.areaTitle
+    : historyEntry && historyEntry.inputSnapshot
+      ? historyEntry.inputSnapshot.selectedAreaTitle
+      : interpretation.areaTitle;
+  const createdAt = historyEntry ? historyEntry.createdAt : "";
   return `
     <section class="first-reading-result">
       <section class="first-reading-hero">
-        <span class="first-reading-complete-badge">${icon("check")} LEITURA CONCLU&Iacute;DA</span>
+        <div class="first-reading-status-line">
+          <span class="first-reading-complete-badge">${icon("check")} LEITURA CONCLU&Iacute;DA</span>
+          <span class="first-reading-metadata">${escapeHtml(areaTitle || "Vis&atilde;o Geral")} &middot; Consulta de ${escapeHtml(formatReadingCreatedAtLong(createdAt))}</span>
+        </div>
         <span class="first-reading-eyebrow">SUA DIRE&Ccedil;&Atilde;O INICIAL</span>
-        <h2>${copy.headline}</h2>
-        <p>${copy.direction}</p>
+        <h2>${escapeHtml(presentation.heroTitle)}</h2>
+        <p>${escapeHtml(presentation.heroSummary)}</p>
         <small>Esta leitura combina sua base pessoal, a coordenada do dia e a aplica&ccedil;&atilde;o no tema escolhido.</small>
       </section>
 
@@ -2465,9 +2482,9 @@ function FirstReadingResult(reading, guidance) {
           <h2 id="first-reading-guidance-title">SEU PRIMEIRO DIRECIONAMENTO</h2>
         </div>
         <div class="first-reading-guidance-grid">
-          <article><span>${icon("spark")} Frase de alinhamento</span><strong>&ldquo;${copy.mantra}&rdquo;</strong></article>
-          <article><span>${icon("target")} A&ccedil;&atilde;o inicial</span><strong>${escapeHtml(action || "Escolha uma a&ccedil;&atilde;o simples e poss&iacute;vel.")}</strong></article>
-          <article><span>${icon("compass")} Pergunta de reflex&atilde;o</span><strong>${escapeHtml(interpretation.reflectionQuestion || "O que merece sua aten&ccedil;&atilde;o agora?")}</strong></article>
+          <article><span>${icon("spark")} Frase de alinhamento</span><strong>&ldquo;${escapeHtml(presentation.alignmentPhraseShort)}&rdquo;</strong></article>
+          <article><span>${icon("target")} A&ccedil;&atilde;o inicial</span><strong>${escapeHtml(presentation.actionShort)}</strong></article>
+          <article><span>${icon("compass")} Pergunta de reflex&atilde;o</span><strong>${escapeHtml(presentation.questionShort)}</strong></article>
         </div>
         <p>Na A&ccedil;&atilde;o do Dia voc&ecirc; encontrar&aacute; a orienta&ccedil;&atilde;o pr&aacute;tica atualizada para aplicar este direcionamento.</p>
       </section>
@@ -2475,8 +2492,7 @@ function FirstReadingResult(reading, guidance) {
       <nav class="first-reading-actions" aria-label="Pr&oacute;ximos passos da primeira leitura">
         <button class="button-primary button-large" data-route="my-day" type="button">Ver minha A&ccedil;&atilde;o do Dia ${icon("arrow")}</button>
         <button class="button-ghost button-large" data-route="protocol" type="button">Abrir Protocolo Di&aacute;rio</button>
-        <button class="button-text" data-route="journey" type="button">Conhecer minha Jornada</button>
-        <button class="first-reading-calculation-link" data-open-reading-details type="button">Entender os c&aacute;lculos desta leitura</button>
+        <button class="button-text" data-route="journey" type="button">Conhecer minha Jornada ${icon("arrow")}</button>
       </nav>
 
       ${EnergyCycleShortcutCard("is-result")}
@@ -2959,6 +2975,18 @@ function AuthNotice() {
   return state.authNotice
     ? `<p class="auth-notice ${state.authNoticeKind === "error" ? "is-error" : ""}" role="alert" aria-live="polite">${state.authNotice}</p>`
     : "";
+}
+
+function AuthSessionLoadingScreen() {
+  return AuthLayout(`
+    <section class="auth-card" role="status" aria-live="polite">
+      <div class="auth-heading">
+        <span>Conta segura</span>
+        <h1>Restaurando sua jornada</h1>
+        <p>Aguarde enquanto confirmamos sua sess&atilde;o.</p>
+      </div>
+    </section>
+  `, "Seu mapa continua com voc&ecirc;.", "Estamos recuperando sua conta e seus registros com seguran&ccedil;a.");
 }
 
 function LoginScreen() {
@@ -3867,61 +3895,6 @@ function BottomNavigation() {
   `;
 }
 
-function DashboardEvolutionSection() {
-  const rows = areaEvolutionRows();
-  const premium = hasPremiumAccess();
-  const visibleRows = rows.filter((row) => !row.locked);
-  const consultedRows = visibleRows.filter((row) => row.consulted);
-  const bestRow = consultedRows
-    .slice()
-    .sort((left, right) => right.score - left.score)[0] || visibleRows[0];
-  const needsAttention = rows
-    .filter((row) => !row.locked && (!row.consulted || row.score < 68))
-    .length;
-  const lockedCount = rows.filter((row) => row.locked).length;
-  const summary = premium
-    ? `${consultedRows.length} de ${rows.length} &aacute;reas consultadas. ${needsAttention ? `${needsAttention} ainda pedem aten&ccedil;&atilde;o.` : "Seu painel est&aacute; bem distribu&iacute;do."}`
-    : `${lockedCount} &aacute;reas est&atilde;o bloqueadas no acesso gratuito.`;
-
-  return `
-    <section class="dashboard-evolution-panel ${premium ? "is-unlocked" : "is-locked"}" aria-label="Evolu&ccedil;&atilde;o por &aacute;reas">
-      <div class="dashboard-evolution-heading">
-        <div>
-          <span>${icon("chart")} Evolu&ccedil;&atilde;o por &aacute;reas</span>
-          <h2>Veja onde voc&ecirc; est&aacute; avan&ccedil;ando e onde precisa melhorar.</h2>
-          <p>${summary}</p>
-        </div>
-        <aside>
-          <small>${premium ? "Plano ativo" : "Acesso gratuito"}</small>
-          <strong>${bestRow && bestRow.consulted ? escapeHtml(bestRow.area.shortTitle || bestRow.area.title) : "Primeira &aacute;rea"}</strong>
-          <span>${bestRow && bestRow.consulted ? "melhor evolu&ccedil;&atilde;o atual" : "comece por uma consulta"}</span>
-        </aside>
-      </div>
-      <div class="area-evolution-grid">
-        ${rows.map((row) => {
-          const title = row.area.shortTitle || row.area.title;
-          const score = row.locked ? 34 : row.score;
-          const buttonAttrs = row.locked
-            ? `data-open-upgrade-modal data-upgrade-area-id="${escapeHtml(row.area.id)}" aria-label="Desbloquear evolu&ccedil;&atilde;o em ${escapeHtml(row.area.title)}"`
-            : `data-start-area-id="${escapeHtml(row.area.id)}" aria-label="Abrir consulta em ${escapeHtml(row.area.title)}"`;
-          return `
-            <button class="area-evolution-card ${row.locked ? "is-locked" : ""} ${row.isCurrent ? "is-current" : ""}" style="--area-score:${score}%" ${buttonAttrs} type="button">
-              <span class="area-evolution-icon">${icon(row.locked ? "unlock" : row.area.icon)}</span>
-              <span class="area-evolution-copy">
-                <strong>${escapeHtml(title)}</strong>
-                <small>${row.note}</small>
-              </span>
-              <span class="area-evolution-badge">${row.locked ? "Desbloquear" : row.status}</span>
-              <span class="area-evolution-track"><i></i></span>
-              <span class="area-evolution-score">${row.locked ? "Premium" : `${row.score}%`}</span>
-            </button>
-          `;
-        }).join("")}
-      </div>
-    </section>
-  `;
-}
-
 function DailyDirectionSection() {
   const name = (state.account && state.account.name) || state.name || "viajante";
   const kin = personalKin(state.reading);
@@ -3989,69 +3962,273 @@ function MyDayScreen() {
   `);
 }
 
-function DashboardScreen() {
-  const name = (state.account && state.account.name) || state.name || "viajante";
+function dashboardFirstReadingEntry() {
+  return normalizedHistoryList(state.history).find((entry) => (
+    entry.readingType === "first-reading" && entry.readingStatus === "completed" && entry.readingSnapshot
+  )) || null;
+}
+
+function dashboardJourneyStreak(completedDays, currentDay) {
+  const completed = new Set(completedDays);
+  let cursor = completed.has(currentDay) ? currentDay : currentDay - 1;
+  let streak = 0;
+  while (cursor >= 1 && completed.has(cursor)) {
+    streak += 1;
+    cursor -= 1;
+  }
+  return streak;
+}
+
+function dashboardPermissions() {
+  const fullAccess = hasPremiumAccess();
+  return {
+    planId: currentPlanId(),
+    planBadge: currentPlanBadge(),
+    allowedAreas: consultationAreas
+      .filter((area) => canStartConsultationForArea(area.id))
+      .map((area) => area.id),
+    allowedJourneyDays: 30,
+    historyAccess: true,
+    evolutionAccess: fullAccess,
+  };
+}
+
+function dashboardContext() {
   const history = normalizedHistoryList(state.history);
-  const kin = personalKin(state.reading);
-  const journeyProgress = kin ? loadJourneyProgress() : null;
+  const firstReading = dashboardFirstReadingEntry();
+  const activeEntry = historyEntryById(state.activeHistoryId) || history[0] || firstReading;
+  const snapshotReading = activeEntry && activeEntry.readingSnapshot
+    ? readingForHistoryEntry(activeEntry)
+    : null;
+  const guidance = readingGuidance(snapshotReading);
+  const interpretation = guidance && guidance.interpretation ? guidance.interpretation : null;
+  const presentation = interpretation ? firstReadingPresentation(interpretation) : null;
+  const journeyProgress = snapshotReading ? loadJourneyProgress() : null;
   const journeyDay = journeyProgress ? currentJourneyDay(journeyProgress) : 1;
-  const journeyCompleted = journeyProgress ? journeyProgress.completedDays.length : 0;
-  const journeyPercent = Math.round((journeyCompleted / 30) * 100);
-  const moments = protocolMoments();
-  const currentMoment = moments.find((moment) => moment.id === currentProtocolMomentId()) || moments[0];
+  const completedDays = journeyProgress
+    ? visibleJourneyCompletedDays(journeyProgress, journeyDay)
+    : [];
+  const journey = snapshotReading ? journeyPlan(snapshotReading) : [];
+  const today = journey[journeyDay - 1] || null;
+  const todayCompleted = completedDays.includes(journeyDay);
+  const journeyCompleted = completedDays.length >= 30;
+  const permissions = dashboardPermissions();
+  const consultedAreasCount = new Set(history.map((entry) => normalizeAreaId(entry.areaId)).filter(Boolean)).size;
   const protocolProgress = loadProtocolProgress();
-  const protocolCompleted = moments.filter((moment) => protocolProgress.completed.includes(moment.id)).length;
+  const protocolCompleted = Array.isArray(protocolProgress.completed)
+    ? protocolProgress.completed.length
+    : 0;
+
+  return {
+    history,
+    firstReading,
+    activeEntry,
+    snapshotReading,
+    interpretation,
+    presentation,
+    journeyProgress,
+    journeyDay,
+    completedDays,
+    today,
+    todayCompleted,
+    journeyCompleted,
+    journeyPercent: Math.round((completedDays.length / permissions.allowedJourneyDays) * 100),
+    streak: dashboardJourneyStreak(completedDays, journeyDay),
+    protocolCompleted,
+    consultedAreasCount,
+    permissions,
+  };
+}
+
+function DashboardNextStepHero(context) {
+  const firstName = String((state.account && state.account.name) || state.name || "viajante").trim().split(/\s+/)[0];
+  let badge = "PRIMEIRA LEITURA";
+  let title = "Comece sua primeira leitura";
+  let description = "Informe sua data de nascimento e escolha o tema que mais representa seu momento.";
+  let primary = `<button class="button-primary button-large" data-route="onboarding" type="button">Criar minha primeira leitura ${icon("arrow")}</button>`;
+  let secondary = "";
+
+  if (context.firstReading && !context.journeyProgress) {
+    badge = "JORNADA N&Atilde;O INICIADA";
+    title = "Sua primeira dire&ccedil;&atilde;o est&aacute; pronta";
+    description = context.presentation ? context.presentation.heroSummary : "Sua leitura est&aacute; pronta para orientar o pr&oacute;ximo passo.";
+    primary = `<button class="button-primary button-large" data-route="my-day" type="button">Ver minha A&ccedil;&atilde;o do Dia ${icon("arrow")}</button>`;
+    secondary = `<button class="button-ghost button-large" data-route="journey" type="button">Iniciar Jornada de 30 dias</button>`;
+  } else if (context.journeyCompleted) {
+    badge = "CICLO CONCLU&Iacute;DO";
+    title = "Voc&ecirc; concluiu este ciclo";
+    description = `${context.completedDays.length} dias concluídos, ${context.consultedAreasCount} área${context.consultedAreasCount === 1 ? "" : "s"} trabalhada${context.consultedAreasCount === 1 ? "" : "s"} e sequência atual de ${context.streak} dias.`;
+    primary = `<button class="button-primary button-large" data-route="journey" type="button">Revisar minha jornada ${icon("arrow")}</button>`;
+  } else if (context.journeyProgress && context.todayCompleted) {
+    badge = "DIA CONCLU&Iacute;DO";
+    title = "Seu dia foi conclu&iacute;do";
+    description = context.today ? `Ação realizada no dia ${context.journeyDay}: ${decodeStoredText(context.today.action)} Sequência atual: ${context.streak} dias.` : "Sua ação de hoje foi registrada.";
+    primary = `<button class="button-primary button-large" data-route="journey" type="button">Revisar meu dia ${icon("arrow")}</button>`;
+  } else if (context.journeyProgress) {
+    badge = `DIA ${context.journeyDay} DE ${context.permissions.allowedJourneyDays}`;
+    title = "Continue de onde parou";
+    description = context.today
+      ? `${decodeStoredText(context.today.phaseTitle)}: ${decodeStoredText(context.today.phaseSubtitle)}. ${decodeStoredText(context.today.action)}`
+      : "Sua próxima ação está pronta.";
+    primary = `<button class="button-primary button-large" data-route="journey" type="button">Continuar o dia ${icon("arrow")}</button>`;
+  }
+
+  return `
+    <section class="continuity-hero" aria-labelledby="continuity-hero-title">
+      <div>
+        <span class="continuity-kicker">OL&Aacute;, ${escapeHtml(firstName).toUpperCase()} &middot; SEU PR&Oacute;XIMO PASSO</span>
+        <span class="continuity-state-badge">${badge}</span>
+        <h2 id="continuity-hero-title">${title}</h2>
+        <p>${escapeHtml(decodeStoredText(description))}</p>
+        <div class="continuity-hero-actions">${primary}${secondary}</div>
+      </div>
+      <span class="continuity-hero-symbol" aria-hidden="true">${icon("compass")}</span>
+    </section>
+  `;
+}
+
+function DashboardTodayDirection(context) {
+  if (!context.firstReading || !context.interpretation || !context.presentation) {
+    return `
+      <section class="continuity-panel continuity-empty-panel" aria-labelledby="dashboard-direction-title">
+        <span class="continuity-section-label">SUA DIRE&Ccedil;&Atilde;O DE HOJE</span>
+        <h2 id="dashboard-direction-title">Sua dire&ccedil;&atilde;o aparecer&aacute; aqui.</h2>
+        <p>Conclua sua primeira leitura para receber uma mensagem, uma frase e uma a&ccedil;&atilde;o para continuar.</p>
+      </section>
+    `;
+  }
+
+  const entry = context.activeEntry || context.firstReading;
+  const area = entry.interpretationSnapshot?.areaTitle || entry.areaTitle || context.interpretation.areaTitle;
+  const date = entry.createdAt ? formatReadingCreatedAtLong(entry.createdAt) : "Data indispon&iacute;vel";
+  const action = context.today
+    ? completePresentationText(context.today.action, 180) || context.presentation.actionShort
+    : context.presentation.actionShort;
+
+  return `
+    <section class="continuity-panel dashboard-direction-panel" aria-labelledby="dashboard-direction-title">
+      <header>
+        <div><span class="continuity-section-label">SUA DIRE&Ccedil;&Atilde;O DE HOJE</span><h2 id="dashboard-direction-title">${escapeHtml(context.presentation.heroTitle)}</h2></div>
+        <span class="continuity-panel-icon" aria-hidden="true">${icon("spark")}</span>
+      </header>
+      <p>${escapeHtml(context.presentation.heroSummary)}</p>
+      <dl class="dashboard-direction-details">
+        <div><dt>Frase de alinhamento</dt><dd>&ldquo;${escapeHtml(context.presentation.alignmentPhraseShort)}&rdquo;</dd></div>
+        <div><dt>A&ccedil;&atilde;o do dia</dt><dd>${escapeHtml(action)}</dd></div>
+      </dl>
+      <footer><span>${escapeHtml(area)} &middot; ${escapeHtml(date)}</span><div><button class="button-primary" data-route="my-day" type="button">Ver A&ccedil;&atilde;o do Dia</button><button class="button-ghost" data-route="protocol" type="button">Abrir Protocolo</button></div></footer>
+    </section>
+  `;
+}
+
+function DashboardJourneyCard(context) {
+  const started = Boolean(context.journeyProgress);
+  const title = context.journeyCompleted
+    ? "Ciclo conclu&iacute;do"
+    : started
+      ? `Dia ${context.journeyDay} de ${context.permissions.allowedJourneyDays}`
+      : "Voc&ecirc; ainda n&atilde;o iniciou sua jornada.";
+  const phase = context.today ? decodeStoredText(context.today.phaseTitle) : "Pronta para come&ccedil;ar";
+  const nextStep = context.journeyCompleted
+    ? "Revise os dias e reconhe&ccedil;a o que deseja sustentar."
+    : context.todayCompleted
+      ? "Seu dia atual est&aacute; conclu&iacute;do."
+      : context.today
+        ? decodeStoredText(context.today.action)
+        : "Comece pelo primeiro dia quando fizer sentido.";
+  const cta = context.journeyCompleted ? "Ver resumo" : started ? "Continuar Jornada" : "Iniciar Jornada";
+
+  return `
+    <section class="continuity-panel dashboard-journey-panel" aria-labelledby="dashboard-journey-title">
+      <header><div><span class="continuity-section-label">SUA JORNADA</span><h2 id="dashboard-journey-title">${title}</h2></div><span class="continuity-panel-icon" aria-hidden="true">${icon("calendar")}</span></header>
+      <div class="dashboard-journey-meta"><span aria-current="step">Fase atual<strong>${escapeHtml(phase)}</strong></span><span>Dias conclu&iacute;dos<strong>${context.completedDays.length}/${context.permissions.allowedJourneyDays}</strong></span><span>Sequ&ecirc;ncia atual<strong>${context.streak} dia${context.streak === 1 ? "" : "s"}</strong></span></div>
+      <div class="dashboard-journey-progress" role="progressbar" aria-label="Progresso da jornada" aria-valuemin="0" aria-valuemax="${context.permissions.allowedJourneyDays}" aria-valuenow="${context.completedDays.length}"><span style="width:${context.journeyPercent}%"></span></div>
+      <p>${escapeHtml(nextStep)}</p>
+      ${started ? `<small>In&iacute;cio em ${formatDatePtBr(context.journeyProgress.startDate)}</small>` : ""}
+      <button class="button-ghost" data-route="journey" type="button">${cta} ${icon("arrow")}</button>
+    </section>
+  `;
+}
+
+function DashboardAreas(context) {
+  const primaryAreaId = normalizeAreaId(state.account && state.account.primaryAreaId);
+  const visualTitles = {
+    general: "Momento Atual",
+    purpose: "Prop&oacute;sito e Dire&ccedil;&atilde;o",
+    "work-prosperity": "Vida Financeira",
+    "love-relationships": "Relacionamentos",
+    "challenges-blocks": "Desafios e Bloqueios",
+    "energy-spirituality": "Equil&iacute;brio e Energia",
+    "decisions-cycles": "Mudan&ccedil;as e Ciclos",
+  };
+
+  return `
+    <section class="dashboard-areas-section" aria-labelledby="dashboard-areas-title">
+      <header><div><span class="continuity-section-label">SUAS &Aacute;REAS DE ACOMPANHAMENTO</span><h2 id="dashboard-areas-title">Continue pelas &aacute;reas dispon&iacute;veis no seu plano.</h2></div><span class="dashboard-plan-badge">${escapeHtml(context.permissions.planBadge)}</span></header>
+      <div class="dashboard-areas-grid">
+        ${consultationAreas.map((area) => {
+          const entries = context.history.filter((entry) => normalizeAreaId(entry.areaId) === area.id);
+          const latest = entries[0] || null;
+          const consulted = Boolean(latest && latest.readingSnapshot);
+          const primary = area.id === primaryAreaId;
+          const available = context.permissions.allowedAreas.includes(area.id);
+          const locked = !consulted && !available;
+          const action = consulted
+            ? `data-history-id="${escapeHtml(latest.readingId)}"`
+            : locked
+              ? `data-open-upgrade-modal data-upgrade-area-id="${escapeHtml(area.id)}" aria-label="Desbloquear ${escapeHtml(decodeStoredText(visualTitles[area.id]))}"`
+              : `data-start-area-id="${escapeHtml(area.id)}"`;
+          const stateLabel = consulted ? "Consultada" : locked ? "Bloqueada pelo plano" : "Dispon&iacute;vel";
+          const note = consulted
+            ? `Leitura de ${formatDateTimePtBr(latest.createdAt)}`
+            : locked
+              ? "Dispon&iacute;vel em outro plano"
+              : "Pronta para consultar";
+          const cta = consulted ? "Ver resultado" : locked ? "Desbloquear" : "Consultar &aacute;rea";
+          return `
+            <button class="dashboard-area-card ${consulted ? "is-consulted" : ""} ${locked ? "is-locked" : ""} ${primary ? "is-primary" : ""}" ${action} type="button" aria-label="${escapeHtml(decodeStoredText(visualTitles[area.id]))}: ${stateLabel}">
+              <span class="dashboard-area-icon">${icon(locked ? "lock" : consulted ? "check" : area.icon)}</span>
+              <span class="dashboard-area-copy"><strong>${visualTitles[area.id]}</strong><small>${note}</small></span>
+              ${primary ? '<span class="dashboard-area-primary">&Aacute;rea principal</span>' : ""}
+              <span class="dashboard-area-action">${cta} ${icon("arrow")}</span>
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function DashboardProgress(context) {
+  const consultedAreas = context.consultedAreasCount;
+  const hasProgress = context.completedDays.length || context.protocolCompleted || consultedAreas;
+  return `
+    <section class="dashboard-real-progress" aria-labelledby="dashboard-real-progress-title">
+      <header><span class="continuity-section-label">SEU PROGRESSO</span><h2 id="dashboard-real-progress-title">Acompanhe o que voc&ecirc; realmente concluiu.</h2></header>
+      <div class="dashboard-real-progress-grid">
+        <article><span>${icon("calendar")}</span><strong>${context.completedDays.length}</strong><small>Dias conclu&iacute;dos</small></article>
+        <article><span>${icon("cycle")}</span><strong>${context.streak}</strong><small>Sequ&ecirc;ncia atual</small></article>
+        <article><span>${icon("protocol")}</span><strong>${context.protocolCompleted}</strong><small>Momentos conclu&iacute;dos hoje</small></article>
+        <article><span>${icon("compass")}</span><strong>${consultedAreas}</strong><small>&Aacute;reas consultadas</small></article>
+        ${context.journeyProgress ? `<article><span>${icon("chart")}</span><strong>${context.journeyPercent}%</strong><small>Jornada conclu&iacute;da</small></article>` : ""}
+      </div>
+      ${hasProgress ? "" : "<p>Conclua suas primeiras a&ccedil;&otilde;es para come&ccedil;ar a acompanhar sua evolu&ccedil;&atilde;o.</p>"}
+    </section>
+  `;
+}
+
+// Canonical Home for /app. Keep this as the only dashboard implementation.
+function DashboardScreen() {
+  const context = dashboardContext();
 
   return PlatformShell(`
-    ${kin ? `
-      ${DashboardEvolutionSection()}
-
-      <section class="dashboard-continuity-grid">
-        <article class="dashboard-progress-card">
-          <span class="dashboard-progress-icon">${icon("calendar")}</span>
-          <div class="dashboard-progress-copy">
-            <span>JORNADA DE 30 DIAS</span>
-            <strong>${journeyProgress ? `Dia ${journeyDay} de 30` : "Pronta para come&ccedil;ar"}</strong>
-            <p>${journeyProgress ? `${journeyCompleted} dias conclu&iacute;dos. Continue no seu ritmo.` : "Uma frase e uma a&ccedil;&atilde;o simples por dia."}</p>
-            <div class="dashboard-progress-track"><span style="width: ${journeyPercent}%"></span></div>
-          </div>
-          <button data-route="journey" type="button" aria-label="Abrir jornada">${icon("arrow")}</button>
-        </article>
-
-        <article class="dashboard-progress-card is-protocol">
-          <span class="dashboard-progress-icon">${icon(currentMoment.iconName)}</span>
-          <div class="dashboard-progress-copy">
-            <span>PR&Aacute;TICA DE AGORA &middot; ${currentMoment.time}</span>
-            <strong>${currentMoment.title}</strong>
-            <p>${protocolCompleted} de 3 momentos conclu&iacute;dos hoje.</p>
-          </div>
-          <button data-route="protocol" type="button" aria-label="Abrir protocolo">${icon("arrow")}</button>
-        </article>
-      </section>
-    ` : `
-      <section class="dashboard-start-card">
-        <span class="dashboard-start-symbol">${icon("spark")}</span>
-        <div>
-          <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()}</span>
-          <h2>Comece com uma &uacute;nica pergunta.</h2>
-          <p>Escolha a &aacute;rea da vida que pede clareza. Sua primeira leitura entregar&aacute; uma dire&ccedil;&atilde;o, uma frase e uma a&ccedil;&atilde;o para hoje.</p>
-          <button class="button-primary" data-route="home" type="button">${icon("compass")} Fazer primeira consulta</button>
-        </div>
-      </section>
-    `}
-
-    <section class="dashboard-secondary-actions" aria-label="Outros acessos">
-      <button ${freeConsultationUsed() ? 'data-open-upgrade-modal' : 'data-route="home"'} type="button">
-        <span>${icon("compass")}</span>
-        <div><strong>Nova consulta</strong><small>${freeConsultationUsed() ? "Libere outras &aacute;reas de vida" : "Escolha outra &aacute;rea de vida"}</small></div>
-        ${icon("arrow")}
-      </button>
-      <button data-route="history" type="button">
-        <span>${icon("history")}</span>
-        <div><strong>Hist&oacute;rico</strong><small>${history.length ? `${history.length} leitura${history.length === 1 ? "" : "s"} salva${history.length === 1 ? "" : "s"}` : "Suas leituras e registros"}</small></div>
-        ${icon("arrow")}
-      </button>
-    </section>
+    ${DashboardNextStepHero(context)}
+    <div class="dashboard-continuity-columns">
+      ${DashboardTodayDirection(context)}
+      ${DashboardJourneyCard(context)}
+    </div>
+    ${DashboardAreas(context)}
+    ${DashboardProgress(context)}
 
     <section class="dashboard-disclaimer">
       ${icon("info")}
@@ -4260,18 +4437,19 @@ function ChakraDetailScreen() {
 }
 
 function ChakrasScreen() {
-  const guidance = readingGuidance(state.reading);
   const activeEntry = activeReadingHistoryEntry();
   const isFirstReading = activeEntry && activeEntry.readingType === "first-reading";
+  const snapshotReading = isFirstReading ? readingForHistoryEntry(activeEntry) : state.reading;
+  const guidance = readingGuidance(snapshotReading);
   const areaTitle = guidance && guidance.interpretation
     ? guidance.interpretation.areaTitle
     : "Leitura pessoal";
 
   return PlatformShell(`
-    ${AppHeader(isFirstReading ? "SUA PRIMEIRA LEITURA" : "RESULTADO DA CONSULTA", isFirstReading ? "VIS&Atilde;O GERAL" : areaTitle, { back: true })}
+    ${AppHeader(isFirstReading ? "SUA PRIMEIRA LEITURA" : "RESULTADO DA CONSULTA", areaTitle, { back: true })}
     <section class="result-stack">
       ${isFirstReading
-        ? FirstReadingResult(state.reading, guidance)
+        ? FirstReadingResult(snapshotReading, guidance, activeEntry)
         : `${EssentialDirectionCard(state.reading, guidance)}${EnergyCycleShortcutCard("is-result")}${ReadingDetailsSection(state.reading, guidance)}`}
     </section>
   `);
@@ -4732,8 +4910,8 @@ function toggleJourneyDay(dayNumber) {
   render();
 }
 
-function journeyPlan() {
-  const guidance = readingGuidance(state.reading);
+function journeyPlan(reading = state.reading) {
+  const guidance = readingGuidance(reading);
   const interpretation = guidance && guidance.interpretation;
   const areaId = interpretation ? interpretation.areaId : "general";
   const areaTitle = interpretation ? interpretation.areaTitle : "Vis&atilde;o Geral";
@@ -6245,6 +6423,9 @@ function render() {
 
   const publicRoutes = ["landing", "login", "signup"];
   const adminRoute = isAdminRoute(state.route);
+  const shouldWaitForAuthSession = state.authLoading
+    && isSupabaseMode()
+    && (state.route === "login" || !publicRoutes.includes(state.route));
   const accountNeedsOnboarding = state.authenticated
     && state.account
     && !state.account.onboardingComplete;
@@ -6258,7 +6439,9 @@ function render() {
     shouldRequestAdminAccess = true;
   }
 
-  if (!state.authenticated && !publicRoutes.includes(state.route)) {
+  if (shouldWaitForAuthSession) {
+    selectedScreen = AuthSessionLoadingScreen;
+  } else if (!state.authenticated && !publicRoutes.includes(state.route)) {
     state.route = "login";
     selectedScreen = LoginScreen;
   } else if (accountNeedsOnboarding && !adminRoute && !["landing", "login", "signup", "onboarding"].includes(state.route)) {
@@ -6960,6 +7143,7 @@ async function initializeSupabaseSession() {
   try {
     const account = await supabaseService().getAccount();
     if (!account) {
+      setState({ authLoading: false });
       return;
     }
     const cloudState = await supabaseService().loadCloudState();
@@ -6988,6 +7172,7 @@ async function initializeSupabaseSession() {
       route: targetRoute,
       account,
       authenticated: true,
+      authLoading: false,
       name: account.name || "",
       birth: account.birth || "",
       selectedAreaId: account.primaryAreaId || "",
@@ -7008,6 +7193,7 @@ async function initializeSupabaseSession() {
     setState({
       route: "login",
       authenticated: false,
+      authLoading: false,
       account: null,
       authNotice: "N&atilde;o foi poss&iacute;vel sincronizar sua conta agora.",
       authNoticeKind: "error",

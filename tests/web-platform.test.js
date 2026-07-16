@@ -3,6 +3,7 @@ const fs = require("fs");
 
 const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const indexHtml = fs.readFileSync("index.html", "utf8");
+const stylesheet = fs.readFileSync("styles.css", "utf8");
 const serviceWorker = fs.readFileSync("sw.js", "utf8");
 const platformSource = fs.readFileSync("platform.js", "utf8");
 const runtimeConfigSource = fs.readFileSync("runtime-config.js", "utf8");
@@ -26,11 +27,11 @@ for (const icon of manifest.icons) {
 
 assert.ok(indexHtml.includes('rel="manifest" href="/manifest.webmanifest"'));
 assert.ok(indexHtml.includes('id="connection-status"'));
-assert.ok(indexHtml.includes('href="/styles.css?v=drive-mental-v31"'));
-assert.ok(indexHtml.includes('src="/app.js?v=drive-mental-v31"'));
-assert.ok(indexHtml.includes('src="/platform.js?v=drive-mental-v31"'));
-assert.ok(indexHtml.includes('src="/runtime-config.js?v=drive-mental-v31"'));
-assert.ok(indexHtml.includes('src="/supabase-client.js?v=drive-mental-v31"'));
+assert.ok(indexHtml.includes('href="/styles.css?v=drive-mental-v36"'));
+assert.ok(indexHtml.includes('src="/app.js?v=drive-mental-v36"'));
+assert.ok(indexHtml.includes('src="/platform.js?v=drive-mental-v36"'));
+assert.ok(indexHtml.includes('src="/runtime-config.js?v=drive-mental-v36"'));
+assert.ok(indexHtml.includes('src="/supabase-client.js?v=drive-mental-v36"'));
 assert.ok(indexHtml.includes('src="/src/domain/sincronario/engine.js"'));
 assert.ok(indexHtml.includes("mobile-web-app-capable"));
 
@@ -53,7 +54,15 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-mental-web-v31"));
+assert.ok(serviceWorker.includes("drive-mental-web-v36"));
+assert.ok(stylesheet.includes("font-size: clamp(1.95rem, 3.05vw, 3rem)"));
+assert.ok(stylesheet.includes("@media (max-width: 900px)"));
+assert.ok(stylesheet.includes("@media (max-width: 620px)"));
+assert.ok(stylesheet.includes("overflow-wrap: break-word"));
+assert.ok(stylesheet.includes(".dashboard-continuity-columns"));
+assert.ok(stylesheet.includes(".dashboard-areas-grid"));
+assert.ok(stylesheet.includes(".dashboard-real-progress-grid"));
+assert.ok(stylesheet.includes("@media (prefers-reduced-motion: reduce)"));
 
 assert.ok(platformSource.includes('navigator.serviceWorker.register("/sw.js")'));
 assert.ok(platformSource.includes("isLocalDevelopmentHost"));

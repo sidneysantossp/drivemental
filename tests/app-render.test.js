@@ -116,6 +116,21 @@ function createBrowserLikeContext(
 
   context.window = context;
   context.globalThis = context;
+  if (options.supabaseMode) {
+    context.DriveAstralRuntimeConfig = {
+      authMode: "supabase",
+      supabaseUrl: "https://example.supabase.co",
+      supabasePublishableKey: "test-key",
+    };
+    context.DriveAstralSupabase = {
+      isEnabled() {
+        return true;
+      },
+      getAccount() {
+        return new Promise(() => {});
+      },
+    };
+  }
   vm.createContext(context);
 
   for (const file of [
@@ -205,18 +220,30 @@ assert.ok(styles.includes(".admin-overview-strip"));
 assert.ok(styles.includes(".admin-management-grid"));
 assert.ok(styles.includes(".admin-table"));
 assert.ok(styles.includes(".admin-field input"));
-assert.ok(styles.includes(".dashboard-evolution-panel"));
-assert.ok(styles.includes(".area-evolution-card.is-locked"));
+assert.ok(!styles.includes(".dashboard-evolution-panel"));
+assert.ok(!styles.includes(".area-evolution-card"));
 assert.ok(styles.includes(".upgrade-modal"));
 assert.ok(styles.includes(".energy-cycle-shortcut"));
 assert.ok(styles.includes(".energy-cycle-main-card"));
 assert.ok(styles.includes("grid-template-columns: repeat(5, 1fr)"));
-assert.ok(appSource.includes("function DashboardEvolutionSection()"));
+assert.ok(!appSource.includes("function DashboardEvolutionSection()"));
+assert.ok(!appSource.includes("function areaEvolutionRows()"));
+assert.ok(!appSource.includes("Math.min(94, 46 +"));
+assert.ok(appSource.includes("Canonical Home for /app"));
 assert.ok(appSource.includes("function MyDayScreen()"));
 assert.ok(appSource.includes("function UpgradeModal()"));
 assert.ok(appSource.includes("function EnergyCycleScreen()"));
 assert.ok(appSource.includes('"/app/meu-dia": "my-day"'));
 assert.ok(appSource.includes('"/app/ciclo-energetico": "energy-cycle"'));
+
+const restoringSessionContext = createBrowserLikeContext(
+  "http://localhost:4173/app",
+  { authenticated: false, supabaseMode: true },
+);
+assert.ok(restoringSessionContext.__getHtml().includes("Restaurando sua jornada"));
+assert.ok(!restoringSessionContext.__getHtml().includes("Acesse sua conta"));
+vm.runInContext("setState({ authLoading: false })", restoringSessionContext);
+assert.ok(restoringSessionContext.__getHtml().includes("Acesse sua conta"));
 
 const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
 vm.runInContext(`setState({
@@ -281,7 +308,74 @@ assert.ok(firstReadingResultHtml.includes("SEU PRIMEIRO DIRECIONAMENTO"));
 assert.ok(firstReadingResultHtml.includes("Ver minha A&ccedil;&atilde;o do Dia"));
 assert.ok(firstReadingResultHtml.includes("Abrir Protocolo Di&aacute;rio"));
 assert.ok(firstReadingResultHtml.includes("Conhecer minha Jornada"));
-assert.ok(firstReadingResultHtml.includes("Entender os c&aacute;lculos desta leitura"));
+assert.ok(firstReadingResultHtml.includes("Consulta de 5 de junho de 2026"));
+assert.ok(!firstReadingResultHtml.includes("Entender os c&aacute;lculos desta leitura"));
+
+const persistedPersonalKin = vm.runInContext("state.history[0].readingSnapshot.personal_map.kin.value", onboardingContext);
+vm.runInContext(`
+  state.history[0].createdAt = "2024-03-10T23:45:00.000Z";
+  state.history[0].summary = "MENSAGEM ORIGINAL DO SNAPSHOT";
+  state.history[0].interpretationSnapshot.areaTitle = "Tema Hist\u00f3rico";
+  state.history[0].inputSnapshot.selectedAreaTitle = "Tema Hist\u00f3rico";
+  state.history[0].interpretationSnapshot.synthesis = "ALINHAMENTO ORIGINAL DO SNAPSHOT";
+  state.history[0].interpretationSnapshot.applicationSummary = "APLICA\u00c7\u00c3O ORIGINAL DO SNAPSHOT";
+  state.reading.personal_map.kin.value = 999;
+  state.reading.guidance.interpretation.synthesis = "CONTE\u00daDO RECALCULADO INDEVIDO";
+  render();
+`, onboardingContext);
+const historicalSnapshotHtml = onboardingContext.__getHtml();
+assert.ok(historicalSnapshotHtml.includes("Tema Histórico &middot; Consulta de 10 de março de 2024"));
+assert.ok(historicalSnapshotHtml.includes("ALINHAMENTO ORIGINAL DO SNAPSHOT"));
+assert.ok(historicalSnapshotHtml.includes("APLICAÇÃO ORIGINAL DO SNAPSHOT"));
+assert.ok(historicalSnapshotHtml.includes(`Kin ${persistedPersonalKin}`));
+assert.ok(!historicalSnapshotHtml.includes("Kin 999"));
+assert.ok(!historicalSnapshotHtml.includes("CONTEÚDO RECALCULADO INDEVIDO"));
+assert.strictEqual(vm.runInContext("state.history[0].summary", onboardingContext), "MENSAGEM ORIGINAL DO SNAPSHOT");
+
+assert.strictEqual(vm.runInContext('completePresentationText("Frase curta e completa.", 30)', onboardingContext), "Frase curta e completa.");
+assert.strictEqual(vm.runInContext('completePresentationText("palavra ".repeat(50), 80)', onboardingContext), "");
+const purposePresentation = vm.runInContext(`firstReadingPresentation({
+  areaId: "purpose",
+  synthesis: "conteúdo extenso sem pontuação ".repeat(20),
+  applicationSummary: "outro conteúdo extenso sem pontuação ".repeat(20),
+})`, onboardingContext);
+assert.strictEqual(purposePresentation.heroTitle, "Escolha o que tem sentido para você.");
+assert.ok(purposePresentation.heroTitle.length <= 90);
+assert.ok(purposePresentation.heroSummary.length <= 240);
+assert.ok(!purposePresentation.heroTitle.includes("..."));
+assert.ok(!purposePresentation.heroTitle.includes("…"));
+const longWordPresentation = vm.runInContext(`firstReadingPresentation({
+  areaId: "work-prosperity",
+  synthesis: "supercalifragilisticamente".repeat(12),
+  applicationSummary: "hiperresponsavelmente".repeat(15),
+  dailyPractice: "inconstitucionalissimamente".repeat(10),
+  reflectionQuestion: "interdisciplinarissimamente".repeat(10),
+})`, onboardingContext);
+assert.strictEqual(longWordPresentation.heroTitle, "Organize antes de expandir.");
+assert.ok(!Object.values(longWordPresentation).some((value) => value.includes("...") || value.includes("…")));
+vm.runInContext(`
+  state.history[0].summary = "HEADLINE LONGA " + "com direção clara e presença disciplinada ".repeat(12) + "FIM-HEADLINE";
+  state.history[0].interpretationSnapshot.synthesis = "ALINHAMENTO LONGO " + "para observar o momento com serenidade ".repeat(12) + "FIM-ALINHAMENTO";
+  state.history[0].interpretationSnapshot.applicationSummary = "APOIO LONGO " + "que contextualiza a leitura preservada ".repeat(15) + "FIM-APOIO";
+  state.history[0].interpretationSnapshot.dailyPractice = "AÇÃO LONGA " + "com um passo simples e possível ".repeat(12) + "FIM-AÇÃO";
+  state.history[0].interpretationSnapshot.reflectionQuestion = "PERGUNTA LONGA " + "para compreender o foco escolhido ".repeat(12) + "FIM-PERGUNTA";
+  render();
+`, onboardingContext);
+const longContentHtml = onboardingContext.__getHtml();
+const longHeroHtml = longContentHtml.match(/<section class="first-reading-hero">([\s\S]*?)<\/section>/)[1];
+const longGuidanceHtml = longContentHtml.match(/<section class="first-reading-guidance"[\s\S]*?<\/section>/)[0];
+assert.ok(!longHeroHtml.includes("..."));
+assert.ok(!longHeroHtml.includes("…"));
+assert.ok(!longGuidanceHtml.includes("..."));
+assert.ok(!longGuidanceHtml.includes("…"));
+assert.ok(!longHeroHtml.includes("FIM-HEADLINE"));
+assert.ok(!longHeroHtml.includes("FIM-APOIO"));
+assert.ok(!longGuidanceHtml.includes("FIM-ALINHAMENTO"));
+assert.ok(!longGuidanceHtml.includes("FIM-AÇÃO"));
+assert.ok(!longGuidanceHtml.includes("FIM-PERGUNTA"));
+assert.ok(vm.runInContext('state.history[0].interpretationSnapshot.dailyPractice.endsWith("FIM-AÇÃO")', onboardingContext));
+assert.ok(longContentHtml.includes("FIM-AÇÃO"));
+assert.ok(longContentHtml.includes("FIM-PERGUNTA"));
 vm.runInContext('submitOnboarding("1990-01-01")', onboardingContext);
 assert.strictEqual(vm.runInContext("state.history.length", onboardingContext), 1);
 
@@ -605,31 +699,105 @@ assert.ok(!resultHtml.toLowerCase().includes("previs&atilde;o absoluta do futuro
 assert.ok(!resultHtml.includes("Inten&ccedil;&atilde;o Declarada"));
 assert.strictEqual((resultHtml.match(/<details class="coordinate-details/g) || []).length, 3);
 
+const dashboardFirstReading = {
+  ...cloneForTest(firstHistoryEntry),
+  readingType: "first-reading",
+  readingStatus: "completed",
+};
+const emptyDashboardContext = createBrowserLikeContext();
+emptyDashboardContext.setState({ route: "dashboard", history: [], reading: null, activeHistoryId: "" });
+const emptyDashboardHtml = emptyDashboardContext.__getHtml();
+assert.ok(emptyDashboardHtml.includes("Comece sua primeira leitura"));
+assert.ok(emptyDashboardHtml.includes("Criar minha primeira leitura"));
+assert.ok(emptyDashboardHtml.includes("Sua dire&ccedil;&atilde;o aparecer&aacute; aqui."));
+assert.ok(emptyDashboardHtml.includes("Conclua suas primeiras a&ccedil;&otilde;es"));
+
 const freeDashboardContext = createBrowserLikeContext();
 freeDashboardContext.setState({
   route: "dashboard",
+  account: {
+    ...vm.runInContext("state.account", freeDashboardContext),
+    planId: "free",
+    primaryAreaId: "work-prosperity",
+    accessPlans: [],
+  },
   name: "Gabriel Ferreira",
   birth: "1996-06-25",
   selectedAreaId: "work-prosperity",
   reading,
   activeHistoryId: firstHistoryEntry.readingId,
-  history: [cloneForTest(firstHistoryEntry)],
+  history: [dashboardFirstReading],
 });
 const freeDashboardHtml = freeDashboardContext.__getHtml();
-assert.ok(freeDashboardHtml.includes("Evolu&ccedil;&atilde;o por &aacute;reas"));
-assert.ok(freeDashboardHtml.includes("Acesso gratuito"));
+assert.ok(freeDashboardHtml.includes("SEU PR&Oacute;XIMO PASSO"));
+assert.ok(freeDashboardHtml.includes("Sua primeira dire&ccedil;&atilde;o est&aacute; pronta"));
+assert.ok(freeDashboardHtml.includes("JORNADA N&Atilde;O INICIADA"));
+assert.ok(freeDashboardHtml.includes("Ver minha A&ccedil;&atilde;o do Dia"));
+assert.ok(freeDashboardHtml.includes("Iniciar Jornada de 30 dias"));
+assert.ok(freeDashboardHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
+assert.ok(freeDashboardHtml.includes("SUA JORNADA"));
+assert.ok(freeDashboardHtml.includes('aria-current="step"'));
+assert.ok(freeDashboardHtml.includes('role="progressbar"'));
+assert.ok(freeDashboardHtml.includes("SUAS &Aacute;REAS DE ACOMPANHAMENTO"));
+assert.ok(freeDashboardHtml.includes("SEU PROGRESSO"));
+assert.ok(!freeDashboardHtml.includes("EVOLU&Ccedil;&Atilde;O POR &Aacute;REAS"));
+assert.ok(!freeDashboardHtml.includes("MELHOR EVOLU&Ccedil;&Atilde;O ATUAL"));
+assert.ok(!freeDashboardHtml.includes("PRECISA MELHORAR"));
+assert.ok(!freeDashboardHtml.includes("74%"));
+assert.ok(!freeDashboardHtml.includes("18%"));
 assert.ok(freeDashboardHtml.includes("FREE</span>"));
 assert.ok(freeDashboardHtml.includes(">Home</span>"));
 assert.ok(freeDashboardHtml.includes(">A&ccedil;&atilde;o do dia</span>"));
 assert.ok(!freeDashboardHtml.includes("Conta sincronizada"));
-assert.ok(!freeDashboardHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
 assert.ok(!freeDashboardHtml.includes("Abrir Ciclo Energ&eacute;tico"));
 assert.ok(freeDashboardHtml.includes("Desbloquear"));
 assert.ok(freeDashboardHtml.includes("data-open-upgrade-modal"));
-assert.ok(freeDashboardHtml.includes("<strong>Nova consulta</strong>"));
-assert.ok(freeDashboardHtml.includes("Libere outras &aacute;reas de vida"));
-assert.ok(freeDashboardHtml.includes("JORNADA DE 30 DIAS"));
-assert.ok(freeDashboardHtml.includes("PR&Aacute;TICA DE AGORA"));
+assert.ok(freeDashboardHtml.includes("Bloqueada pelo plano"));
+assert.ok(freeDashboardHtml.includes("Vida Financeira"));
+assert.ok(freeDashboardHtml.includes("&Aacute;rea principal"));
+assert.ok(freeDashboardHtml.includes("Ver resultado"));
+assert.ok(freeDashboardHtml.includes(`data-history-id="${dashboardFirstReading.readingId}"`));
+assert.strictEqual((freeDashboardHtml.match(/class="dashboard-area-card/g) || []).length, 7);
+assert.ok(!freeDashboardHtml.includes("Fazer primeira consulta"));
+assert.ok(!freeDashboardHtml.includes("Calcular minhas coordenadas"));
+vm.runInContext('state.reading.guidance.interpretation.synthesis = "CONTEÚDO ATUAL QUE NÃO PODE SUBSTITUIR O SNAPSHOT"; render();', freeDashboardContext);
+assert.ok(!freeDashboardContext.__getHtml().includes("CONTEÚDO ATUAL QUE NÃO PODE SUBSTITUIR O SNAPSHOT"));
+
+const freeJourneyContextKey = vm.runInContext("journeyContextKey()", freeDashboardContext);
+freeDashboardContext.localStorage.setItem("drive-astral-journey-progress", JSON.stringify({
+  contextKey: freeJourneyContextKey,
+  startDate: "2026-06-02",
+  completedDays: [1, 2, 3],
+}));
+freeDashboardContext.setState({ route: "dashboard" });
+const activeJourneyDashboardHtml = freeDashboardContext.__getHtml();
+assert.ok(activeJourneyDashboardHtml.includes("Continue de onde parou"));
+assert.ok(activeJourneyDashboardHtml.includes("DIA 4 DE 30"));
+assert.ok(activeJourneyDashboardHtml.includes("Continuar o dia"));
+assert.ok(activeJourneyDashboardHtml.includes("3/30"));
+
+freeDashboardContext.localStorage.setItem("drive-astral-journey-progress", JSON.stringify({
+  contextKey: freeJourneyContextKey,
+  startDate: "2026-06-02",
+  completedDays: [1, 2, 3, 4],
+}));
+freeDashboardContext.setState({ route: "dashboard" });
+const completedDayDashboardHtml = freeDashboardContext.__getHtml();
+assert.ok(completedDayDashboardHtml.includes("Seu dia foi conclu&iacute;do"));
+assert.ok(completedDayDashboardHtml.includes("DIA CONCLU&Iacute;DO"));
+assert.ok(completedDayDashboardHtml.includes("Revisar meu dia"));
+
+freeDashboardContext.localStorage.setItem("drive-astral-journey-progress", JSON.stringify({
+  contextKey: freeJourneyContextKey,
+  startDate: "2026-05-07",
+  completedDays: Array.from({ length: 30 }, (_item, index) => index + 1),
+}));
+freeDashboardContext.setState({ route: "dashboard" });
+const completedJourneyDashboardHtml = freeDashboardContext.__getHtml();
+assert.ok(completedJourneyDashboardHtml.includes("Voc&ecirc; concluiu este ciclo"));
+assert.ok(completedJourneyDashboardHtml.includes("CICLO CONCLU&Iacute;DO"));
+assert.ok(completedJourneyDashboardHtml.includes("Revisar minha jornada"));
+assert.ok(completedJourneyDashboardHtml.includes("1 área trabalhada"));
 
 const myDayContext = createBrowserLikeContext("http://localhost:4173/app/meu-dia");
 myDayContext.setState({
@@ -671,16 +839,15 @@ premiumDashboardContext.setState({
   selectedAreaId: "work-prosperity",
   reading,
   activeHistoryId: firstHistoryEntry.readingId,
-  history: [cloneForTest(firstHistoryEntry), cloneForTest(secondHistoryEntry)],
+  history: [dashboardFirstReading, cloneForTest(secondHistoryEntry)],
 });
 const premiumDashboardHtml = premiumDashboardContext.__getHtml();
-assert.ok(premiumDashboardHtml.includes("Plano ativo"));
 assert.ok(premiumDashboardHtml.includes("PREMIUM</span>"));
 assert.ok(!premiumDashboardHtml.includes("Conta sincronizada"));
-assert.ok(premiumDashboardHtml.includes("2 de 7 &aacute;reas consultadas"));
-assert.ok(premiumDashboardHtml.includes("Precisa melhorar"));
+assert.ok(premiumDashboardHtml.includes("2</strong><small>&Aacute;reas consultadas"));
 assert.ok(premiumDashboardHtml.includes('data-start-area-id="energy-spirituality"'));
-assert.ok(!premiumDashboardHtml.includes("area-evolution-card is-locked"));
+assert.ok(premiumDashboardHtml.includes("Consultar &aacute;rea"));
+assert.ok(!premiumDashboardHtml.includes("Bloqueada pelo plano"));
 
 const mentorDashboardContext = createBrowserLikeContext();
 mentorDashboardContext.setState({
