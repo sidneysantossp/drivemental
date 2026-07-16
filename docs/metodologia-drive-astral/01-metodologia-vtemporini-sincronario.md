@@ -1,12 +1,12 @@
-# Metodologia do Drive Astral para o Sincronário das 13 Luas
+# Metodologia do Drive Mental para o Sincronário das 13 Luas
 
 ## Escopo e identidade
 
 Este documento registra a metodologia estudada a partir do vídeo "Sincronário
 das 13 Luas", apresentado por Vânia Temporini, e sua tradução inicial para o
-Drive Astral.
+Drive Mental.
 
-O Drive Astral mantém identidade própria. O uso desta referência metodológica
+O Drive Mental mantém identidade própria. O uso desta referência metodológica
 não torna o aplicativo oficial, licenciado ou endossado pela apresentadora. O
 produto não utiliza nome, imagem ou voz de terceiros como elemento de
 representação oficial.

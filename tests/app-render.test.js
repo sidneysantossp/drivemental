@@ -155,8 +155,8 @@ const landingContext = createBrowserLikeContext(
   { authenticated: false },
 );
 const landingHtml = landingContext.__getHtml();
-assert.ok(landingHtml.includes("Seu mapa pessoal para entender ciclos"));
-assert.ok(landingHtml.includes("Criar meu mapa gr&aacute;tis"));
+assert.ok(landingHtml.includes("Clareza para escolher"));
+assert.ok(landingHtml.includes("Come&ccedil;ar gratuitamente"));
 assert.ok(landingHtml.includes("Como funciona"));
 assert.ok(landingHtml.includes("Planos para cada etapa"));
 assert.ok(landingHtml.includes("GPS do Sincron&aacute;rio"));
@@ -218,6 +218,56 @@ assert.ok(appSource.includes("function EnergyCycleScreen()"));
 assert.ok(appSource.includes('"/app/meu-dia": "my-day"'));
 assert.ok(appSource.includes('"/app/ciclo-energetico": "energy-cycle"'));
 
+const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
+vm.runInContext(`setState({
+  route: "onboarding",
+  account: { name: "Pessoa Teste", email: "pessoa@teste.local", onboardingComplete: false },
+  birth: "",
+  selectedAreaId: ""
+})`, onboardingContext);
+const onboardingHtml = onboardingContext.__getHtml();
+assert.ok(onboardingHtml.includes("Vamos compreender o momento que voc&ecirc; est&aacute; vivendo."));
+assert.ok(onboardingHtml.includes("PRIMEIRA LEITURA"));
+assert.ok(onboardingHtml.includes('name="birth"'));
+assert.ok(onboardingHtml.includes('data-area-id="general"'));
+assert.ok(onboardingHtml.includes('data-area-id="work-prosperity"'));
+assert.ok(onboardingHtml.includes("Momento Atual"));
+assert.ok(onboardingHtml.includes("Vida Financeira"));
+assert.ok(onboardingHtml.includes("Criar minha primeira leitura"));
+assert.ok(onboardingHtml.includes("Informe sua data completa para continuar."));
+assert.ok(onboardingHtml.includes("Escolha um"));
+assert.ok(onboardingHtml.includes("Preencha sua data e escolha um tema para continuar."));
+assert.ok(onboardingHtml.includes("Momento</small>"));
+assert.ok(onboardingHtml.includes("Leitura</small>"));
+assert.ok(onboardingHtml.includes("Jornada</small>"));
+assert.ok(!onboardingHtml.includes('<span class="eyebrow">Conhecendo seu momento</span>'));
+assert.strictEqual((onboardingHtml.match(/data-area-id="/g) || []).length, areaIds.length);
+assert.strictEqual((onboardingHtml.match(/aria-selected="false"/g) || []).length, areaIds.length);
+
+vm.runInContext('setState({ selectedAreaId: "work-prosperity" })', onboardingContext);
+const selectedOnboardingHtml = onboardingContext.__getHtml();
+assert.ok(selectedOnboardingHtml.includes('data-area-id="work-prosperity"'));
+assert.ok(selectedOnboardingHtml.includes('aria-selected="true"'));
+assert.ok(selectedOnboardingHtml.includes("&agrave; sua vida financeira"));
+assert.ok(selectedOnboardingHtml.includes("Tema selecionado"));
+
+vm.runInContext('setState({ birth: "1990-01-01" })', onboardingContext);
+const validBirthOnboardingHtml = onboardingContext.__getHtml();
+assert.ok(validBirthOnboardingHtml.includes("Data confirmada para o c&aacute;lculo da sua base pessoal."));
+assert.ok(validBirthOnboardingHtml.includes('class="onboarding-field-status is-valid"'));
+assert.ok(!validBirthOnboardingHtml.includes('type="submit" aria-live="polite" disabled'));
+
+vm.runInContext('setState({ birth: "2024-02-29" })', onboardingContext);
+const invalidBirthOnboardingHtml = onboardingContext.__getHtml();
+assert.ok(invalidBirthOnboardingHtml.includes("Verifique a data informada."));
+assert.ok(invalidBirthOnboardingHtml.includes('class="onboarding-field-status is-invalid"'));
+
+vm.runInContext('submitOnboarding("1990-01-01")', onboardingContext);
+assert.strictEqual(vm.runInContext("state.route", onboardingContext), "dashboard");
+assert.strictEqual(vm.runInContext("state.account.primaryAreaId", onboardingContext), "work-prosperity");
+assert.strictEqual(vm.runInContext("state.account.birth", onboardingContext), "1990-01-01");
+assert.strictEqual(onboardingContext.location.pathname, "/app");
+
 const adminDashboardContext = createBrowserLikeContext("http://localhost:4173/admin");
 const adminDashboardHtml = adminDashboardContext.__getHtml();
 assert.strictEqual(vm.runInContext("state.route", adminDashboardContext), "admin-dashboard");
@@ -252,7 +302,7 @@ const adminPlansContext = createBrowserLikeContext("http://localhost:4173/admin/
 const adminPlansHtml = adminPlansContext.__getHtml();
 assert.strictEqual(vm.runInContext("state.route", adminPlansContext), "admin-plans");
 assert.ok(adminPlansHtml.includes("Gerenciamento de planos"));
-assert.ok(adminPlansHtml.includes("Drive Astral"));
+assert.ok(adminPlansHtml.includes("Drive Mental"));
 assert.ok(adminPlansHtml.includes("Jornada Guiada"));
 assert.ok(adminPlansHtml.includes('value="29,90"'));
 assert.ok(adminPlansHtml.includes('value="97,00"'));
@@ -352,7 +402,7 @@ freeSelectionContext.setState({
 const freeSelectionHtml = freeSelectionContext.__getHtml();
 assert.ok(freeSelectionHtml.includes('data-area-id="general"'));
 assert.ok(freeSelectionHtml.includes('data-upgrade-area-id="work-prosperity"'));
-assert.ok(freeSelectionHtml.includes("Desbloqueie no plano Drive Astral."));
+assert.ok(freeSelectionHtml.includes("Desbloqueie no plano Drive Mental."));
 freeSelectionContext.setState({ selectedAreaId: "work-prosperity", upgradeModalOpen: false });
 freeSelectionContext.submitAlignment("Pessoa Free", "1996-06-25");
 const freeSelectionState = vm.runInContext("state", freeSelectionContext);
@@ -718,7 +768,7 @@ const leapDayState = vm.runInContext("state", leapDayContext);
 assert.ok(leapDayHtml.includes("29 de fevereiro possui regra especial e ainda n&atilde;o est&aacute; dispon&iacute;vel nesta vers&atilde;o."));
 assert.ok(leapDayHtml.includes("A data 29 de fevereiro possui tratamento especial no Sincron&aacute;rio das 13 Luas."));
 assert.ok(leapDayHtml.includes("Para evitar uma leitura incorreta"));
-assert.ok(leapDayHtml.includes("Voc&ecirc; poder&aacute; continuar quando a regra metodol&oacute;gica de 29/02 for definida no Drive Astral."));
+assert.ok(leapDayHtml.includes("Voc&ecirc; poder&aacute; continuar quando a regra metodol&oacute;gica de 29/02 for definida no Drive Mental."));
 assert.ok(!leapDayHtml.includes("Informe uma data de nascimento v&aacute;lida."));
 assert.ok(!leapDayHtml.includes("data inv&aacute;lida"));
 assert.strictEqual(leapDayState.route, "home");

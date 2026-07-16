@@ -130,7 +130,7 @@ values
     'platform.general',
     'general',
     '{
-      "platformName": "Drive Astral",
+      "platformName": "Drive Mental",
       "supportEmail": "contato@driveastral.com",
       "environmentStatus": "producao",
       "maintenanceMode": false,

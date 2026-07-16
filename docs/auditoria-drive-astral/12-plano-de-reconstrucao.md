@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Reconstruir o Drive Astral por ordem de risco, sem perder o visual ja aprovado.
+Reconstruir o Drive Mental por ordem de risco, sem perder o visual ja aprovado.
 
 ## Fase 1 - Aprovar auditoria
 

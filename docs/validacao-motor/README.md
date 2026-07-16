@@ -4,7 +4,7 @@
 
 Fase A2 e consolidacao pos-validacao executadas em 2026-06-07.
 
-O motor matematico do Drive Astral continua congelado. Nenhuma formula, regra
+O motor matematico do Drive Mental continua congelado. Nenhuma formula, regra
 de Kin ou tratamento matematico de data foi alterado.
 
 Status oficial:
@@ -86,7 +86,7 @@ As duas fontes aceitas usam algoritmos publicos diferentes:
 
 Os dois algoritmos foram transcritos separadamente em
 `tests/apply-sincronario-phase-a2-evidence.js`. Eles concordaram nos 96 casos
-regulares pendentes. O script nao importa o motor do Drive Astral.
+regulares pendentes. O script nao importa o motor do Drive Mental.
 
 ## Integridade do motor
 

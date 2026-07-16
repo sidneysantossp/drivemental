@@ -2,7 +2,7 @@
 
 ## Posicionamento recomendado
 
-Drive Astral deve ser tratado como um assistente de autoconhecimento baseado no Sincronario das 13 Luas. O objetivo do produto e traduzir Mapa Galactico, ciclos pessoais e intencao do usuario em clareza, reflexoes e praticas para o cotidiano.
+Drive Mental deve ser tratado como um assistente de autoconhecimento baseado no Sincronario das 13 Luas. O objetivo do produto e traduzir Mapa Galactico, ciclos pessoais e intencao do usuario em clareza, reflexoes e praticas para o cotidiano.
 
 ## O que o produto e
 

@@ -37,7 +37,7 @@ if (-not $ProjectRef) {
   throw "ProjectRef is required."
 }
 
-Write-Host "Deploying Drive Astral Supabase project: $ProjectRef"
+Write-Host "Deploying Drive Mental Supabase project: $ProjectRef"
 Write-Host "Secrets are read from environment variables and are not stored in the repo."
 
 if ($DbPassword) {

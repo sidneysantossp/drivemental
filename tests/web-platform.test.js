@@ -13,7 +13,7 @@ const termsHtml = fs.readFileSync("terms.html", "utf8");
 const netlifyConfig = fs.readFileSync("netlify.toml", "utf8");
 const vercelConfig = fs.readFileSync("vercel.json", "utf8");
 
-assert.strictEqual(manifest.name, "Drive Astral");
+assert.strictEqual(manifest.name, "Drive Mental");
 assert.strictEqual(manifest.start_url, "/");
 assert.strictEqual(manifest.scope, "/");
 assert.strictEqual(manifest.display, "standalone");
@@ -26,11 +26,11 @@ for (const icon of manifest.icons) {
 
 assert.ok(indexHtml.includes('rel="manifest" href="/manifest.webmanifest"'));
 assert.ok(indexHtml.includes('id="connection-status"'));
-assert.ok(indexHtml.includes('href="/styles.css?v=dashboard-home-v25"'));
-assert.ok(indexHtml.includes('src="/app.js?v=dashboard-home-v25"'));
-assert.ok(indexHtml.includes('src="/platform.js?v=dashboard-home-v25"'));
-assert.ok(indexHtml.includes('src="/runtime-config.js?v=dashboard-home-v25"'));
-assert.ok(indexHtml.includes('src="/supabase-client.js?v=dashboard-home-v25"'));
+assert.ok(indexHtml.includes('href="/styles.css?v=drive-mental-v30"'));
+assert.ok(indexHtml.includes('src="/app.js?v=drive-mental-v30"'));
+assert.ok(indexHtml.includes('src="/platform.js?v=drive-mental-v30"'));
+assert.ok(indexHtml.includes('src="/runtime-config.js?v=drive-mental-v30"'));
+assert.ok(indexHtml.includes('src="/supabase-client.js?v=drive-mental-v30"'));
 assert.ok(indexHtml.includes('src="/src/domain/sincronario/engine.js"'));
 assert.ok(indexHtml.includes("mobile-web-app-capable"));
 
@@ -53,7 +53,7 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-astral-web-v25"));
+assert.ok(serviceWorker.includes("drive-mental-web-v30"));
 
 assert.ok(platformSource.includes('navigator.serviceWorker.register("/sw.js")'));
 assert.ok(platformSource.includes("isLocalDevelopmentHost"));

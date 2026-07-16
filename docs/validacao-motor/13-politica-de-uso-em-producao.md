@@ -74,11 +74,11 @@ Mensagem explicativa:
 ```text
 A data 29 de fevereiro possui tratamento especial no Sincronario das 13 Luas.
 
-Algumas fontes atribuem um Kin ao dia 29/02, enquanto a referencia metodologica utilizada pelo Drive Astral trata essa data como 0.0 Hunab Ku, exigindo uma decisao especifica.
+Algumas fontes atribuem um Kin ao dia 29/02, enquanto a referencia metodologica utilizada pelo Drive Mental trata essa data como 0.0 Hunab Ku, exigindo uma decisao especifica.
 
 Para evitar uma leitura incorreta, esta versao ainda nao gera automaticamente leituras para nascidos em 29/02.
 
-Voce podera continuar quando a regra metodologica de 29/02 for definida no Drive Astral.
+Voce podera continuar quando a regra metodologica de 29/02 for definida no Drive Mental.
 ```
 
 ## Politica para data invalida

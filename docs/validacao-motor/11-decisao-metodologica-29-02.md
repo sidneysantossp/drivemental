@@ -85,7 +85,7 @@ Mensagem curta:
 Complemento:
 
 ```text
-Voce podera continuar quando a regra metodologica de 29/02 for definida no Drive Astral.
+Voce podera continuar quando a regra metodologica de 29/02 for definida no Drive Mental.
 ```
 
 ## Alternativas

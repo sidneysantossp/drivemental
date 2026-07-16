@@ -4,9 +4,9 @@
 
 1. O usuario escolhe um plano no site.
 2. A plataforma abre uma pagina externa de checkout, como Hotmart ou Kiwify.
-3. Todo pagamento, parcelamento, reembolso e nota fiscal fica fora do Drive Astral.
+3. Todo pagamento, parcelamento, reembolso e nota fiscal fica fora do Drive Mental.
 4. Apos a confirmacao do pagamento, o usuario recebe por e-mail o usuario e a senha de acesso.
-5. O Drive Astral apenas autentica a pessoa com as credenciais recebidas.
+5. O Drive Mental apenas autentica a pessoa com as credenciais recebidas.
 
 ## O que nao sera integrado
 
@@ -38,7 +38,7 @@ O acesso pago deve ser criado fora do fluxo da plataforma, pelo processo
 operacional definido no provedor de venda ou pelo atendimento. O e-mail enviado
 ao comprador precisa conter:
 
-- URL de acesso do Drive Astral;
+- URL de acesso do Drive Mental;
 - usuario ou e-mail de login;
 - senha inicial ou link de definicao de senha;
 - canal de suporte para problemas de acesso.

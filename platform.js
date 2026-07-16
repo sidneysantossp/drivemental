@@ -38,6 +38,15 @@
   window.addEventListener("online", updateConnectionStatus);
   window.addEventListener("offline", updateConnectionStatus);
 
+  function updatePublicHeader() {
+    const header = document.querySelector(".public-header");
+    if (header) {
+      header.classList.toggle("is-compact", window.scrollY > 48);
+    }
+  }
+
+  window.addEventListener("scroll", updatePublicHeader, { passive: true });
+
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-install-platform]");
     if (!button || !installPrompt) {
@@ -74,6 +83,34 @@
 
   const observer = new MutationObserver(updateInstallButtons);
   observer.observe(document.getElementById("app"), { childList: true, subtree: true });
+
+  const revealObserver = "IntersectionObserver" in window
+    ? new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -8%", threshold: 0.08 })
+    : null;
+
+  function observeReveals() {
+    if (!revealObserver || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    document.querySelectorAll(".sales-section, .proof-strip, .final-cta").forEach((section) => {
+      if (!section.classList.contains("reveal-ready")) {
+        section.classList.add("reveal-ready");
+        revealObserver.observe(section);
+      }
+    });
+  }
+
+  const revealMutationObserver = new MutationObserver(observeReveals);
+  revealMutationObserver.observe(document.getElementById("app"), { childList: true, subtree: true });
   updateConnectionStatus();
   updateInstallButtons();
+  updatePublicHeader();
+  observeReveals();
 })();

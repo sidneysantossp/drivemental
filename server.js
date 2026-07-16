@@ -67,5 +67,5 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, () => {
-  console.log(`Drive Astral running at http://localhost:${port}`);
+  console.log(`Drive Mental running at http://localhost:${port}`);
 });

@@ -212,7 +212,7 @@ values
   ),
   (
     'premium',
-    'Drive Astral',
+    'Drive Mental',
     'PREMIUM',
     '29,90',
     'mensal',

@@ -26,7 +26,7 @@ Nao foi encontrada evidencia de:
 - `TIMEZONE_ERROR`;
 - divergencia numerica de Kin em data regular.
 
-As diferencas de texto entre o ingles das fontes e o portugues do Drive Astral
+As diferencas de texto entre o ingles das fontes e o portugues do Drive Mental
 foram classificadas como `TRANSLATION_DIFFERENCE`. Os numeros de Kin, selo e
 tom, assim como a cor, permaneceram concordantes.
 

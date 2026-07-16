@@ -58,7 +58,7 @@ plataforma que nao pertencem a um usuario especifico.
 Estado atual desejado:
 
 ```text
-Drive Astral: badge PREMIUM, valor R$29,90
+Drive Mental: badge PREMIUM, valor R$29,90
 Jornada Guiada: badge MENTOR, valor R$97,00
 CTA: INICIAR A MINHA JORNADA
 ```

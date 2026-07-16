@@ -17,7 +17,7 @@ const ADMIN_SETTING_KEYS = Object.freeze({
 });
 const ADMIN_DEFAULT_SETTINGS = Object.freeze({
   general: {
-    platformName: "Drive Astral",
+    platformName: "Drive Mental",
     supportEmail: "contato@driveastral.com",
     environmentStatus: "producao",
     maintenanceMode: false,
@@ -1421,7 +1421,7 @@ function relationshipMeaningBlocks(reading) {
     blocks.push({
       title: "Dist&acirc;ncia entre os Kins",
       math: `Existe um intervalo de ${Number(distance)} posi&ccedil;&otilde;es entre seu Kin pessoal e o Kin do dia dentro da sequ&ecirc;ncia de 260 Kins.`,
-      symbolic: "Esta dist&acirc;ncia &eacute; atualmente exibida apenas como uma rela&ccedil;&atilde;o matem&aacute;tica. O Drive Astral ainda n&atilde;o atribui um significado simb&oacute;lico validado a esse intervalo.",
+      symbolic: "Esta dist&acirc;ncia &eacute; atualmente exibida apenas como uma rela&ccedil;&atilde;o matem&aacute;tica. O Drive Mental ainda n&atilde;o atribui um significado simb&oacute;lico validado a esse intervalo.",
     });
   }
 
@@ -2379,9 +2379,9 @@ function BrandMark(compact = false) {
 function PublicHeader() {
   return `
     <header class="public-header">
-      <button class="public-brand" data-route="landing" type="button" aria-label="Drive Astral - in&iacute;cio">
+      <button class="public-brand" data-route="landing" type="button" aria-label="Drive Mental - in&iacute;cio">
         ${BrandMark(true)}
-        <span>Drive Astral</span>
+        <span>Drive Mental</span>
       </button>
       <nav class="public-nav" aria-label="Navega&ccedil;&atilde;o do site">
         <a href="#como-funciona">Como funciona</a>
@@ -2393,7 +2393,7 @@ function PublicHeader() {
       </nav>
       <div class="public-actions">
         <button class="button-ghost" data-route="login" type="button">Entrar</button>
-        <button class="button-primary" data-route="signup" type="button">Consulta gr&aacute;tis</button>
+        <button class="button-primary" data-route="signup" type="button">Come&ccedil;ar agora</button>
       </div>
     </header>
   `;
@@ -2442,7 +2442,7 @@ function UpgradeModal() {
         <span class="upgrade-modal-icon">${icon("unlock")}</span>
         <span class="upgrade-modal-eyebrow">Desbloquear evolu&ccedil;&atilde;o</span>
         <h2 id="upgrade-modal-title">Sua consulta gratuita j&aacute; abriu uma dire&ccedil;&atilde;o.</h2>
-        <p>Para ver gr&aacute;ficos de todas as &aacute;reas, comparar avan&ccedil;os${areaCopy} e liberar novas consultas, voc&ecirc; precisa ativar um plano Drive Astral.</p>
+        <p>Para acompanhar todas as &aacute;reas, comparar avan&ccedil;os${areaCopy} e liberar novas consultas, voc&ecirc; precisa ativar um plano Drive Mental.</p>
         <div class="upgrade-modal-benefits">
           <span>${icon("check")} Todas as &aacute;reas no dashboard</span>
           <span>${icon("check")} Hist&oacute;rico por tema de vida</span>
@@ -2456,17 +2456,17 @@ function UpgradeModal() {
 
 function LandingScreen() {
   const productFoundations = [
-    ["compass", "Mapa pessoal", "Veja seu Kin, suas coordenadas de nascimento e a rela&ccedil;&atilde;o simb&oacute;lica com o dia atual."],
-    ["lotus", "Mapa energ&eacute;tico visual", "Explore os sete chakras como temas de reflex&atilde;o, sem diagn&oacute;sticos ou estados inventados."],
-    ["target", "Aplica&ccedil;&atilde;o no cotidiano", "Converta a leitura em uma pergunta para observar e uma pr&aacute;tica simples para experimentar."],
+    ["compass", "Compreenda seus ciclos", "Reconhe&ccedil;a padr&otilde;es pessoais e encontre uma dire&ccedil;&atilde;o mais consciente para o dia."],
+    ["lotus", "Observe sua energia", "Perceba onde sua aten&ccedil;&atilde;o est&aacute; sendo direcionada, sem diagn&oacute;sticos ou conclus&otilde;es absolutas."],
+    ["target", "Transforme clareza em a&ccedil;&atilde;o", "Converta cada leitura em uma pergunta &uacute;til e uma pr&aacute;tica poss&iacute;vel para a rotina."],
   ];
   const deliverables = [
-    ["compass", "GPS do Sincron&aacute;rio", "Nascimento, Kin do dia e sincroniza&ccedil;&atilde;o reunidos em uma leitura estruturada.", "Dispon&iacute;vel"],
-    ["lotus", "Mapa dos 7 Chakras", "Uma navega&ccedil;&atilde;o visual por temas, sinais de observa&ccedil;&atilde;o e pr&aacute;ticas gerais.", "Dispon&iacute;vel"],
-    ["protocol", "Protocolo Di&aacute;rio", "Uma rotina geral organizada em manh&atilde;, dia e noite para apoiar presen&ccedil;a e foco.", "Dispon&iacute;vel"],
-    ["chart", "Linha do Tempo C&oacute;smica", "Registre acontecimentos e compare coordenadas preservadas de cada momento.", "Dispon&iacute;vel"],
-    ["history", "Hist&oacute;rico Pessoal", "Volte a leituras e snapshots sem recalcular ou alterar o registro original.", "Dispon&iacute;vel"],
-    ["home", "Painel da Jornada", "Acesse consultas, registros, protocolo e perfil em uma &aacute;rea pessoal organizada.", "Dispon&iacute;vel"],
+    ["compass", "Dire&ccedil;&atilde;o do dia", "Entenda o contexto do seu momento e escolha onde colocar aten&ccedil;&atilde;o.", "Dispon&iacute;vel"],
+    ["lotus", "Leitura de energia", "Observe temas pessoais com mais clareza, sem r&oacute;tulos ou diagn&oacute;sticos.", "Dispon&iacute;vel"],
+    ["protocol", "Drive Di&aacute;rio", "Crie ritmo entre manh&atilde;, dia e noite para sustentar presen&ccedil;a e foco.", "Dispon&iacute;vel"],
+    ["chart", "Linha do Tempo", "Registre acontecimentos para reconhecer mudan&ccedil;as, escolhas e aprendizados.", "Dispon&iacute;vel"],
+    ["history", "Hist&oacute;rico Pessoal", "Relembre leituras e perceba como sua jornada evolui ao longo do tempo.", "Dispon&iacute;vel"],
+    ["home", "Painel da Jornada", "Encontre prioridades, registros e pr&oacute;ximos passos em um &uacute;nico lugar.", "Dispon&iacute;vel"],
     ["calendar", "Acompanhamento Guiado", "Uma jornada premium de 90 dias, extens&iacute;vel a 180, adaptada aos resultados e relatos do usu&aacute;rio.", "Plano Premium"],
   ];
   const benefits = [
@@ -2482,15 +2482,15 @@ function LandingScreen() {
     ["heart", "Uso consciente", "O conte&uacute;do apoia reflex&atilde;o e n&atilde;o substitui orienta&ccedil;&atilde;o profissional."],
   ];
   const faqItems = [
-    ["O Drive Astral faz previs&otilde;es sobre o futuro?", "N&atilde;o. A plataforma oferece leituras simb&oacute;licas e reflexivas para observar ciclos, rela&ccedil;&otilde;es e possibilidades de a&ccedil;&atilde;o. Ela n&atilde;o promete acontecimentos futuros."],
+    ["O Drive Mental faz previs&otilde;es sobre o futuro?", "N&atilde;o. A plataforma organiza uma jornada de observa&ccedil;&atilde;o, escolhas e possibilidades de a&ccedil;&atilde;o. Ela n&atilde;o promete acontecimentos futuros."],
     ["Preciso entender de chakras ou do Sincron&aacute;rio das 13 Luas?", "N&atilde;o. A experi&ecirc;ncia apresenta as coordenadas em linguagem explicada, com contexto e transpar&ecirc;ncia sobre a origem de cada informa&ccedil;&atilde;o."],
     ["O mapa &eacute; um diagn&oacute;stico energ&eacute;tico individual?", "N&atilde;o. O mapa dos chakras &eacute; uma navega&ccedil;&atilde;o simb&oacute;lica para reflex&atilde;o. A vers&atilde;o atual n&atilde;o calcula bloqueio, estado, hiperatividade ou prioridade individual dos chakras."],
-    ["O Drive Astral substitui terapia ou aconselhamento profissional?", "N&atilde;o. O conte&uacute;do n&atilde;o substitui acompanhamento m&eacute;dico, psicol&oacute;gico, jur&iacute;dico, financeiro ou qualquer orienta&ccedil;&atilde;o profissional especializada."],
+    ["O Drive Mental substitui terapia ou aconselhamento profissional?", "N&atilde;o. O conte&uacute;do n&atilde;o substitui acompanhamento m&eacute;dico, psicol&oacute;gico, jur&iacute;dico, financeiro ou qualquer orienta&ccedil;&atilde;o profissional especializada."],
     ["Quais dados preciso informar?", "Para preparar o mapa inicial, a plataforma utiliza seu nome, data de nascimento e a &aacute;rea em que deseja contextualizar a leitura. A p&aacute;gina de privacidade explica como esses dados s&atilde;o armazenados nesta fase."],
     ["Posso come&ccedil;ar gratuitamente?", "Sim. Voc&ecirc; poder&aacute; fazer uma consulta inicial gratuita para conhecer seu mapa e entender como a plataforma organiza a leitura."],
     ["Qual &eacute; a diferen&ccedil;a entre a assinatura e o acompanhamento premium?", "A assinatura mensal amplia o acesso a consultas em outras &aacute;reas da vida, hist&oacute;rico e recursos recorrentes. O acompanhamento premium acrescenta uma jornada guiada de 90 dias, renov&aacute;vel at&eacute; 180, com metas, check-ins, di&aacute;rio de dificuldades, a&ccedil;&otilde;es adaptadas e painel de evolu&ccedil;&atilde;o."],
     ["Como o acompanhamento se adapta ao meu momento?", "A jornada parte dos resultados das suas consultas e dos check-ins registrados por voc&ecirc;. Dificuldades, percep&ccedil;&otilde;es e avan&ccedil;os alimentam a organiza&ccedil;&atilde;o das pr&oacute;ximas a&ccedil;&otilde;es e alertas do plano."],
-    ["O acompanhamento premium substitui um profissional?", "N&atilde;o. Mesmo no plano guiado, o Drive Astral continua sendo uma ferramenta de autoconhecimento e organiza&ccedil;&atilde;o pessoal. Ele n&atilde;o substitui acompanhamento m&eacute;dico, psicol&oacute;gico, financeiro ou profissional especializado."],
+    ["O acompanhamento premium substitui um profissional?", "N&atilde;o. Mesmo no plano guiado, o Drive Mental continua sendo uma ferramenta de autoconhecimento e organiza&ccedil;&atilde;o pessoal. Ele n&atilde;o substitui acompanhamento m&eacute;dico, psicol&oacute;gico, financeiro ou profissional especializado."],
   ];
 
   return `
@@ -2499,20 +2499,20 @@ function LandingScreen() {
       <main>
         <section class="sales-hero">
           <div class="sales-hero-copy">
-            <span class="eyebrow">Mapa pessoal &middot; Ciclos &middot; Pr&aacute;tica di&aacute;ria</span>
-            <h1>Seu mapa pessoal para entender ciclos, <em>energia e dire&ccedil;&atilde;o.</em></h1>
-            <p>Comece com uma consulta gratuita e transforme sua data de nascimento em uma jornada organizada de autoconhecimento. Nos planos avan&ccedil;ados, acompanhe outras &aacute;reas da vida e siga um plano guiado de evolu&ccedil;&atilde;o.</p>
+            <span class="eyebrow">Clareza &middot; Dire&ccedil;&atilde;o &middot; Presen&ccedil;a &middot; Disciplina</span>
+            <h1>Clareza para escolher. <em>Dire&ccedil;&atilde;o para agir.</em></h1>
+            <p>Organize sua jornada pessoal com mais presen&ccedil;a e disciplina. O Drive Mental utiliza o Sincron&aacute;rio das 13 Luas apenas como m&eacute;todo para estruturar ciclos, reflex&otilde;es e pr&oacute;ximos passos.</p>
             <div class="hero-actions">
-              <button class="button-primary button-large" data-route="signup" type="button">Fazer consulta gr&aacute;tis ${icon("arrow")}</button>
-              <a class="button-ghost button-large" href="#exemplo">Ver exemplo do mapa</a>
+              <button class="button-primary button-large" data-route="signup" type="button">Come&ccedil;ar minha jornada ${icon("arrow")}</button>
+              <a class="button-ghost button-large" href="#exemplo">Conhecer a experi&ecirc;ncia</a>
             </div>
             <div class="hero-trust">
               <span>${icon("check")} Sem previs&otilde;es absolutas</span>
               <span>${icon("check")} Dados sob seu controle</span>
-              <span>${icon("check")} Experi&ecirc;ncia simb&oacute;lica e reflexiva</span>
+              <span>${icon("check")} M&eacute;todo de organiza&ccedil;&atilde;o pessoal</span>
             </div>
           </div>
-          <div class="platform-preview" aria-label="Pr&eacute;via do dashboard Drive Astral">
+          <div class="platform-preview" aria-label="Pr&eacute;via do dashboard Drive Mental">
             <div class="preview-window">
               <div class="preview-sidebar">
                 ${BrandMark(true)}
@@ -2521,14 +2521,14 @@ function LandingScreen() {
               <div class="preview-content">
                 <div class="preview-topline"><span></span><b></b></div>
                 <div class="preview-welcome">
-                  <small>SEU MAPA DE HOJE</small>
-                  <strong>Uma dire&ccedil;&atilde;o pr&aacute;tica para o seu momento</strong>
+                  <small>SEU DRIVE DE HOJE</small>
+                  <strong>Clareza para priorizar o que importa agora</strong>
                   <span></span>
                 </div>
                 <div class="preview-grid">
-                  <article class="preview-kin"><small>KIN DO DIA</small><strong>178</strong><span>Branco Solar Espelho</span></article>
-                  <article><small>CHAKRA DO PLASMA</small><strong>Raiz</strong><span>Base e presen&ccedil;a</span></article>
-                  <article><small>PR&Aacute;TICA</small><strong>Clareza</strong><span>Uma a&ccedil;&atilde;o essencial</span></article>
+                  <article class="preview-kin"><small>ENERGIA DO DIA</small><strong>178</strong><span>Presen&ccedil;a e discernimento</span></article>
+                  <article><small>PRIORIDADE</small><strong>Base</strong><span>Estabilidade antes da pressa</span></article>
+                  <article><small>DRIVE DI&Aacute;RIO</small><strong>Clareza</strong><span>Uma a&ccedil;&atilde;o essencial</span></article>
                 </div>
                 <div class="preview-chart"><span></span><span></span><span></span><span></span><span></span></div>
                 <button class="preview-action" data-route="signup" type="button">Abrir jornada ${icon("arrow")}</button>
@@ -2548,9 +2548,9 @@ function LandingScreen() {
 
         <section id="produto" class="sales-section product-intro-section">
           <div class="section-heading">
-            <span class="eyebrow">O que &eacute; o Drive Astral?</span>
-            <h2>Uma plataforma para transformar s&iacute;mbolos em pr&aacute;tica di&aacute;ria.</h2>
-            <p>Em vez de entregar dados soltos, o Drive Astral organiza informa&ccedil;&otilde;es do Sincron&aacute;rio das 13 Luas, ciclos e chakras em uma leitura com contexto, explica&ccedil;&atilde;o e aplica&ccedil;&atilde;o para o cotidiano.</p>
+            <span class="eyebrow">O que &eacute; o Drive Mental?</span>
+            <h2>Um m&eacute;todo para transformar percep&ccedil;&atilde;o em movimento consciente.</h2>
+            <p>O Drive Mental utiliza o Sincron&aacute;rio das 13 Luas como uma estrutura de organiza&ccedil;&atilde;o da jornada pessoal. Voc&ecirc; recebe contexto para refletir, priorizar e agir com mais consist&ecirc;ncia.</p>
           </div>
           <div class="foundation-grid">
             ${productFoundations.map(([iconName, title, text]) => `
@@ -2562,22 +2562,22 @@ function LandingScreen() {
         <section id="como-funciona" class="sales-section process-section">
           <div class="section-heading">
             <span class="eyebrow">Como funciona na pr&aacute;tica</span>
-            <h2>Da sua data de nascimento a uma jornada que voc&ecirc; consegue acompanhar.</h2>
-            <p>O fluxo foi desenhado para explicar o resultado e manter um registro do que voc&ecirc; consultou.</p>
+            <h2>Do seu momento atual a uma jornada que voc&ecirc; consegue sustentar.</h2>
+            <p>Um caminho simples para compreender, escolher, praticar e acompanhar sua evolu&ccedil;&atilde;o.</p>
           </div>
           <div class="process-grid process-grid-four">
-            <article><span>01</span>${icon("user")}<h3>Informe sua data</h3><p>Crie seu perfil com os dados b&aacute;sicos usados no c&aacute;lculo inicial.</p></article>
-            <article><span>02</span>${icon("compass")}<h3>Receba seu mapa</h3><p>Veja Kin, ciclos, coordenadas e a sincroniza&ccedil;&atilde;o com o dia.</p></article>
-            <article><span>03</span>${icon("target")}<h3>Aplique a leitura</h3><p>Escolha uma &aacute;rea e receba uma pergunta e uma pr&aacute;tica contextualizadas.</p></article>
-            <article><span>04</span>${icon("history")}<h3>Acompanhe a jornada</h3><p>Volte aos snapshots e registre acontecimentos na sua linha do tempo.</p></article>
+            <article><span>01</span>${icon("user")}<h3>Reconhe&ccedil;a seu momento</h3><p>Crie seu perfil para contextualizar a jornada a partir da sua realidade.</p></article>
+            <article><span>02</span>${icon("compass")}<h3>Encontre uma dire&ccedil;&atilde;o</h3><p>Compreenda seus ciclos em uma leitura clara, organizada e sem mistifica&ccedil;&atilde;o.</p></article>
+            <article><span>03</span>${icon("target")}<h3>Defina uma prioridade</h3><p>Transforme a reflex&atilde;o em uma pergunta &uacute;til e uma a&ccedil;&atilde;o poss&iacute;vel.</p></article>
+            <article><span>04</span>${icon("history")}<h3>Construa consist&ecirc;ncia</h3><p>Registre escolhas e aprendizados para perceber sua evolu&ccedil;&atilde;o ao longo do tempo.</p></article>
           </div>
         </section>
 
         <section id="o-que-recebe" class="sales-section deliverables-section">
           <div class="section-heading is-centered">
             <span class="eyebrow">O que voc&ecirc; recebe</span>
-            <h2>Recursos conectados para acompanhar seu ciclo com clareza.</h2>
-            <p>As informa&ccedil;&otilde;es deixam de ser uma consulta isolada e passam a fazer parte da sua &aacute;rea pessoal.</p>
+            <h2>Tudo o que voc&ecirc; precisa para manter dire&ccedil;&atilde;o no cotidiano.</h2>
+            <p>Cada recurso ajuda voc&ecirc; a compreender o momento, escolher prioridades e sustentar uma rotina mais consciente.</p>
           </div>
           <div class="deliverables-grid">
             ${deliverables.map(([iconName, title, text, status]) => `
@@ -2589,46 +2589,46 @@ function LandingScreen() {
             `).join("")}
           </div>
           <div class="section-inline-cta">
-            <div><strong>Seu primeiro mapa pode come&ccedil;ar agora.</strong><span>Crie o perfil e conhe&ccedil;a a experi&ecirc;ncia dispon&iacute;vel nesta fase.</span></div>
-            <button class="button-primary" data-route="signup" type="button">Criar meu mapa gr&aacute;tis ${icon("arrow")}</button>
+            <div><strong>Sua primeira dire&ccedil;&atilde;o pode come&ccedil;ar agora.</strong><span>Crie seu perfil e organize o pr&oacute;ximo passo com mais clareza.</span></div>
+            <button class="button-primary" data-route="signup" type="button">Come&ccedil;ar gratuitamente ${icon("arrow")}</button>
           </div>
         </section>
 
         <section id="exemplo" class="sales-section product-showcase-section">
           <div class="section-heading">
             <span class="eyebrow">Exemplo real da plataforma</span>
-            <h2>Veja como a leitura ganha forma.</h2>
-            <p>O resultado &eacute; organizado em telas e cards que mostram o que foi calculado, o que &eacute; interpreta&ccedil;&atilde;o e como levar a leitura para a rotina.</p>
+            <h2>Veja como clareza se transforma em rotina.</h2>
+            <p>A experi&ecirc;ncia organiza contexto, prioridade e pr&aacute;tica sem confundir reflex&atilde;o com previs&atilde;o.</p>
           </div>
           <div class="showcase-dashboard">
             <div class="showcase-copy">
               <span>01 &middot; PAINEL PESSOAL</span>
-              <h3>Uma vis&atilde;o central da sua jornada.</h3>
-              <p>O dashboard re&uacute;ne acesso &agrave; consulta, leituras salvas, marcos da linha do tempo e protocolo di&aacute;rio.</p>
+              <h3>Seu momento, suas prioridades e sua evolu&ccedil;&atilde;o.</h3>
+              <p>O dashboard mant&eacute;m energia do dia, Drive Di&aacute;rio, calend&aacute;rio e hist&oacute;rico ao alcance de uma decis&atilde;o consciente.</p>
               <ul>
-                <li>${icon("check")} Navega&ccedil;&atilde;o clara por recurso</li>
-                <li>${icon("check")} Hist&oacute;rico e registros no mesmo lugar</li>
-                <li>${icon("check")} Acesso responsivo em desktop e celular</li>
+                <li>${icon("check")} Prioridades vis&iacute;veis sem excesso de informa&ccedil;&atilde;o</li>
+                <li>${icon("check")} Hist&oacute;rico para reconhecer seu progresso</li>
+                <li>${icon("check")} Continuidade no desktop e no celular</li>
               </ul>
             </div>
             <figure class="showcase-screen">
-              <img src="/assets/landing/dashboard-drive-astral.png" alt="Dashboard do Drive Astral com consulta, hist&oacute;rico e linha do tempo" loading="lazy" />
+              <img src="/assets/landing/dashboard-drive-astral.png" alt="Dashboard do Drive Mental com prioridades, calend&aacute;rio e hist&oacute;rico" loading="lazy" decoding="async" />
             </figure>
           </div>
           <div class="showcase-detail-grid">
             <article class="reading-showcase">
               <div>
                 <span>02 &middot; LEITURA ESTRUTURADA</span>
-                <h3>Coordenadas explicadas em etapas.</h3>
-                <p>Resumo, aplica&ccedil;&atilde;o na &aacute;rea escolhida, nascimento, dia, sincroniza&ccedil;&atilde;o e metodologia.</p>
+                <h3>Contexto explicado sem linguagem complicada.</h3>
+                <p>Entenda o que observar, por que isso importa e como levar a reflex&atilde;o para o cotidiano.</p>
               </div>
-              <figure><img src="/assets/landing/leitura-drive-astral.png" alt="Exemplo de uma leitura do GPS do Sincron&aacute;rio no celular" loading="lazy" /></figure>
+              <figure><img src="/assets/landing/leitura-drive-astral.png" alt="Exemplo de uma leitura organizada do Drive Mental no celular" loading="lazy" decoding="async" /></figure>
             </article>
             <article class="protocol-showcase">
               <div>
                 <span>03 &middot; PROTOCOLO DI&Aacute;RIO</span>
-                <h3>Uma rotina geral em tr&ecirc;s momentos.</h3>
-                <p>Pr&aacute;ticas simples de observa&ccedil;&atilde;o e organiza&ccedil;&atilde;o para manh&atilde;, dia e noite.</p>
+                <h3>Presen&ccedil;a que acompanha o ritmo do seu dia.</h3>
+                <p>Pequenas pausas de organiza&ccedil;&atilde;o pela manh&atilde;, durante o dia e &agrave; noite.</p>
               </div>
               <div class="protocol-preview" aria-label="Exemplo visual do protocolo di&aacute;rio">
                 <div><i>${icon("spark")}</i><span><small>MANH&Atilde;</small><strong>Presen&ccedil;a e inten&ccedil;&atilde;o</strong></span><b>8 min</b></div>
@@ -2640,8 +2640,8 @@ function LandingScreen() {
           <div class="guided-program-showcase">
             <div class="guided-program-copy">
               <span class="eyebrow">04 &middot; ACOMPANHAMENTO GUIADO PREMIUM</span>
-              <h3>Um plano de 90 dias que aprende com a sua jornada.</h3>
-              <p>Os resultados das consultas definem o ponto de partida. Seus check-ins, dificuldades e relatos ajudam a organizar novas a&ccedil;&otilde;es pr&aacute;ticas, prioridades e alertas ao longo do acompanhamento.</p>
+              <h3>Um plano de 90 dias para transformar inten&ccedil;&atilde;o em const&acirc;ncia.</h3>
+              <p>Seus check-ins e aprendizados ajudam a ajustar prioridades e pequenas a&ccedil;&otilde;es ao longo da jornada.</p>
               <div class="guided-duration">
                 <strong>90 dias</strong>
                 <span>Jornada inicial estruturada</span>
@@ -2668,8 +2668,8 @@ function LandingScreen() {
             </div>
           </div>
           <div class="showcase-cta">
-            <div><span class="eyebrow">Explore com seus pr&oacute;prios dados</span><h3>Crie uma conta e veja seu mapa pessoal.</h3></div>
-            <button class="button-primary button-large" data-route="signup" type="button">Fazer consulta gr&aacute;tis ${icon("arrow")}</button>
+            <div><span class="eyebrow">Experimente no seu ritmo</span><h3>Crie uma conta e encontre sua primeira dire&ccedil;&atilde;o.</h3></div>
+            <button class="button-primary button-large" data-route="signup" type="button">Come&ccedil;ar gratuitamente ${icon("arrow")}</button>
           </div>
         </section>
 
@@ -2677,7 +2677,7 @@ function LandingScreen() {
           <div class="section-heading is-centered">
             <span class="eyebrow">Benef&iacute;cios pr&aacute;ticos</span>
             <h2>Mais clareza para decidir. Mais presen&ccedil;a para agir.</h2>
-            <p>O valor est&aacute; em organizar percep&ccedil;&otilde;es e transformar uma leitura simb&oacute;lica em observa&ccedil;&atilde;o consciente.</p>
+            <p>Organize o que voc&ecirc; percebe, escolha o que merece aten&ccedil;&atilde;o e avance com um passo de cada vez.</p>
           </div>
           <div class="benefits-grid">
             ${benefits.map(([iconName, title, text]) => `
@@ -2689,8 +2689,8 @@ function LandingScreen() {
         <section id="transparencia" class="sales-section trust-section">
           <div class="trust-intro">
             <span class="eyebrow">Transpar&ecirc;ncia e confian&ccedil;a</span>
-            <h2>Espiritualidade com clareza, responsabilidade e limites.</h2>
-            <p>O Drive Astral &eacute; uma ferramenta simb&oacute;lica de autoconhecimento. O objetivo &eacute; apoiar reflex&atilde;o, organiza&ccedil;&atilde;o pessoal e tomada de consci&ecirc;ncia, sem substituir orienta&ccedil;&atilde;o profissional.</p>
+            <h2>Um m&eacute;todo claro, respons&aacute;vel e com limites.</h2>
+            <p>O Drive Mental organiza reflex&otilde;es pessoais sem previs&otilde;es, diagn&oacute;sticos ou promessas. O objetivo &eacute; apoiar consci&ecirc;ncia, disciplina e melhores escolhas.</p>
             <a href="/privacy.html">Ler pol&iacute;tica de privacidade ${icon("arrow")}</a>
           </div>
           <div class="trust-grid">
@@ -2704,13 +2704,13 @@ function LandingScreen() {
           <div class="section-heading is-centered">
             <span class="eyebrow">Planos para cada etapa</span>
             <h2>Comece com uma resposta. Continue com uma jornada.</h2>
-            <p>O Drive Astral acompanha diferentes profundidades de uso, da primeira consulta ao plano guiado de evolu&ccedil;&atilde;o.</p>
+            <p>O Drive Mental acompanha diferentes momentos, da primeira dire&ccedil;&atilde;o a uma jornada guiada de consist&ecirc;ncia.</p>
           </div>
           <div class="plans-grid">
             <article class="plan-card">
               <span class="plan-label">Entrada</span>
               <h3>Consulta Gratuita</h3>
-              <p>Conhe&ccedil;a seu mapa inicial e experimente a metodologia antes de escolher um plano.</p>
+              <p>Encontre uma primeira dire&ccedil;&atilde;o e experimente o m&eacute;todo antes de escolher um plano.</p>
               <ul>
                 <li>${icon("check")} Uma consulta inicial</li>
                 <li>${icon("check")} Resumo das coordenadas</li>
@@ -2722,8 +2722,8 @@ function LandingScreen() {
             <article class="plan-card is-featured">
               <span class="plan-badge">PREMIUM</span>
               <span class="plan-label">Assinatura mensal</span>
-              <h3>Drive Astral</h3>
-              <p>Amplie as consultas e acompanhe diferentes &aacute;reas da sua vida dentro da plataforma.</p>
+              <h3>Drive Mental</h3>
+              <p>Acompanhe diferentes &aacute;reas da vida e mantenha suas prioridades vis&iacute;veis ao longo do tempo.</p>
               <ul>
                 <li>${icon("check")} Novas consultas mensais</li>
                 <li>${icon("check")} Outras &aacute;reas da vida</li>
@@ -2738,7 +2738,7 @@ function LandingScreen() {
               <span class="plan-badge">MENTOR</span>
               <span class="plan-label">Acompanhamento premium</span>
               <h3>Jornada Guiada</h3>
-              <p>Transforme os resultados das consultas em um plano acompanhado de 90 dias, com extens&atilde;o at&eacute; 180.</p>
+              <p>Transforme clareza em um plano acompanhado de 90 dias, com extens&atilde;o at&eacute; 180.</p>
               <ul>
                 <li>${icon("check")} Plano baseado nas consultas</li>
                 <li>${icon("check")} Dashboard de evolu&ccedil;&atilde;o e performance</li>
@@ -2771,9 +2771,9 @@ function LandingScreen() {
           ${BrandMark()}
           <span class="eyebrow">Comece com sua consulta gratuita</span>
           <h2>Transforme percep&ccedil;&atilde;o em dire&ccedil;&atilde;o.</h2>
-          <p>Entre no Drive Astral e comece a organizar seus ciclos, escolhas e aprendizados em uma jornada pessoal de autoconhecimento.</p>
+          <p>Entre no Drive Mental e organize escolhas, prioridades e aprendizados em uma jornada com mais presen&ccedil;a e disciplina.</p>
           <div class="final-cta-actions">
-            <button class="button-primary button-large" data-route="signup" type="button">Fazer consulta gr&aacute;tis ${icon("arrow")}</button>
+            <button class="button-primary button-large" data-route="signup" type="button">Come&ccedil;ar minha jornada ${icon("arrow")}</button>
             <a class="button-ghost button-large" href="#premium">Comparar planos</a>
           </div>
           <small>Sem dados de pagamento &middot; Sem previs&otilde;es absolutas &middot; Uso consciente</small>
@@ -2782,8 +2782,8 @@ function LandingScreen() {
       <footer class="public-footer">
         <div class="footer-grid">
           <div class="footer-brand-column">
-            <div class="public-brand">${BrandMark(true)}<span>Drive Astral</span></div>
-            <p>Uma plataforma de autoconhecimento simb&oacute;lico para organizar ciclos, pr&aacute;ticas e percep&ccedil;&otilde;es pessoais.</p>
+            <div class="public-brand">${BrandMark(true)}<span>Drive Mental</span></div>
+            <p>Uma plataforma para organizar escolhas, pr&aacute;ticas e aprendizados com clareza, presen&ccedil;a e disciplina.</p>
           </div>
           <div>
             <strong>Plataforma</strong>
@@ -2810,7 +2810,7 @@ function LandingScreen() {
           </div>
         </div>
         <div class="footer-bottom">
-          <span>&copy; 2026 Drive Astral. Todos os direitos reservados.</span>
+          <span>&copy; 2026 Drive Mental. Todos os direitos reservados.</span>
           <p>As leituras t&ecirc;m finalidade simb&oacute;lica, reflexiva e de autoconhecimento. N&atilde;o substituem orienta&ccedil;&atilde;o profissional.</p>
         </div>
       </footer>
@@ -2823,7 +2823,7 @@ function AuthLayout(content, asideTitle, asideText) {
     <div class="auth-page">
       <button class="public-brand auth-brand" data-route="landing" type="button">
         ${BrandMark(true)}
-        <span>Drive Astral</span>
+        <span>Drive Mental</span>
       </button>
       <aside class="auth-aside">
         <div class="auth-aside-content">
@@ -2840,7 +2840,7 @@ function AuthLayout(content, asideTitle, asideText) {
 
 function AuthNotice() {
   return state.authNotice
-    ? `<p class="auth-notice ${state.authNoticeKind === "error" ? "is-error" : ""}" role="alert">${state.authNotice}</p>`
+    ? `<p class="auth-notice ${state.authNoticeKind === "error" ? "is-error" : ""}" role="alert" aria-live="polite">${state.authNotice}</p>`
     : "";
 }
 
@@ -2913,53 +2913,128 @@ function SignupScreen() {
 }
 
 function OnboardingAreaSelector() {
+  const presentation = {
+    general: ["Momento Atual", "Uma leitura mais ampla sobre seus ciclos e sua fase atual."],
+    "work-prosperity": ["Vida Financeira", "Trabalho, organiza&ccedil;&atilde;o, prosperidade e decis&otilde;es financeiras."],
+    "challenges-blocks": ["Desafios e Bloqueios", "Padr&otilde;es recorrentes, resist&ecirc;ncias e pontos de aten&ccedil;&atilde;o."],
+    "energy-spirituality": ["Equil&iacute;brio e Energia", "Ritmo pessoal, disposi&ccedil;&atilde;o, limites e direcionamento."],
+    purpose: ["Prop&oacute;sito e Dire&ccedil;&atilde;o", "Escolhas, voca&ccedil;&atilde;o, significado e pr&oacute;ximos movimentos."],
+    "love-relationships": ["Relacionamentos", "Conex&otilde;es, conviv&ecirc;ncia, comunica&ccedil;&atilde;o e v&iacute;nculos."],
+    "decisions-cycles": ["Mudan&ccedil;as e Ciclos", "Transi&ccedil;&otilde;es, encerramentos, come&ccedil;os e per&iacute;odos de adapta&ccedil;&atilde;o."],
+  };
+  const visualOrder = [
+    "general",
+    "purpose",
+    "work-prosperity",
+    "love-relationships",
+    "challenges-blocks",
+    "energy-spirituality",
+    "decisions-cycles",
+  ];
+  const orderedAreas = [...consultationAreas].sort(
+    (first, second) => visualOrder.indexOf(first.id) - visualOrder.indexOf(second.id),
+  );
   return `
-    <div class="onboarding-area-grid" role="radiogroup" aria-label="&Aacute;rea principal de interesse">
-      ${consultationAreas.map((area) => `
+    <div class="onboarding-area-grid" role="radiogroup" aria-label="Tema que mais representa seu momento atual">
+      ${orderedAreas.map((area) => {
+        const [label, description] = presentation[area.id] || [area.shortTitle || area.title, area.description];
+        return `
         <button
           class="${state.selectedAreaId === area.id ? "is-selected" : ""}"
           data-area-id="${area.id}"
           role="radio"
           aria-checked="${state.selectedAreaId === area.id ? "true" : "false"}"
+          aria-selected="${state.selectedAreaId === area.id ? "true" : "false"}"
+          aria-label="${label}: ${description}"
           type="button"
         >
-          ${icon(area.icon)}
-          <span><strong>${area.shortTitle || area.title}</strong><small>${area.description}</small></span>
-          ${icon("check")}
+          <i class="onboarding-area-icon" aria-hidden="true">${icon(area.icon)}</i>
+          <span><strong>${label}</strong><small>${description}</small></span>
+          <i class="onboarding-area-check" aria-hidden="true">${icon("check")}</i>
         </button>
-      `).join("")}
+      `;}).join("")}
     </div>
   `;
 }
 
 function OnboardingScreen() {
-  const accountName = state.account && state.account.name ? escapeHtml(state.account.name) : "sua jornada";
+  const selectedPresentation = {
+    general: ["Momento Atual", "ao seu momento atual"],
+    "work-prosperity": ["Vida Financeira", "&agrave; sua vida financeira"],
+    "challenges-blocks": ["Desafios e Bloqueios", "aos seus desafios e bloqueios"],
+    "energy-spirituality": ["Equil&iacute;brio e Energia", "ao seu equil&iacute;brio e energia"],
+    purpose: ["Prop&oacute;sito e Dire&ccedil;&atilde;o", "ao seu prop&oacute;sito e dire&ccedil;&atilde;o"],
+    "love-relationships": ["Relacionamentos", "aos seus relacionamentos"],
+    "decisions-cycles": ["Mudan&ccedil;as e Ciclos", "&agrave;s suas mudan&ccedil;as e ciclos"],
+  };
+  const selectedArea = selectedPresentation[state.selectedAreaId] || null;
+  const isSaving = isSupabaseMode() && state.authNotice === "Preparando sua leitura...";
+  const birthStatus = state.birth ? validateBirthDateForProduct(state.birth).status : "empty";
+  const isBirthValid = birthStatus === "valid";
+  const birthStatusCopy = isBirthValid
+    ? "Data confirmada para o c&aacute;lculo da sua base pessoal."
+    : birthStatus === "empty"
+      ? "Informe sua data completa para continuar."
+      : "Verifique a data informada.";
+  const isReady = Boolean(isBirthValid && state.selectedAreaId && !isSaving);
   return `
     <div class="onboarding-page">
       <header class="onboarding-header">
-        <div class="public-brand">${BrandMark(true)}<span>Drive Astral</span></div>
-        <div class="onboarding-progress"><span style="width: 66%"></span></div>
-        <small>Configura&ccedil;&atilde;o do perfil</small>
+        <div class="public-brand">${BrandMark(true)}<span>Drive Mental</span></div>
+        <div class="onboarding-progress" aria-hidden="true"><span></span></div>
+        <small>Conhecendo seu momento</small>
       </header>
       <main class="onboarding-main">
         <section class="onboarding-copy">
-          <span class="eyebrow">Ol&aacute;, ${accountName}</span>
-          <h1>Vamos personalizar sua experi&ecirc;ncia.</h1>
-          <p>Essas informa&ccedil;&otilde;es preparam o dashboard. A primeira leitura s&oacute; ser&aacute; criada quando voc&ecirc; solicitar.</p>
+          <span class="onboarding-badge">PRIMEIRA LEITURA</span>
+          <h1>Vamos compreender o momento que voc&ecirc; est&aacute; vivendo.</h1>
+          <p>Suas respostas ajudam o Drive Mental a organizar sua primeira leitura e apresentar seus ciclos de acordo com o momento e a &aacute;rea que voc&ecirc; deseja compreender.</p>
+          <div class="onboarding-time">${icon("clock")}<strong>Voc&ecirc; levar&aacute; menos de 2 minutos.</strong></div>
+          <ul class="onboarding-trust-list">
+            <li>${icon("check")} Seus dados permanecem privados</li>
+            <li>${icon("check")} A leitura ser&aacute; personalizada</li>
+            <li>${icon("check")} Voc&ecirc; poder&aacute; alterar sua &aacute;rea de acompanhamento depois</li>
+          </ul>
+          <div class="onboarding-journey-visual" aria-label="Etapas da jornada: Momento, Leitura e Jornada">
+            <span aria-hidden="true"></span>
+            <div class="is-active"><i aria-hidden="true"></i><small>Momento</small></div>
+            <div><i aria-hidden="true"></i><small>Leitura</small></div>
+            <div><i aria-hidden="true"></i><small>Jornada</small></div>
+          </div>
         </section>
         <form id="onboarding-form" class="onboarding-card">
           <div class="onboarding-field">
-            <label for="onboarding-birth">Data de nascimento</label>
-            <p>Usada para calcular seu Kin pessoal e suas coordenadas de origem.</p>
-            <input id="onboarding-birth" name="birth" type="date" value="${escapeHtml(state.birth)}" required />
+            <label for="onboarding-birth">Sua data de nascimento</label>
+            <p>Ela ser&aacute; utilizada pelo motor do Drive Mental para calcular sua base pessoal dentro do Sincron&aacute;rio.</p>
+            <div class="onboarding-input-wrap">${icon("calendar")}<input id="onboarding-birth" name="birth" type="date" value="${escapeHtml(state.birth)}" aria-describedby="onboarding-birth-help" required /></div>
+            <small id="onboarding-birth-help" class="onboarding-field-status ${isBirthValid ? "is-valid" : birthStatus === "empty" ? "" : "is-invalid"}" aria-live="polite"><i aria-hidden="true">${icon("check")}</i><span>${birthStatusCopy}</span></small>
           </div>
           <div class="onboarding-field">
-            <label>Qual &aacute;rea voc&ecirc; deseja acompanhar primeiro?</label>
-            <p>Esta ser&aacute; sua consulta gratuita inicial. As demais &aacute;reas ficam dispon&iacute;veis nos planos.</p>
+            <div class="onboarding-field-heading"><label>Qual tema mais representa o seu momento atual?</label><span>${selectedArea ? "Tema selecionado" : "Escolha um"}</span></div>
+            <p>Escolha o assunto que hoje ocupa mais espa&ccedil;o na sua mente. Essa escolha n&atilde;o altera seus c&aacute;lculos; ela define como sua primeira leitura ser&aacute; aplicada.</p>
             ${OnboardingAreaSelector()}
+            <div class="onboarding-selection-context ${selectedArea ? "is-visible" : ""}" aria-live="polite">
+              ${selectedArea
+                ? `${icon("target")}<p><strong>${selectedArea[0]}</strong><span>Vamos aplicar sua primeira leitura principalmente ${selectedArea[1]}, sem alterar os c&aacute;lculos originais do seu mapa.</span></p>`
+                : `${icon("info")}<p><strong>Sua escolha orienta a aplica&ccedil;&atilde;o</strong><span>Selecione o tema que mais combina com seu momento atual.</span></p>`}
+            </div>
           </div>
           ${AuthNotice()}
-          <button class="button-primary button-large" type="submit" ${state.selectedAreaId ? "" : "disabled"}>Concluir e acessar dashboard ${icon("arrow")}</button>
+          <section class="onboarding-value" aria-labelledby="onboarding-value-title">
+            <strong id="onboarding-value-title">Sua primeira leitura apresentar&aacute;:</strong>
+            <ul>
+              <li>${icon("check")} Sua base pessoal no Sincron&aacute;rio</li>
+              <li>${icon("check")} O ciclo relacionado ao momento consultado</li>
+              <li>${icon("check")} A aplica&ccedil;&atilde;o na &aacute;rea escolhida</li>
+              <li>${icon("check")} Uma orienta&ccedil;&atilde;o inicial</li>
+              <li>${icon("check")} Seu primeiro Drive</li>
+            </ul>
+          </section>
+          <div class="onboarding-submit">
+            <button class="button-primary button-large" type="submit" aria-live="polite" ${isReady ? "" : "disabled"}>${isSaving ? '<i class="button-spinner" aria-hidden="true"></i> Preparando sua leitura...' : `Criar minha primeira leitura ${icon("arrow")}`}</button>
+            <small class="onboarding-submit-guidance" ${isReady || isSaving ? "hidden" : ""}>Preencha sua data e escolha um tema para continuar.</small>
+            <small>Voc&ecirc; poder&aacute; revisar suas informa&ccedil;&otilde;es antes de iniciar uma nova consulta.</small>
+          </div>
         </form>
       </main>
     </div>
@@ -2981,7 +3056,7 @@ function PortalSidebar() {
 
   return `
     <aside class="portal-sidebar">
-      <button class="portal-brand" data-route="dashboard" type="button">${BrandMark(true)}<span>Drive Astral</span></button>
+      <button class="portal-brand" data-route="dashboard" type="button">${BrandMark(true)}<span>Drive Mental</span></button>
       <nav aria-label="Navega&ccedil;&atilde;o da plataforma">
         <span>PLATAFORMA</span>
         ${items.map(([route, iconName, label]) => `
@@ -3011,7 +3086,7 @@ function PortalTopbar() {
     journey: ["Jornada de 30 dias", "Frases e a&ccedil;&otilde;es para acompanhar seu ciclo"],
     profile: ["Meu perfil", "Dados, prefer&ecirc;ncias e configura&ccedil;&otilde;es"],
   };
-  const [title, subtitle] = titles[state.route] || ["Drive Astral", "Sua plataforma de ciclos pessoais"];
+  const [title, subtitle] = titles[state.route] || ["Drive Mental", "Sua jornada de clareza e disciplina"];
 
   return `
     <header class="portal-topbar">
@@ -3086,7 +3161,7 @@ function adminFallbackPlans(settings = mergedAdminSettings()) {
     },
     {
       plan_id: "premium",
-      display_name: "Drive Astral",
+      display_name: "Drive Mental",
       badge: settings.plans.premiumBadge,
       price_label: settings.plans.premiumPrice,
       billing_label: "mensal",
@@ -3244,7 +3319,7 @@ function AdminDashboardScreen() {
       ${GoldenCard(`
         <span class="admin-kpi-label">Planos vis&iacute;veis</span>
         <strong class="admin-kpi-value">${escapeHtml(String(planCount))}</strong>
-        <small>Drive Astral, Mentor e varia&ccedil;&otilde;es comerciais.</small>
+        <small>Drive Mental, Mentor e varia&ccedil;&otilde;es comerciais.</small>
       `, "admin-kpi-card")}
       ${GoldenCard(`
         <span class="admin-kpi-label">Checkout</span>
@@ -3479,7 +3554,7 @@ function AstralHeader() {
   return `
     <section class="astral-hero">
       ${AstralEmblem()}
-      <h1>DRIVE ASTRAL</h1>
+      <h1>DRIVE MENTAL</h1>
       <p>Sincron&aacute;rio C&oacute;smico &amp; Mapa Energ&eacute;tico Visual</p>
     </section>
   `;
@@ -3521,9 +3596,9 @@ function HomeNotice() {
       <section class="form-notice form-notice-special" role="alert">
         <strong>29 de fevereiro possui regra especial e ainda n&atilde;o est&aacute; dispon&iacute;vel nesta vers&atilde;o.</strong>
         <p>A data 29 de fevereiro possui tratamento especial no Sincron&aacute;rio das 13 Luas.</p>
-        <p>Algumas fontes atribuem um Kin ao dia 29/02, enquanto a refer&ecirc;ncia metodol&oacute;gica utilizada pelo Drive Astral trata essa data como 0.0 Hunab Ku, exigindo uma decis&atilde;o espec&iacute;fica.</p>
+        <p>Algumas fontes atribuem um Kin ao dia 29/02, enquanto a refer&ecirc;ncia metodol&oacute;gica utilizada pelo Drive Mental trata essa data como 0.0 Hunab Ku, exigindo uma decis&atilde;o espec&iacute;fica.</p>
         <p>Para evitar uma leitura incorreta, esta vers&atilde;o ainda n&atilde;o gera automaticamente leituras para nascidos em 29/02.</p>
-        <small>Voc&ecirc; poder&aacute; continuar quando a regra metodol&oacute;gica de 29/02 for definida no Drive Astral.</small>
+        <small>Voc&ecirc; poder&aacute; continuar quando a regra metodol&oacute;gica de 29/02 for definida no Drive Mental.</small>
       </section>
     `;
   }
@@ -3562,7 +3637,7 @@ function ConsultationAreaSelector() {
                 <span class="area-option-icon">${icon(area.icon)}</span>
                 <span class="area-option-copy">
                   <strong>${area.shortTitle || area.title}</strong>
-                  <small>${areaLocked ? "Desbloqueie no plano Drive Astral." : area.description}</small>
+                  <small>${areaLocked ? "Desbloqueie no plano Drive Mental." : area.description}</small>
                 </span>
                 <span class="area-option-check" aria-hidden="true">${icon(areaLocked ? "unlock" : "check")}</span>
               </button>
@@ -3814,7 +3889,7 @@ function DashboardScreen() {
 
     <section class="dashboard-disclaimer">
       ${icon("info")}
-      <p>O Drive Astral oferece uma linguagem simb&oacute;lica para autoconhecimento. As leituras n&atilde;o s&atilde;o previs&otilde;es nem diagn&oacute;sticos.</p>
+      <p>O Drive Mental utiliza uma linguagem simb&oacute;lica como m&eacute;todo de organiza&ccedil;&atilde;o pessoal. As leituras n&atilde;o s&atilde;o previs&otilde;es nem diagn&oacute;sticos.</p>
     </section>
   `);
 }
@@ -5074,7 +5149,7 @@ function ProfileScreen() {
             </button>
             <button class="profile-action-row" data-install-platform type="button" hidden>
               <span class="profile-action-icon">${icon("device")}</span>
-              <span class="profile-action-copy"><strong>Instalar no dispositivo</strong><small>Acessar o Drive Astral como aplicativo</small></span>
+              <span class="profile-action-copy"><strong>Instalar no dispositivo</strong><small>Acessar o Drive Mental como aplicativo</small></span>
               <span class="profile-action-arrow">${icon("arrow")}</span>
             </button>
             <a class="profile-action-row" href="/privacy.html" target="_blank" rel="noopener">
@@ -5524,7 +5599,7 @@ function requestAdminPlans() {
 function adminSettingsFromForm(formData) {
   return {
     general: {
-      platformName: String(formData.get("platformName") || "").trim() || "Drive Astral",
+      platformName: String(formData.get("platformName") || "").trim() || "Drive Mental",
       supportEmail: String(formData.get("supportEmail") || "").trim(),
       environmentStatus: String(formData.get("environmentStatus") || "producao"),
       maintenanceMode: formData.get("maintenanceMode") === "on",
@@ -5716,7 +5791,7 @@ function submitOnboarding(birthValue) {
   if (validation.status === "invalid") {
     setState({
       birth,
-      authNotice: "Informe uma data de nascimento v&aacute;lida.",
+      authNotice: "Informe uma data de nascimento v&aacute;lida para continuar.",
       authNoticeKind: "error",
     });
     return;
@@ -5752,7 +5827,7 @@ function submitOnboarding(birthValue) {
   if (isSupabaseMode()) {
     setState({
       birth,
-      authNotice: "Salvando seu perfil...",
+      authNotice: "Preparando sua leitura...",
       authNoticeKind: "",
     });
     supabaseService().updateProfile({
@@ -6229,8 +6304,10 @@ function bindEvents() {
 
   document.querySelectorAll("[data-area-id]").forEach((element) => {
     element.addEventListener("click", () => {
+      const onboardingBirth = document.getElementById("onboarding-birth");
       setState({
         selectedAreaId: normalizeAreaId(element.dataset.areaId),
+        ...(onboardingBirth ? { birth: onboardingBirth.value } : {}),
         areaCarouselTouched: true,
         notice: "",
         noticeKind: "",
@@ -6542,6 +6619,33 @@ function bindEvents() {
 
   const onboardingForm = document.getElementById("onboarding-form");
   if (onboardingForm) {
+    const birthInput = onboardingForm.querySelector("#onboarding-birth");
+    const birthStatus = onboardingForm.querySelector("#onboarding-birth-help");
+    const submitButton = onboardingForm.querySelector('button[type="submit"]');
+    const submitGuidance = onboardingForm.querySelector(".onboarding-submit-guidance");
+    if (birthInput && submitButton) {
+      birthInput.addEventListener("input", () => {
+        const currentBirthStatus = birthInput.value
+          ? validateBirthDateForProduct(birthInput.value).status
+          : "empty";
+        const birthIsValid = currentBirthStatus === "valid";
+        const canContinue = Boolean(birthIsValid && state.selectedAreaId);
+        submitButton.disabled = !canContinue;
+        if (submitGuidance) submitGuidance.hidden = canContinue;
+        if (birthStatus) {
+          birthStatus.classList.toggle("is-valid", birthIsValid);
+          birthStatus.classList.toggle("is-invalid", currentBirthStatus !== "empty" && !birthIsValid);
+          const statusText = birthStatus.querySelector("span");
+          if (statusText) {
+            statusText.textContent = birthIsValid
+              ? "Data confirmada para o cálculo da sua base pessoal."
+              : currentBirthStatus === "empty"
+                ? "Informe sua data completa para continuar."
+                : "Verifique a data informada.";
+          }
+        }
+      });
+    }
     onboardingForm.addEventListener("submit", (event) => {
       event.preventDefault();
       const formData = new FormData(onboardingForm);

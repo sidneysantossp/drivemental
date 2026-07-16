@@ -1,10 +1,10 @@
-# Auditoria tecnica do Drive Astral
+# Auditoria tecnica do Drive Mental
 
 Nota de continuidade: esta auditoria descreve o estado inicial encontrado no prototipo. A implementacao posterior do motor, da base de conhecimento e da experiencia gratuita esta documentada em `../implementacao-sincronario/01-motor-v0.1.md`.
 
 ## Estado atual
 
-O Drive Astral atual e um prototipo mobile-first estatico, executado no navegador por um servidor local Node.js simples. A aplicacao possui forte acabamento visual, navegacao entre telas e persistencia basica em `localStorage`, mas ainda nao possui motor matematico do Sincronario das 13 Luas.
+O Drive Mental atual e um prototipo mobile-first estatico, executado no navegador por um servidor local Node.js simples. A aplicacao possui forte acabamento visual, navegacao entre telas e persistencia basica em `localStorage`, mas ainda nao possui motor matematico do Sincronario das 13 Luas.
 
 ## Principais descobertas
 

@@ -303,7 +303,7 @@ for (const referenceCase of referenceCases) {
       validatedBy: VALIDATED_BY,
       differenceType: "PENDING_VALIDATION",
       notes:
-        "The accepted calculators use separate day/month/year controls and do not expose the same raw YYYY-MM-DD string contract. Expected remains empty rather than being inferred from the Drive Astral motor.",
+        "The accepted calculators use separate day/month/year controls and do not expose the same raw YYYY-MM-DD string contract. Expected remains empty rather than being inferred from the Drive Mental motor.",
     };
     pendingInputContract += 1;
     continue;
@@ -340,7 +340,7 @@ for (const referenceCase of referenceCases) {
     validatedBy: VALIDATED_BY,
     differenceType: "TRANSLATION_DIFFERENCE",
     notes:
-      "Two accepted Dreamspell calculators agree on Kin, seal, tone and color. English names were normalized to the Drive Astral Portuguese convention. Unconfirmed derived fields remain null.",
+      "Two accepted Dreamspell calculators agree on Kin, seal, tone and color. English names were normalized to the Drive Mental Portuguese convention. Unconfirmed derived fields remain null.",
   };
   populated += 1;
 }
