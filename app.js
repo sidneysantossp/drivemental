@@ -705,6 +705,13 @@ function routeStateFromLocation() {
   }
 
   const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  const readingResultMatch = pathname.match(/^\/app\/consulta\/resultado\/([^/]+)$/);
+  if (readingResultMatch) {
+    return {
+      route: "chakras",
+      requestedReadingId: decodeURIComponent(readingResultMatch[1]),
+    };
+  }
   const match = pathname.match(/^\/(?:app\/)?chakras\/([^/]+)$/);
   if (match) {
     let areaId = "";
@@ -776,6 +783,8 @@ function updateLocationForState(nextState, replace = false) {
   let nextUrl = routeUrls[nextState.route] || "/";
   if (nextState.route === "chakra-detail") {
     nextUrl = `/app${chakraDetailUrl(nextState.selectedChakraId, nextState.selectedAreaId)}`;
+  } else if (nextState.route === "chakras" && nextState.activeHistoryId) {
+    nextUrl = `/app/consulta/resultado/${encodeURIComponent(nextState.activeHistoryId)}`;
   }
 
   if (`${window.location.pathname}${window.location.search || ""}` === nextUrl) {
@@ -798,6 +807,10 @@ const defaultState = {
   selectedAreaId: "",
   selectedChakraId: "root",
   activeHistoryId: "",
+  requestedReadingId: "",
+  firstReadingStatus: "pending",
+  firstReadingStep: 0,
+  firstReadingError: "",
   areaCarouselTouched: false,
   reading: null,
   history: [],
@@ -1434,7 +1447,7 @@ function relationshipMeaningBlocks(reading) {
       }];
 }
 
-function createReadingHistoryEntry({ name, birth, area, reading }) {
+function createReadingHistoryEntry({ name, birth, area, reading, readingId, readingType = "consultation" }) {
   const guidance = readingGuidance(reading);
   const interpretation = guidance && guidance.interpretation ? guidance.interpretation : null;
   const personalMap = reading && reading.personal_map ? reading.personal_map : {};
@@ -1446,7 +1459,9 @@ function createReadingHistoryEntry({ name, birth, area, reading }) {
   );
 
   return {
-    readingId: createReadingId(),
+    readingId: readingId || createReadingId(),
+    readingType,
+    readingStatus: "completed",
     schemaVersion: "history-snapshot-v2",
     createdAt,
     date: formatDateTimePtBr(createdAt),
@@ -2330,22 +2345,23 @@ function EnergyCycleContent() {
 }
 
 function EnergyCycleShortcutCard(className = "") {
+  const resultCopy = className.includes("is-result");
   return `
     <section class="energy-cycle-shortcut ${className}">
       <span class="energy-cycle-shortcut-icon">${icon("lotus")}</span>
       <div>
-        <span>Ciclo Energ&eacute;tico</span>
-        <h2>Veja a sequ&ecirc;ncia dos plasmas e chakras com mais clareza.</h2>
-        <p>Uma p&aacute;gina dedicada para entender o ciclo simb&oacute;lico natural sem misturar com o resultado principal.</p>
+        <span>${resultCopy ? "APROFUNDE O CICLO SIMB&Oacute;LICO" : "Ciclo Energ&eacute;tico"}</span>
+        <h2>${resultCopy ? "Plasmas e chakras como coordenadas do ciclo." : "Veja a sequ&ecirc;ncia dos plasmas e chakras com mais clareza."}</h2>
+        <p>${resultCopy ? "Veja como plasmas e chakras estruturais aparecem no ciclo, sem trat&aacute;-los como diagn&oacute;stico individual." : "Uma p&aacute;gina dedicada para entender o ciclo simb&oacute;lico natural sem misturar com o resultado principal."}</p>
       </div>
-      <button class="button-primary" data-route="energy-cycle" type="button">Abrir Ciclo Energ&eacute;tico ${icon("arrow")}</button>
+      <button class="button-primary" data-route="energy-cycle" type="button">${resultCopy ? "Ver Ciclo Energ&eacute;tico" : "Abrir Ciclo Energ&eacute;tico"} ${icon("arrow")}</button>
     </section>
   `;
 }
 
 function ReadingDetailsSection(reading, guidance) {
   return `
-    <section class="reading-details-section">
+    <section id="reading-details" class="reading-details-section">
       <details class="reading-details-disclosure">
         <summary>
           <span class="reading-details-icon">${icon("info")}</span>
@@ -2364,6 +2380,107 @@ function ReadingDetailsSection(reading, guidance) {
           ${guidance ? DailyPracticeCard(guidance) : ""}
         </div>
       </details>
+    </section>
+  `;
+}
+
+function activeReadingHistoryEntry() {
+  return historyEntryById(state.activeHistoryId || state.requestedReadingId);
+}
+
+function FirstReadingFormation(reading, guidance) {
+  const personal = reading && reading.personal_map ? reading.personal_map : {};
+  const daily = dailyMap(reading) || {};
+  const coordinates = readingCoordinates(reading) || {};
+  const dayCalendar = coordinates.day && coordinates.day.thirteen_moons
+    ? coordinates.day.thirteen_moons
+    : {};
+  const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
+  const moon = dayCalendar.moon || {};
+  const week = dayCalendar.chromatic_week || {};
+  const plasma = dayCalendar.plasma || {};
+  const chakra = dayCalendar.chakra || {};
+  return `
+    <section class="first-reading-formation" aria-labelledby="first-reading-formation-title">
+      <div class="first-reading-section-heading">
+        <span>TRANSPAR&Ecirc;NCIA</span>
+        <h2 id="first-reading-formation-title">COMO CHEGAMOS A ESTA LEITURA</h2>
+      </div>
+      <div class="first-reading-layers">
+        <article>
+          <span class="first-reading-layer-number">01</span>
+          <div><small>SUA BASE PESSOAL</small><h3>Kin ${personal.kin ? personal.kin.value : "—"}</h3></div>
+          <dl>
+            <div><dt>Assinatura</dt><dd>${escapeHtml(personal.signature ? personal.signature.value : "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Selo</dt><dd>${escapeHtml(personal.seal ? personal.seal.name : "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Tom</dt><dd>${escapeHtml(personal.tone ? personal.tone.name : "N&atilde;o dispon&iacute;vel")}</dd></div>
+          </dl>
+          <p>Coordenadas derivadas da sua data de nascimento.</p>
+        </article>
+        <article>
+          <span class="first-reading-layer-number">02</span>
+          <div><small>O CICLO DO DIA</small><h3>Kin ${daily.kin_of_day ? daily.kin_of_day.value : "—"}</h3></div>
+          <dl>
+            <div><dt>Lua</dt><dd>${escapeHtml(moon.name || "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Semana</dt><dd>${escapeHtml(week.name || "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Plasma</dt><dd>${escapeHtml(plasma.name || "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Chakra estrutural</dt><dd>${escapeHtml(chakra.label || chakra.name || "N&atilde;o dispon&iacute;vel")}</dd></div>
+          </dl>
+          <p>Coordenadas simb&oacute;licas relacionadas &agrave; data da consulta.</p>
+        </article>
+        <article>
+          <span class="first-reading-layer-number">03</span>
+          <div><small>A APLICA&Ccedil;&Atilde;O</small><h3>${escapeHtml(interpretation.areaTitle || "Vis&atilde;o Geral")}</h3></div>
+          <dl>
+            <div><dt>Tema principal</dt><dd>${escapeHtml(interpretation.areaTitle || "Vis&atilde;o Geral")}</dd></div>
+            <div><dt>Pergunta</dt><dd>${escapeHtml(interpretation.reflectionQuestion || "N&atilde;o dispon&iacute;vel")}</dd></div>
+            <div><dt>Pr&aacute;tica</dt><dd>${escapeHtml(interpretation.dailyPractice || interpretation.suggestedPractice || "N&atilde;o dispon&iacute;vel")}</dd></div>
+          </dl>
+          <p>A &aacute;rea escolhida contextualiza a interpreta&ccedil;&atilde;o, sem alterar os c&aacute;lculos.</p>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+function FirstReadingResult(reading, guidance) {
+  const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
+  const copy = essentialDirectionCopy[interpretation.areaId] || essentialDirectionCopy.general;
+  const action = interpretation.dailyPractice || interpretation.suggestedPractice;
+  return `
+    <section class="first-reading-result">
+      <section class="first-reading-hero">
+        <span class="first-reading-complete-badge">${icon("check")} LEITURA CONCLU&Iacute;DA</span>
+        <span class="first-reading-eyebrow">SUA DIRE&Ccedil;&Atilde;O INICIAL</span>
+        <h2>${copy.headline}</h2>
+        <p>${copy.direction}</p>
+        <small>Esta leitura combina sua base pessoal, a coordenada do dia e a aplica&ccedil;&atilde;o no tema escolhido.</small>
+      </section>
+
+      ${FirstReadingFormation(reading, guidance)}
+
+      <section class="first-reading-guidance" aria-labelledby="first-reading-guidance-title">
+        <div class="first-reading-section-heading">
+          <span>PR&Oacute;XIMO PASSO</span>
+          <h2 id="first-reading-guidance-title">SEU PRIMEIRO DIRECIONAMENTO</h2>
+        </div>
+        <div class="first-reading-guidance-grid">
+          <article><span>${icon("spark")} Frase de alinhamento</span><strong>&ldquo;${copy.mantra}&rdquo;</strong></article>
+          <article><span>${icon("target")} A&ccedil;&atilde;o inicial</span><strong>${escapeHtml(action || "Escolha uma a&ccedil;&atilde;o simples e poss&iacute;vel.")}</strong></article>
+          <article><span>${icon("compass")} Pergunta de reflex&atilde;o</span><strong>${escapeHtml(interpretation.reflectionQuestion || "O que merece sua aten&ccedil;&atilde;o agora?")}</strong></article>
+        </div>
+        <p>Na A&ccedil;&atilde;o do Dia voc&ecirc; encontrar&aacute; a orienta&ccedil;&atilde;o pr&aacute;tica atualizada para aplicar este direcionamento.</p>
+      </section>
+
+      <nav class="first-reading-actions" aria-label="Pr&oacute;ximos passos da primeira leitura">
+        <button class="button-primary button-large" data-route="my-day" type="button">Ver minha A&ccedil;&atilde;o do Dia ${icon("arrow")}</button>
+        <button class="button-ghost button-large" data-route="protocol" type="button">Abrir Protocolo Di&aacute;rio</button>
+        <button class="button-text" data-route="journey" type="button">Conhecer minha Jornada</button>
+        <button class="first-reading-calculation-link" data-open-reading-details type="button">Entender os c&aacute;lculos desta leitura</button>
+      </nav>
+
+      ${EnergyCycleShortcutCard("is-result")}
+      ${ReadingDetailsSection(reading, guidance)}
     </section>
   `;
 }
@@ -2957,6 +3074,43 @@ function OnboardingAreaSelector() {
   `;
 }
 
+function OnboardingProcessingState() {
+  const steps = [
+    "Confirmando sua base pessoal",
+    "Calculando a coordenada do dia",
+    "Relacionando seus ciclos",
+    "Aplicando a leitura ao tema escolhido",
+    "Salvando seu resultado",
+  ];
+  const failed = state.firstReadingStatus === "failed";
+  return `
+    <section class="onboarding-processing ${failed ? "is-failed" : ""}" aria-live="polite" aria-busy="${failed ? "false" : "true"}">
+      <span class="onboarding-processing-symbol">${icon(failed ? "info" : "spark")}</span>
+      <div class="onboarding-processing-heading">
+        <span>${failed ? "LEITURA PRESERVADA" : "PRIMEIRA LEITURA"}</span>
+        <h1>${failed ? "Sua leitura poder&aacute; ser retomada." : "Estamos preparando sua primeira leitura."}</h1>
+        <p>${failed
+          ? "N&atilde;o foi poss&iacute;vel concluir sua leitura agora. Seus dados foram preservados e voc&ecirc; pode tentar novamente."
+          : "Agora o Drive Mental est&aacute; organizando sua base pessoal, o ciclo do dia e a aplica&ccedil;&atilde;o no tema escolhido."}</p>
+      </div>
+      <ol class="onboarding-processing-steps">
+        ${steps.map((label, index) => {
+          const number = index + 1;
+          const status = failed && number === state.firstReadingStep
+            ? "is-error"
+            : number < state.firstReadingStep
+              ? "is-complete"
+              : number === state.firstReadingStep
+                ? "is-active"
+                : "";
+          return `<li class="${status}"><i>${status === "is-complete" ? icon("check") : number}</i><span>${label}</span></li>`;
+        }).join("")}
+      </ol>
+      ${failed ? '<button class="button-primary button-large" data-retry-first-reading type="button">Tentar novamente</button>' : ""}
+    </section>
+  `;
+}
+
 function OnboardingScreen() {
   const selectedPresentation = {
     general: ["Momento Atual", "ao seu momento atual"],
@@ -2977,6 +3131,18 @@ function OnboardingScreen() {
       ? "Informe sua data completa para continuar."
       : "Verifique a data informada.";
   const isReady = Boolean(isBirthValid && state.selectedAreaId && !isSaving);
+  if (["processing", "failed"].includes(state.firstReadingStatus)) {
+    return `
+      <div class="onboarding-page">
+        <header class="onboarding-header">
+          <div class="public-brand">${BrandMark(true)}<span>Drive Mental</span></div>
+          <div class="onboarding-progress" aria-hidden="true"><span></span></div>
+          <small>Preparando sua leitura</small>
+        </header>
+        <main class="onboarding-processing-main">${OnboardingProcessingState()}</main>
+      </div>
+    `;
+  }
   return `
     <div class="onboarding-page">
       <header class="onboarding-header">
@@ -4095,16 +4261,18 @@ function ChakraDetailScreen() {
 
 function ChakrasScreen() {
   const guidance = readingGuidance(state.reading);
+  const activeEntry = activeReadingHistoryEntry();
+  const isFirstReading = activeEntry && activeEntry.readingType === "first-reading";
   const areaTitle = guidance && guidance.interpretation
     ? guidance.interpretation.areaTitle
     : "Leitura pessoal";
 
   return PlatformShell(`
-    ${AppHeader("Dire&ccedil;&atilde;o de hoje", areaTitle, { back: true })}
+    ${AppHeader(isFirstReading ? "SUA PRIMEIRA LEITURA" : "RESULTADO DA CONSULTA", isFirstReading ? "VIS&Atilde;O GERAL" : areaTitle, { back: true })}
     <section class="result-stack">
-      ${EssentialDirectionCard(state.reading, guidance)}
-      ${EnergyCycleShortcutCard("is-result")}
-      ${ReadingDetailsSection(state.reading, guidance)}
+      ${isFirstReading
+        ? FirstReadingResult(state.reading, guidance)
+        : `${EssentialDirectionCard(state.reading, guidance)}${EnergyCycleShortcutCard("is-result")}${ReadingDetailsSection(state.reading, guidance)}`}
     </section>
   `);
 }
@@ -5783,7 +5951,54 @@ function submitAdminSettings(formData) {
   });
 }
 
-function submitOnboarding(birthValue) {
+function currentEngineVersion() {
+  return window.DriveAstralSincronario
+    && window.DriveAstralSincronario.constants
+    && window.DriveAstralSincronario.constants.ENGINE_VERSION
+    ? window.DriveAstralSincronario.constants.ENGINE_VERSION
+    : "unknown";
+}
+
+function firstReadingIdempotencyKey({ userId, areaId, readingDate, engineVersion }) {
+  return [
+    "first-reading",
+    userId || "local-user",
+    areaId,
+    readingDate,
+    engineVersion,
+  ].map((part) => String(part || "unknown").replace(/[^a-zA-Z0-9._-]/g, "-")).join(":");
+}
+
+function completeFirstReading(entry, account) {
+  const normalizedEntry = normalizeHistoryEntry(entry);
+  if (!normalizedEntry || !normalizedEntry.readingSnapshot) {
+    throw new Error("FIRST_READING_SNAPSHOT_INVALID");
+  }
+  const completedAccount = { ...account, onboardingComplete: true };
+  if (!isSupabaseMode()) saveLocalAccount(completedAccount);
+  setState({
+    route: "chakras",
+    account: completedAccount,
+    authenticated: true,
+    name: completedAccount.name,
+    birth: completedAccount.birth,
+    selectedAreaId: completedAccount.primaryAreaId,
+    reading: readingForHistoryEntry(normalizedEntry),
+    activeHistoryId: normalizedEntry.readingId,
+    requestedReadingId: normalizedEntry.readingId,
+    history: [normalizedEntry, ...normalizedHistoryList(state.history).filter((item) => item.readingId !== normalizedEntry.readingId)].slice(0, 8),
+    firstReadingStatus: "completed",
+    firstReadingStep: 5,
+    firstReadingError: "",
+    authNotice: "",
+    authNoticeKind: "",
+  }, { persist: true, updateUrl: true });
+}
+
+async function submitOnboarding(birthValue) {
+  if (state.firstReadingStatus === "processing") {
+    return;
+  }
   const birth = String(birthValue || "").trim();
   const validation = validateBirthDateForProduct(birth);
   const area = selectedConsultationArea();
@@ -5820,51 +6035,90 @@ function submitOnboarding(birthValue) {
     name: (state.account && state.account.name) || state.name || "",
     birth,
     primaryAreaId: area.id,
-    onboardingComplete: true,
+    onboardingComplete: false,
     updatedAt: new Date().toISOString(),
   };
 
-  if (isSupabaseMode()) {
-    setState({
-      birth,
-      authNotice: "Preparando sua leitura...",
-      authNoticeKind: "",
-    });
-    supabaseService().updateProfile({
-      name: account.name,
-      birth,
-      primaryAreaId: area.id,
-    }).then((remoteAccount) => {
-      setState({
-        route: "dashboard",
-        account: remoteAccount,
-        authenticated: true,
-        name: remoteAccount.name,
-        birth: remoteAccount.birth,
-        selectedAreaId: remoteAccount.primaryAreaId,
-        authNotice: "",
-        authNoticeKind: "",
-      }, { persist: true, updateUrl: true });
-    }).catch(() => {
-      setState({
-        authNotice: "N&atilde;o foi poss&iacute;vel salvar o perfil. Tente novamente.",
-        authNoticeKind: "error",
-      });
-    });
-    return;
-  }
-
-  saveLocalAccount(account);
   setState({
-    route: "dashboard",
-    account,
-    authenticated: true,
-    name: account.name,
     birth,
-    selectedAreaId: area.id,
+    firstReadingStatus: "processing",
+    firstReadingStep: 1,
+    firstReadingError: "",
     authNotice: "",
     authNoticeKind: "",
-  }, { persist: true, updateUrl: true });
+  });
+
+  try {
+    const persistedAccount = isSupabaseMode()
+      ? await supabaseService().updateProfile({
+          name: account.name,
+          birth,
+          primaryAreaId: area.id,
+        })
+      : account;
+    if (!isSupabaseMode()) saveLocalAccount(persistedAccount);
+
+    const readingDate = todayForEngine();
+    const engineVersion = currentEngineVersion();
+    const idempotencyKey = firstReadingIdempotencyKey({
+      userId: persistedAccount.id || persistedAccount.email || "local-user",
+      areaId: area.id,
+      readingDate,
+      engineVersion,
+    });
+    const localExisting = normalizedHistoryList(state.history).find((entry) => (
+      entry.readingId === idempotencyKey
+      || (
+        entry.readingType === "first-reading"
+        && entry.areaId === area.id
+        && entry.engineVersion === engineVersion
+        && entry.readingSnapshot
+        && entry.readingSnapshot.input
+        && entry.readingSnapshot.input.current_date
+        && entry.readingSnapshot.input.current_date.value === readingDate
+      )
+    ));
+    const existing = isSupabaseMode()
+      ? await supabaseService().findFirstReading({ areaId: area.id, readingDate, engineVersion })
+      : localExisting;
+    if (existing) {
+      completeFirstReading(existing, persistedAccount);
+      return;
+    }
+
+    setState({ firstReadingStep: 2 });
+    const reading = calculateReading(birth, area.id);
+    if (!personalKin(reading)) throw new Error("FIRST_READING_CALCULATION_FAILED");
+    setState({ firstReadingStep: 3 });
+    if (!reading.coordinates || !reading.coordinates.synchronization) {
+      throw new Error("FIRST_READING_SYNCHRONIZATION_FAILED");
+    }
+    setState({ firstReadingStep: 4 });
+    const guidance = readingGuidance(reading);
+    if (!guidance || !guidance.interpretation) {
+      throw new Error("FIRST_READING_INTERPRETATION_FAILED");
+    }
+    const historyEntry = createReadingHistoryEntry({
+      name: persistedAccount.name,
+      birth,
+      area,
+      reading,
+      readingId: idempotencyKey,
+      readingType: "first-reading",
+    });
+    setState({ firstReadingStep: 5 });
+    const savedEntry = isSupabaseMode()
+      ? await supabaseService().saveReading(historyEntry)
+      : historyEntry;
+    completeFirstReading(savedEntry, persistedAccount);
+  } catch {
+    setState({
+      firstReadingStatus: "failed",
+      firstReadingError: "FIRST_READING_FAILED",
+      authNotice: "N&atilde;o foi poss&iacute;vel concluir sua leitura agora. Seus dados foram preservados e voc&ecirc; pode tentar novamente.",
+      authNoticeKind: "error",
+    });
+  }
 }
 
 function submitAlignment(nameValue, birthValue) {
@@ -6562,6 +6816,24 @@ function bindEvents() {
     });
   });
 
+  document.querySelectorAll("[data-open-reading-details]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const details = document.querySelector("#reading-details details");
+      if (!details) return;
+      details.open = true;
+      if (typeof details.focus === "function") {
+        details.setAttribute("tabindex", "-1");
+        details.focus();
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-retry-first-reading]").forEach((button) => {
+    button.addEventListener("click", () => {
+      submitOnboarding(state.birth);
+    });
+  });
+
   const form = document.getElementById("alignment-form");
   if (form) {
     form.addEventListener("submit", (event) => {
@@ -6692,11 +6964,26 @@ async function initializeSupabaseSession() {
     }
     const cloudState = await supabaseService().loadCloudState();
     const history = normalizedHistoryList(cloudState.history);
-    const currentRoute = routeStateFromLocation().route;
-    const targetRoute = ["landing", "login", "signup"].includes(currentRoute)
-      ? (account.onboardingComplete ? "dashboard" : "onboarding")
-      : currentRoute;
-    const latestEntry = history[0] || null;
+    const currentRouteState = routeStateFromLocation();
+    const currentRoute = currentRouteState.route;
+    const requestedEntry = currentRouteState.requestedReadingId
+      ? await supabaseService().loadReadingById(currentRouteState.requestedReadingId)
+      : null;
+    const firstReadingEntry = (requestedEntry && requestedEntry.readingType === "first-reading" ? requestedEntry : null)
+      || history.find((entry) => entry.readingType === "first-reading")
+      || null;
+    const returningToCompletedOnboarding = currentRoute === "onboarding" && account.onboardingComplete;
+    const targetRoute = currentRouteState.requestedReadingId
+      ? (requestedEntry ? "chakras" : "dashboard")
+      : returningToCompletedOnboarding
+        ? (firstReadingEntry ? "chakras" : "dashboard")
+        : ["landing", "login", "signup"].includes(currentRoute)
+          ? (account.onboardingComplete ? "dashboard" : "onboarding")
+          : currentRoute;
+    const latestEntry = requestedEntry || (returningToCompletedOnboarding ? firstReadingEntry : null) || history[0] || null;
+    const resolvedHistory = latestEntry
+      ? [latestEntry, ...history.filter((entry) => entry.readingId !== latestEntry.readingId)].slice(0, 8)
+      : history;
     setState({
       route: targetRoute,
       account,
@@ -6704,12 +6991,17 @@ async function initializeSupabaseSession() {
       name: account.name || "",
       birth: account.birth || "",
       selectedAreaId: account.primaryAreaId || "",
-      history,
+      history: resolvedHistory,
       timelineEvents: normalizedTimelineEvents(cloudState.timelineEvents),
       reading: latestEntry ? readingForHistoryEntry(latestEntry) : state.reading,
       activeHistoryId: latestEntry ? latestEntry.readingId : state.activeHistoryId,
+      requestedReadingId: latestEntry ? latestEntry.readingId : "",
+      firstReadingStatus: firstReadingEntry ? "completed" : state.firstReadingStatus,
       authNotice: "",
       authNoticeKind: "",
+      notice: currentRouteState.requestedReadingId && !requestedEntry
+        ? "Esta leitura n&atilde;o est&aacute; dispon&iacute;vel para sua conta."
+        : state.notice,
     }, { persist: true, updateUrl: true, replaceUrl: true });
     await hydrateSupabaseProgress();
   } catch {

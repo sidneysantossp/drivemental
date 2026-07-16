@@ -1,4 +1,4 @@
-const CACHE_VERSION = "drive-mental-web-v30";
+const CACHE_VERSION = "drive-mental-web-v31";
 const APP_SHELL = [
   "/",
   "/index.html",

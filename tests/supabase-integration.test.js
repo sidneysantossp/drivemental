@@ -17,6 +17,10 @@ const adminUsersPlansMigration = fs.readFileSync(
   "supabase/migrations/202606240003_admin_users_plans.sql",
   "utf8",
 );
+const firstReadingMigration = fs.readFileSync(
+  "supabase/migrations/202607160001_first_reading_flow.sql",
+  "utf8",
+);
 const deleteAccount = fs.readFileSync(
   "supabase/functions/delete-account/index.ts",
   "utf8",
@@ -72,6 +76,11 @@ assert.ok(adminUsersPlansMigration.includes("grant select, insert, update on pub
 assert.ok(adminUsersPlansMigration.includes("grant select, insert, update on public.user_access_plans to authenticated"));
 assert.ok(adminUsersPlansMigration.includes("'premium'"));
 assert.ok(adminUsersPlansMigration.includes("'mentor'"));
+assert.ok(firstReadingMigration.includes("reading_type text not null default 'consultation'"));
+assert.ok(firstReadingMigration.includes("reading_status text not null default 'completed'"));
+assert.ok(firstReadingMigration.includes("'first-reading'"));
+assert.ok(firstReadingMigration.includes("readings_first_reading_lookup_idx"));
+assert.ok(firstReadingMigration.includes("revoke update on public.readings from authenticated"));
 
 assert.ok(deleteAccount.includes("auth.admin.deleteUser"));
 assert.ok(deleteAccount.includes("auth.getUser"));
@@ -92,6 +101,11 @@ assert.ok(clientSource.includes("listAdminUsers"));
 assert.ok(clientSource.includes("listAdminPlans"));
 assert.ok(clientSource.includes("saveAdminPlan"));
 assert.ok(clientSource.includes("assignAdminUserPlan"));
+assert.ok(clientSource.includes("loadReadingById"));
+assert.ok(clientSource.includes("findFirstReading"));
+assert.ok(clientSource.includes("loadLatestFirstReading"));
+assert.ok(clientSource.includes('.eq("reading_type", "first-reading")'));
+assert.ok(clientSource.includes('.eq("idempotency_key", readingId)'));
 assert.ok(clientSource.includes('from("admin_roles")'));
 assert.ok(clientSource.includes('from("app_settings")'));
 assert.ok(clientSource.includes('from("profiles")'));

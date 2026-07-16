@@ -75,7 +75,7 @@
       .sort((left, right) => (planWeight[right.plan_id] || 0) - (planWeight[left.plan_id] || 0))[0] || null;
   }
 
-  function accountFrom(user, profile, accessPlans = []) {
+  function accountFrom(user, profile, accessPlans = [], hasFirstReading = false) {
     if (!user) {
       return null;
     }
@@ -86,7 +86,7 @@
       name: profile?.display_name || user.user_metadata?.display_name || "",
       birth: profile?.birth_date || "",
       primaryAreaId: profile?.primary_area_id || "",
-      onboardingComplete: Boolean(profile?.birth_date && profile?.primary_area_id),
+      onboardingComplete: Boolean(profile?.birth_date && profile?.primary_area_id && hasFirstReading),
       accessMode: "supabase",
       planId: activeAccess?.plan_id || "free",
       accessPlans,
@@ -127,8 +127,11 @@
     if (profileError) {
       throw profileError;
     }
-    const accessPlans = await loadCurrentAccessPlans(user.id);
-    return accountFrom(user, profile, accessPlans);
+    const [accessPlans, firstReading] = await Promise.all([
+      loadCurrentAccessPlans(user.id),
+      loadLatestFirstReading(),
+    ]);
+    return accountFrom(user, profile, accessPlans, Boolean(firstReading));
   }
 
   async function signUp({ name, email, password, privacyVersion, termsVersion }) {
@@ -225,6 +228,65 @@
     return getAccount();
   }
 
+  function readingEntryFromRow(row) {
+    return row && row.payload && row.payload.historyEntry ? row.payload.historyEntry : null;
+  }
+
+  async function loadLatestFirstReading() {
+    const client = await getClient();
+    if (!client) {
+      return null;
+    }
+    const { data, error } = await client
+      .from("readings")
+      .select("payload")
+      .eq("reading_type", "first-reading")
+      .eq("reading_status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return readingEntryFromRow(data);
+  }
+
+  async function loadReadingById(readingId) {
+    const client = await getClient();
+    if (!client || !readingId) {
+      return null;
+    }
+    const { data, error } = await client
+      .from("readings")
+      .select("payload")
+      .eq("idempotency_key", readingId)
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return readingEntryFromRow(data);
+  }
+
+  async function findFirstReading({ areaId, readingDate, engineVersion }) {
+    const client = await getClient();
+    if (!client) {
+      return null;
+    }
+    const { data, error } = await client
+      .from("readings")
+      .select("payload")
+      .eq("reading_type", "first-reading")
+      .eq("focus_area_id", areaId)
+      .eq("reading_date", readingDate)
+      .eq("engine_version", engineVersion)
+      .eq("reading_status", "completed")
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return readingEntryFromRow(data);
+  }
+
   async function saveReading(entry) {
     const client = await getClient();
     if (!client) {
@@ -235,9 +297,11 @@
       throw userError || new Error("AUTH_REQUIRED");
     }
     const reading = entry.readingSnapshot || {};
-    const { error } = await client.from("readings").upsert({
+    const payload = {
       user_id: userData.user.id,
       idempotency_key: entry.readingId,
+      reading_type: entry.readingType || "consultation",
+      reading_status: entry.readingStatus || "completed",
       focus_area_id: entry.areaId || "general",
       birth_date: entry.inputSnapshot?.birthDate,
       reading_date: reading?.input?.current_date?.value || entry.date,
@@ -247,12 +311,20 @@
         reading,
         historyEntry: entry,
       },
-    }, {
-      onConflict: "user_id,idempotency_key",
-    });
+    };
+    const { data, error } = await client
+      .from("readings")
+      .insert(payload)
+      .select("payload")
+      .single();
+    if (error && error.code === "23505") {
+      const existing = await loadReadingById(entry.readingId);
+      if (existing) return existing;
+    }
     if (error) {
       throw error;
     }
+    return readingEntryFromRow(data) || entry;
   }
 
   async function loadCloudState() {
@@ -558,6 +630,9 @@
     updatePassword,
     updateProfile,
     saveReading,
+    loadReadingById,
+    findFirstReading,
+    loadLatestFirstReading,
     loadCloudState,
     saveTimelineEvent,
     saveJourneyProgress,

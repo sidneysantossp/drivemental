@@ -263,10 +263,74 @@ assert.ok(invalidBirthOnboardingHtml.includes("Verifique a data informada."));
 assert.ok(invalidBirthOnboardingHtml.includes('class="onboarding-field-status is-invalid"'));
 
 vm.runInContext('submitOnboarding("1990-01-01")', onboardingContext);
-assert.strictEqual(vm.runInContext("state.route", onboardingContext), "dashboard");
+assert.strictEqual(vm.runInContext("state.route", onboardingContext), "chakras");
 assert.strictEqual(vm.runInContext("state.account.primaryAreaId", onboardingContext), "work-prosperity");
 assert.strictEqual(vm.runInContext("state.account.birth", onboardingContext), "1990-01-01");
-assert.strictEqual(onboardingContext.location.pathname, "/app");
+assert.strictEqual(vm.runInContext("state.history.length", onboardingContext), 1);
+assert.strictEqual(vm.runInContext("state.history[0].readingType", onboardingContext), "first-reading");
+assert.strictEqual(vm.runInContext("state.history[0].readingStatus", onboardingContext), "completed");
+assert.ok(onboardingContext.location.pathname.startsWith("/app/consulta/resultado/first-reading%3A"));
+const firstReadingResultHtml = onboardingContext.__getHtml();
+assert.ok(firstReadingResultHtml.includes("SUA PRIMEIRA LEITURA"));
+assert.ok(firstReadingResultHtml.includes("LEITURA CONCLU&Iacute;DA"));
+assert.ok(firstReadingResultHtml.includes("COMO CHEGAMOS A ESTA LEITURA"));
+assert.ok(firstReadingResultHtml.includes("SUA BASE PESSOAL"));
+assert.ok(firstReadingResultHtml.includes("O CICLO DO DIA"));
+assert.ok(firstReadingResultHtml.includes("A APLICA&Ccedil;&Atilde;O"));
+assert.ok(firstReadingResultHtml.includes("SEU PRIMEIRO DIRECIONAMENTO"));
+assert.ok(firstReadingResultHtml.includes("Ver minha A&ccedil;&atilde;o do Dia"));
+assert.ok(firstReadingResultHtml.includes("Abrir Protocolo Di&aacute;rio"));
+assert.ok(firstReadingResultHtml.includes("Conhecer minha Jornada"));
+assert.ok(firstReadingResultHtml.includes("Entender os c&aacute;lculos desta leitura"));
+vm.runInContext('submitOnboarding("1990-01-01")', onboardingContext);
+assert.strictEqual(vm.runInContext("state.history.length", onboardingContext), 1);
+
+const processingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
+processingContext.setState({
+  route: "onboarding",
+  firstReadingStatus: "processing",
+  firstReadingStep: 3,
+});
+const processingHtml = processingContext.__getHtml();
+assert.ok(processingHtml.includes("Estamos preparando sua primeira leitura."));
+assert.ok(processingHtml.includes('aria-busy="true"'));
+assert.ok(processingHtml.includes("Relacionando seus ciclos"));
+processingContext.setState({ firstReadingStatus: "failed", firstReadingStep: 5 });
+const failedFirstReadingHtml = processingContext.__getHtml();
+assert.ok(failedFirstReadingHtml.includes("N&atilde;o foi poss&iacute;vel concluir sua leitura agora."));
+assert.ok(failedFirstReadingHtml.includes("Tentar novamente"));
+assert.ok(failedFirstReadingHtml.includes('aria-busy="false"'));
+
+const directReadingRouteContext = createBrowserLikeContext(
+  "http://localhost:4173/app/consulta/resultado/first-reading%3Atest-user%3Ageneral%3A2026-06-05%3A0.4.0",
+);
+assert.strictEqual(vm.runInContext("state.route", directReadingRouteContext), "chakras");
+assert.strictEqual(
+  vm.runInContext("state.requestedReadingId", directReadingRouteContext),
+  "first-reading:test-user:general:2026-06-05:0.4.0",
+);
+
+const invalidOnboardingAreaContext = createBrowserLikeContext("http://localhost:4173/onboarding");
+invalidOnboardingAreaContext.setState({
+  route: "onboarding",
+  birth: "1990-01-01",
+  selectedAreaId: "",
+  firstReadingStatus: "pending",
+});
+vm.runInContext('submitOnboarding("1990-01-01")', invalidOnboardingAreaContext);
+assert.strictEqual(vm.runInContext("state.route", invalidOnboardingAreaContext), "onboarding");
+assert.ok(invalidOnboardingAreaContext.__getHtml().includes("Escolha uma &aacute;rea principal para concluir."));
+
+const duplicateBlockedContext = createBrowserLikeContext("http://localhost:4173/onboarding");
+duplicateBlockedContext.setState({
+  route: "onboarding",
+  birth: "1990-01-01",
+  selectedAreaId: "general",
+  firstReadingStatus: "processing",
+  history: [],
+});
+vm.runInContext('submitOnboarding("1990-01-01")', duplicateBlockedContext);
+assert.strictEqual(vm.runInContext("state.history.length", duplicateBlockedContext), 0);
 
 const adminDashboardContext = createBrowserLikeContext("http://localhost:4173/admin");
 const adminDashboardHtml = adminDashboardContext.__getHtml();
@@ -496,7 +560,7 @@ resultContext.setState({
 }, { persist: true });
 
 const resultHtml = resultContext.__getHtml();
-assert.ok(resultHtml.includes("Dire&ccedil;&atilde;o de hoje"));
+assert.ok(resultHtml.includes("RESULTADO DA CONSULTA"));
 assert.ok(resultHtml.includes("Sua resposta essencial"));
 assert.ok(resultHtml.includes("Organize antes de expandir."));
 assert.ok(resultHtml.includes("Frase de alinhamento"));
@@ -506,7 +570,7 @@ assert.ok(resultHtml.includes("Abrir protocolo di&aacute;rio"));
 assert.ok(resultHtml.includes("Entenda sua leitura"));
 assert.ok(resultHtml.includes("Veja Kins, coordenadas e aplica&ccedil;&otilde;es da leitura."));
 assert.ok(resultHtml.includes("Ciclo Energ&eacute;tico"));
-assert.ok(resultHtml.includes("Abrir Ciclo Energ&eacute;tico"));
+assert.ok(resultHtml.includes("Ver Ciclo Energ&eacute;tico"));
 assert.ok(resultHtml.includes("Resumo do GPS de Hoje"));
 assert.ok(resultHtml.includes("Suas Coordenadas de Nascimento"));
 assert.ok(resultHtml.includes("Coordenadas do Dia"));
@@ -633,7 +697,7 @@ assert.ok(mentorDashboardContext.__getHtml().includes("MENTOR</span>"));
 const summaryIndex = resultHtml.indexOf("Resumo do GPS de Hoje");
 const essentialIndex = resultHtml.indexOf("Sua resposta essencial");
 const detailsIndex = resultHtml.indexOf("Entenda sua leitura");
-const energyCycleShortcutIndex = resultHtml.indexOf("Abrir Ciclo Energ&eacute;tico");
+const energyCycleShortcutIndex = resultHtml.indexOf("Ver Ciclo Energ&eacute;tico");
 const applicationIndex = resultHtml.indexOf("Aplica&ccedil;&atilde;o na &Aacute;rea Escolhida");
 const birthCoordinatesIndex = resultHtml.indexOf("Suas Coordenadas de Nascimento");
 const dayCoordinatesIndex = resultHtml.indexOf("Coordenadas do Dia");
