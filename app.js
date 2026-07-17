@@ -3304,7 +3304,9 @@ function CosmicBackground() {
       <span class="star-field"></span>
       <span class="star-layer stars-mid"></span>
       <span class="star-layer stars-near"></span>
-      <canvas class="constellation-field"></canvas>
+      <div class="constellation-field-wrap">
+        <canvas class="constellation-field"></canvas>
+      </div>
       <span class="cosmic-orbit orbit-one"></span>
       <span class="cosmic-orbit orbit-two"></span>
       <span class="cosmic-glints">
