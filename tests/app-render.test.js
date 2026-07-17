@@ -813,7 +813,42 @@ const myDayHtml = myDayContext.__getHtml();
 assert.ok(myDayHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
 assert.ok(myDayHtml.includes("Frase do dia"));
 assert.ok(myDayHtml.includes("A&ccedil;&atilde;o do dia"));
+assert.ok(myDayHtml.includes("Pergunta do dia"));
+assert.strictEqual((myDayHtml.match(/FOCO DE HOJE/g) || []).length, 1);
+assert.strictEqual((myDayHtml.match(/class="daily-focus-card"/g) || []).length, 1);
+assert.strictEqual((myDayHtml.match(/class="daily-focus-item"/g) || []).length, 4);
+assert.ok(myDayHtml.indexOf('class="daily-triad dashboard-today-guidance"') < myDayHtml.indexOf('class="daily-focus-card"'));
+assert.ok(!myDayHtml.slice(
+  myDayHtml.indexOf('class="daily-triad dashboard-today-guidance"'),
+  myDayHtml.indexOf('class="daily-focus-card"'),
+).includes("daily-focus-card"));
+assert.ok(myDayHtml.includes("protocolo de hoje."));
+assert.ok(myDayHtml.includes("0 de 3 momentos conclu&iacute;dos."));
+assert.ok(myDayHtml.includes("iniciar"));
 assert.ok(myDayHtml.includes("VER CICLO ENERG&Eacute;TICO"));
+
+const protocolDate = vm.runInContext("protocolDateKey()", myDayContext);
+myDayContext.localStorage.setItem("drive-astral-protocol-progress", JSON.stringify({
+  date: protocolDate,
+  completed: ["morning", "day"],
+}));
+myDayContext.setState({ route: "my-day" });
+const partialProtocolMyDayHtml = myDayContext.__getHtml();
+assert.strictEqual((partialProtocolMyDayHtml.match(/FOCO DE HOJE/g) || []).length, 1);
+assert.ok(partialProtocolMyDayHtml.includes("Continue de onde parou."));
+assert.ok(partialProtocolMyDayHtml.includes("2 de 3 momentos conclu&iacute;dos."));
+assert.ok(partialProtocolMyDayHtml.includes("Em andamento"));
+
+myDayContext.localStorage.setItem("drive-astral-protocol-progress", JSON.stringify({
+  date: protocolDate,
+  completed: ["morning", "day", "night"],
+}));
+myDayContext.setState({ route: "my-day" });
+const completedProtocolMyDayHtml = myDayContext.__getHtml();
+assert.strictEqual((completedProtocolMyDayHtml.match(/FOCO DE HOJE/g) || []).length, 1);
+assert.ok(completedProtocolMyDayHtml.includes("foi conclu"));
+assert.ok(completedProtocolMyDayHtml.includes("3 de 3 momentos conclu&iacute;dos."));
+assert.ok(completedProtocolMyDayHtml.includes("Conclu"));
 
 freeDashboardContext.setState({ route: "home", selectedAreaId: "love-relationships", upgradeModalOpen: false });
 const lockedHomeHtml = freeDashboardContext.__getHtml();

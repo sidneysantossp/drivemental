@@ -3993,7 +3993,7 @@ function DailyDirectionSection() {
   }
 
   return `
-    <section class="dashboard-today-card">
+    <section class="daily-direction dashboard-today-card">
       <div class="dashboard-today-heading">
         <div>
           <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()} &middot; SUA DIRE&Ccedil;&Atilde;O DE HOJE</span>
@@ -4003,7 +4003,7 @@ function DailyDirectionSection() {
         </div>
         <span class="dashboard-today-symbol">${icon("compass")}</span>
       </div>
-      <div class="dashboard-today-guidance">
+      <div class="daily-triad dashboard-today-guidance">
         <article>
           <span>${icon("spark")} Frase do dia</span>
           <strong>&ldquo;${escapeHtml(todayMantra)}&rdquo;</strong>
@@ -4018,7 +4018,7 @@ function DailyDirectionSection() {
         </article>
       </div>
 
-      <div class="daily-focus-card golden-card">
+      <div class="daily-focus-card">
         <div class="daily-focus-header">
           ${icon("target")}
           <span>FOCO DE HOJE</span>
