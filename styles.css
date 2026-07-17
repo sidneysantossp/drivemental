@@ -7545,7 +7545,7 @@ body {
 
 .dashboard-today-guidance {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-top: 28px;
 }
@@ -7559,6 +7559,24 @@ body {
   border: 1px solid rgba(214, 165, 58, 0.17);
   border-radius: 13px;
   background: rgba(1, 15, 12, 0.48);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-today-guidance {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-today-guidance article:nth-child(3) {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-today-guidance {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-today-guidance article:nth-child(3) {
+    grid-column: auto;
+  }
 }
 
 .dashboard-today-guidance article > span {
@@ -12123,5 +12141,130 @@ html {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+}
+
+/* Ação do Dia updates */
+.dashboard-today-metadata {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.focus-today-card {
+  margin-top: 24px;
+}
+
+.focus-today-block {
+  padding: 8px 0;
+}
+
+.focus-today-block h3 {
+  color: var(--gold-light);
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  margin-top: 0;
+  margin-bottom: 18px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.focus-today-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.focus-today-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.focus-today-item span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.focus-today-item strong {
+  color: var(--text);
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.myday-actions-block {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.myday-actions-row {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+}
+
+.myday-actions-row button {
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+  height: 48px;
+}
+
+.myday-actions-link {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.myday-actions-link button.button-text {
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--gold-light);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.myday-actions-link button.button-text:hover {
+  text-decoration: underline;
+  color: var(--gold);
+}
+
+.platform-route-my-day .screen.portal-content {
+  min-height: auto;
+  padding-bottom: 44px;
+}
+
+.platform-route-my-day .energy-cycle-shortcut {
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .focus-today-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .myday-actions-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .myday-actions-row button {
+    width: 100%;
+  }
+  .myday-actions-link {
+    justify-content: center;
   }
 }

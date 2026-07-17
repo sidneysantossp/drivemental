@@ -749,7 +749,7 @@ assert.ok(freeDashboardHtml.includes("FREE</span>"));
 assert.ok(freeDashboardHtml.includes(">Home</span>"));
 assert.ok(freeDashboardHtml.includes(">A&ccedil;&atilde;o do dia</span>"));
 assert.ok(!freeDashboardHtml.includes("Conta sincronizada"));
-assert.ok(!freeDashboardHtml.includes("Abrir Ciclo Energ&eacute;tico"));
+assert.ok(!freeDashboardHtml.includes("VER CICLO ENERG&Eacute;TICO"));
 assert.ok(freeDashboardHtml.includes("Desbloquear"));
 assert.ok(freeDashboardHtml.includes("data-open-upgrade-modal"));
 assert.ok(freeDashboardHtml.includes("Bloqueada pelo plano"));
@@ -813,7 +813,7 @@ const myDayHtml = myDayContext.__getHtml();
 assert.ok(myDayHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
 assert.ok(myDayHtml.includes("Frase do dia"));
 assert.ok(myDayHtml.includes("A&ccedil;&atilde;o do dia"));
-assert.ok(myDayHtml.includes("Abrir Ciclo Energ&eacute;tico"));
+assert.ok(myDayHtml.includes("VER CICLO ENERG&Eacute;TICO"));
 
 freeDashboardContext.setState({ route: "home", selectedAreaId: "love-relationships", upgradeModalOpen: false });
 const lockedHomeHtml = freeDashboardContext.__getHtml();

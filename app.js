@@ -2363,7 +2363,7 @@ function EnergyCycleShortcutCard(className = "") {
         <h2>${resultCopy ? "Plasmas e chakras como coordenadas do ciclo." : "Veja a sequ&ecirc;ncia dos plasmas e chakras com mais clareza."}</h2>
         <p>${resultCopy ? "Veja como plasmas e chakras estruturais aparecem no ciclo, sem trat&aacute;-los como diagn&oacute;stico individual." : "Uma p&aacute;gina dedicada para entender o ciclo simb&oacute;lico natural sem misturar com o resultado principal."}</p>
       </div>
-      <button class="button-primary" data-route="energy-cycle" type="button">${resultCopy ? "Ver Ciclo Energ&eacute;tico" : "Abrir Ciclo Energ&eacute;tico"} ${icon("arrow")}</button>
+      <button class="button-primary" data-route="energy-cycle" type="button">${resultCopy ? "Ver Ciclo Energ&eacute;tico" : "VER CICLO ENERG&Eacute;TICO"} ${icon("arrow")}</button>
     </section>
   `;
 }
@@ -3894,7 +3894,6 @@ function BottomNavigation() {
     </nav>
   `;
 }
-
 function DailyDirectionSection() {
   const name = (state.account && state.account.name) || state.name || "viajante";
   const kin = personalKin(state.reading);
@@ -3903,15 +3902,21 @@ function DailyDirectionSection() {
   const areaId = interpretation ? interpretation.areaId : "general";
   const direction = essentialDirectionCopy[areaId] || essentialDirectionCopy.general;
   const suggestedAction = interpretation && (interpretation.dailyPractice || interpretation.suggestedPractice);
+  const suggestedQuestion = interpretation && interpretation.reflectionQuestion;
   const journeyProgress = kin ? loadJourneyProgress() : null;
   const journeyDay = journeyProgress ? currentJourneyDay(journeyProgress) : 1;
-  const journeyCompleted = journeyProgress ? journeyProgress.completedDays.length : 0;
-  const journeyPercent = Math.round((journeyCompleted / 30) * 100);
+  const journeyCompletedCount = journeyProgress
+    ? (Array.isArray(journeyProgress.completedDays) ? journeyProgress.completedDays.length : 0)
+    : 0;
+  const journeyCompleted = journeyCompletedCount >= 30;
   const journeyToday = journeyProgress ? journeyPlan()[journeyDay - 1] : null;
   const todayMantra = journeyToday ? decodeStoredText(journeyToday.mantra) : decodeStoredText(direction.mantra);
   const todayAction = journeyToday
     ? decodeStoredText(journeyToday.action)
     : decodeStoredText(suggestedAction || "Escolha uma a&ccedil;&atilde;o simples e conclua antes de iniciar outra.");
+  const todayQuestion = suggestedQuestion
+    ? decodeStoredText(suggestedQuestion)
+    : "O que merece sua aten&ccedil;&atilde;o agora?";
 
   if (!kin) {
     return `
@@ -3927,11 +3932,60 @@ function DailyDirectionSection() {
     `;
   }
 
+  const areaObj = consultationAreas.find((a) => a.id === areaId);
+  const areaTitle = areaObj ? areaObj.title : "Vis&atilde;o Geral";
+
+  const readingDateVal = state.reading && state.reading.input && state.reading.input.current_date && state.reading.input.current_date.value;
+  const displayDate = readingDateVal ? formatReadingCreatedAtLong(readingDateVal) : "Data indispon&iacute;vel";
+
+  const completedDays = journeyProgress ? (Array.isArray(journeyProgress.completedDays) ? journeyProgress.completedDays : []) : [];
+  const todayCompleted = completedDays.includes(journeyDay);
+
+  let journeyStatusText = "Jornada ainda não iniciada";
+  if (journeyProgress) {
+    if (journeyCompleted) {
+      journeyStatusText = "Jornada conclu&iacute;da";
+    } else {
+      journeyStatusText = `Dia ${journeyDay} de 30`;
+    }
+  }
+
+  const protocolProgress = loadProtocolProgress();
+  const completedMomentsCount = Array.isArray(protocolProgress.completed)
+    ? protocolProgress.completed.length
+    : 0;
+
+  let protocolStatusText = "Você ainda não iniciou a prática de hoje.";
+  if (completedMomentsCount === 3) {
+    protocolStatusText = "A prática de hoje foi concluída.";
+  } else if (completedMomentsCount > 0) {
+    protocolStatusText = "Continue de onde parou.";
+  }
+
+  const dayStatusText = todayCompleted ? "Dia conclu&iacute;do" : "Dia ativo";
+
+  let protocolBtnText = "INICIAR PROTOCOLO DI&Aacute;RIO";
+  if (completedMomentsCount === 3) {
+    protocolBtnText = "REVISAR PROTOCOLO";
+  } else if (completedMomentsCount > 0) {
+    protocolBtnText = "CONTINUAR PROTOCOLO";
+  }
+
+  let journeyBtnText = "INICIAR JORNADA DE 30 DIAS";
+  if (journeyProgress) {
+    if (journeyCompleted) {
+      journeyBtnText = "REVISAR MINHA JORNADA";
+    } else {
+      journeyBtnText = "CONTINUAR MINHA JORNADA";
+    }
+  }
+
   return `
     <section class="dashboard-today-card">
       <div class="dashboard-today-heading">
         <div>
           <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()} &middot; SUA DIRE&Ccedil;&Atilde;O DE HOJE</span>
+          <span class="dashboard-today-metadata">${escapeHtml(areaTitle)} &middot; ${escapeHtml(displayDate)} &middot; ${escapeHtml(journeyStatusText)}</span>
           <h2>${direction.headline}</h2>
           <p>${direction.direction}</p>
         </div>
@@ -3946,15 +4000,48 @@ function DailyDirectionSection() {
           <span>${icon("target")} A&ccedil;&atilde;o do dia</span>
           <strong>${escapeHtml(todayAction)}</strong>
         </article>
+        <article>
+          <span>${icon("compass")} Pergunta do dia</span>
+          <strong>${escapeHtml(todayQuestion)}</strong>
+        </article>
       </div>
-      <div class="dashboard-today-actions">
-        <button class="button-primary" data-route="journey" type="button">${icon("calendar")} ${journeyProgress ? "Abrir meu dia" : "Iniciar jornada de 30 dias"}</button>
-        <button class="button-ghost" data-route="chakras" type="button">Ver minha leitura ${icon("arrow")}</button>
+
+      ${GoldenCard(`
+        <div class="focus-today-block">
+          <h3>Foco de Hoje</h3>
+          <div class="focus-today-grid">
+            <div class="focus-today-item">
+              <span>A&ccedil;&atilde;o principal</span>
+              <strong>${escapeHtml(todayAction)}</strong>
+            </div>
+            <div class="focus-today-item">
+              <span>Status do protocolo</span>
+              <strong>${escapeHtml(protocolStatusText)}</strong>
+            </div>
+            <div class="focus-today-item">
+              <span>Progresso</span>
+              <strong>${completedMomentsCount} de 3 momentos conclu&iacute;dos.</strong>
+            </div>
+            <div class="focus-today-item">
+              <span>Estado do dia</span>
+              <strong>${escapeHtml(dayStatusText)}</strong>
+            </div>
+          </div>
+        </div>
+      `, "focus-today-card")}
+
+      <div class="myday-actions-block">
+        <div class="myday-actions-row">
+          <button class="button-primary" data-route="protocol" type="button">${icon("protocol")} ${protocolBtnText}</button>
+          <button class="button-ghost" data-route="journey" type="button">${icon("calendar")} ${journeyBtnText}</button>
+        </div>
+        <div class="myday-actions-link">
+          <button class="button-text" data-route="chakras" type="button">Rever minha leitura ${icon("arrow")}</button>
+        </div>
       </div>
     </section>
   `;
 }
-
 function MyDayScreen() {
   return PlatformShell(`
     ${DailyDirectionSection()}
