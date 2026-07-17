@@ -3951,18 +3951,28 @@ function DailyDirectionSection() {
   }
 
   const protocolProgress = loadProtocolProgress();
-  const completedMomentsCount = Array.isArray(protocolProgress.completed)
+  const completedMomentsCount = Math.min(3, Math.max(0, Array.isArray(protocolProgress.completed)
     ? protocolProgress.completed.length
-    : 0;
+    : 0));
 
-  let protocolStatusText = "Você ainda não iniciou a prática de hoje.";
+  let protocolStatusText = "Você ainda não iniciou o protocolo de hoje.";
+  let dayStatusText = "Disponível para iniciar";
+
+  if (todayCompleted) {
+    dayStatusText = "Encerrado";
+  } else if (completedMomentsCount === 3) {
+    dayStatusText = "Concluído";
+  } else if (completedMomentsCount > 0) {
+    dayStatusText = "Em andamento";
+  } else {
+    dayStatusText = "Disponível para iniciar";
+  }
+
   if (completedMomentsCount === 3) {
     protocolStatusText = "A prática de hoje foi concluída.";
   } else if (completedMomentsCount > 0) {
     protocolStatusText = "Continue de onde parou.";
   }
-
-  const dayStatusText = todayCompleted ? "Dia conclu&iacute;do" : "Dia ativo";
 
   let protocolBtnText = "INICIAR PROTOCOLO DI&Aacute;RIO";
   if (completedMomentsCount === 3) {
@@ -4008,23 +4018,34 @@ function DailyDirectionSection() {
 
       ${GoldenCard(`
         <div class="focus-today-block">
-          <h3>Foco de Hoje</h3>
+          <header class="focus-today-header">
+            <span class="focus-today-icon">${icon("target")}</span>
+            <span class="focus-today-title">Foco de Hoje</span>
+          </header>
           <div class="focus-today-grid">
-            <div class="focus-today-item">
-              <span>A&ccedil;&atilde;o principal</span>
-              <strong>${escapeHtml(todayAction)}</strong>
+            <!-- Coluna 1 -->
+            <div class="focus-today-col">
+              <div class="focus-today-item">
+                <span class="focus-item-label">A&ccedil;&atilde;o principal</span>
+                <strong class="focus-item-value">${escapeHtml(todayAction)}</strong>
+              </div>
+              <div class="focus-today-item">
+                <span class="focus-item-label">Progresso</span>
+                <strong class="focus-item-value">${completedMomentsCount} de 3 momentos conclu&iacute;dos.</strong>
+              </div>
             </div>
-            <div class="focus-today-item">
-              <span>Status do protocolo</span>
-              <strong>${escapeHtml(protocolStatusText)}</strong>
-            </div>
-            <div class="focus-today-item">
-              <span>Progresso</span>
-              <strong>${completedMomentsCount} de 3 momentos conclu&iacute;dos.</strong>
-            </div>
-            <div class="focus-today-item">
-              <span>Estado do dia</span>
-              <strong>${escapeHtml(dayStatusText)}</strong>
+            <!-- Divisor vertical para desktop -->
+            <div class="focus-today-divider" aria-hidden="true"></div>
+            <!-- Coluna 2 -->
+            <div class="focus-today-col">
+              <div class="focus-today-item">
+                <span class="focus-item-label">Status do protocolo</span>
+                <strong class="focus-item-value">${escapeHtml(protocolStatusText)}</strong>
+              </div>
+              <div class="focus-today-item">
+                <span class="focus-item-label">Estado do dia</span>
+                <strong class="focus-item-value">${escapeHtml(dayStatusText)}</strong>
+              </div>
             </div>
           </div>
         </div>

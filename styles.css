@@ -12159,23 +12159,49 @@ html {
 }
 
 .focus-today-block {
-  padding: 8px 0;
+  padding: 24px 28px;
 }
 
-.focus-today-block h3 {
+.focus-today-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(214, 165, 58, 0.12);
+}
+
+.focus-today-icon {
+  display: flex;
+  align-items: center;
+  color: var(--gold-light);
+}
+
+.focus-today-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.focus-today-title {
   color: var(--gold-light);
   font-family: var(--font-title);
-  font-size: 1.15rem;
-  margin-top: 0;
-  margin-bottom: 18px;
-  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .focus-today-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.focus-today-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .focus-today-item {
@@ -12184,27 +12210,34 @@ html {
   gap: 6px;
 }
 
-.focus-today-item span {
-  color: var(--muted);
-  font-size: 0.76rem;
+.focus-item-label {
+  color: rgba(243, 228, 195, 0.65);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.focus-today-item strong {
-  color: var(--text);
+.focus-item-value {
+  color: #f2e2bf;
   font-size: 0.94rem;
   font-weight: 500;
   line-height: 1.45;
 }
 
+.focus-today-divider {
+  width: 1px;
+  background: rgba(214, 165, 58, 0.12);
+  align-self: stretch;
+}
+
 .myday-actions-block {
-  margin-top: 28px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   align-items: flex-start;
+  width: 100%;
 }
 
 .myday-actions-row {
@@ -12252,11 +12285,24 @@ html {
   margin-top: 24px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .focus-today-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 16px;
   }
+  .focus-today-divider {
+    display: none;
+  }
+  .focus-today-col {
+    gap: 16px;
+  }
+  .focus-today-col:first-of-type {
+    border-bottom: 1px solid rgba(214, 165, 58, 0.08);
+    padding-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
   .myday-actions-row {
     flex-direction: column;
     gap: 12px;
