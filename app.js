@@ -4016,32 +4016,30 @@ function DailyDirectionSection() {
         </article>
       </div>
 
-      ${GoldenCard(`
-        <div class="daily-focus-card">
-          <div class="daily-focus-header">
-            ${icon("target")}
-            <span>FOCO DE HOJE</span>
+      <div class="daily-focus-card golden-card">
+        <div class="daily-focus-header">
+          ${icon("target")}
+          <span>FOCO DE HOJE</span>
+        </div>
+        <div class="daily-focus-grid">
+          <div class="daily-focus-item">
+            <span class="daily-focus-label">AÇÃO PRINCIPAL</span>
+            <p class="daily-focus-value">${escapeHtml(todayAction)}</p>
           </div>
-          <div class="daily-focus-grid">
-            <div class="daily-focus-item">
-              <span class="daily-focus-label">AÇÃO PRINCIPAL</span>
-              <p class="daily-focus-value">${escapeHtml(todayAction)}</p>
-            </div>
-            <div class="daily-focus-item">
-              <span class="daily-focus-label">STATUS DO PROTOCOLO</span>
-              <p class="daily-focus-value">${escapeHtml(protocolStatusText)}</p>
-            </div>
-            <div class="daily-focus-item">
-              <span class="daily-focus-label">PROGRESSO</span>
-              <p class="daily-focus-value">${completedMomentsCount} de 3 momentos conclu&iacute;dos.</p>
-            </div>
-            <div class="daily-focus-item">
-              <span class="daily-focus-label">ESTADO DO DIA</span>
-              <p class="daily-focus-value">${escapeHtml(dayStatusText)}</p>
-            </div>
+          <div class="daily-focus-item">
+            <span class="daily-focus-label">STATUS DO PROTOCOLO</span>
+            <p class="daily-focus-value">${escapeHtml(protocolStatusText)}</p>
+          </div>
+          <div class="daily-focus-item">
+            <span class="daily-focus-label">PROGRESSO</span>
+            <p class="daily-focus-value">${completedMomentsCount} de 3 momentos conclu&iacute;dos.</p>
+          </div>
+          <div class="daily-focus-item">
+            <span class="daily-focus-label">ESTADO DO DIA</span>
+            <p class="daily-focus-value">${escapeHtml(dayStatusText)}</p>
           </div>
         </div>
-      `, "daily-focus-card")}
+      </div>
 
       <div class="myday-actions-block">
         <div class="myday-actions-row">
