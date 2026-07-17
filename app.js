@@ -15,6 +15,7 @@ const ADMIN_SETTING_KEYS = Object.freeze({
   checkout: "checkout.external",
   methodology: "methodology.lunar",
 });
+const PLATFORM_MOBILE_BREAKPOINT = 900;
 const ADMIN_DEFAULT_SETTINGS = Object.freeze({
   general: {
     platformName: "Drive Mental",
@@ -3254,7 +3255,7 @@ function PortalSidebar() {
       <nav aria-label="Navega&ccedil;&atilde;o da plataforma">
         <span>PLATAFORMA</span>
         ${items.map(([route, iconName, label]) => `
-          <button class="${activeRoute === route ? "is-active" : ""}" data-route="${route}" type="button">
+          <button class="${activeRoute === route ? "is-active" : ""}" data-route="${route}" type="button"${activeRoute === route ? ' aria-current="page"' : ""}>
             ${icon(iconName)}<span>${label}</span>
           </button>
         `).join("")}
@@ -3317,16 +3318,29 @@ function CosmicBackground() {
   `;
 }
 
+function isMobilePlatformViewport() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  if (typeof window.matchMedia === "function") {
+    return window.matchMedia(`(max-width: ${PLATFORM_MOBILE_BREAKPOINT}px)`).matches;
+  }
+  return Number.isFinite(window.innerWidth)
+    ? window.innerWidth <= PLATFORM_MOBILE_BREAKPOINT
+    : false;
+}
+
 function PlatformShell(content) {
+  const isMobileViewport = isMobilePlatformViewport();
   return `
     <div class="app-shell platform-shell platform-route-${state.route}">
       ${CosmicBackground()}
-      ${PortalSidebar()}
+      ${isMobileViewport ? "" : PortalSidebar()}
       <section class="portal-main">
         ${PortalTopbar()}
         <main class="screen portal-content screen-${state.route}">${content}</main>
       </section>
-      ${BottomNavigation()}
+      ${isMobileViewport ? BottomNavigation() : ""}
       ${UpgradeModal()}
     </div>
   `;
@@ -3886,7 +3900,7 @@ function BottomNavigation() {
       ${items
         .map(
           (item) => `
-            <button class="nav-item ${state.route === item.route ? "is-active" : ""}" data-route="${item.route}">
+            <button class="nav-item ${state.route === item.route ? "is-active" : ""}" data-route="${item.route}"${state.route === item.route ? ' aria-current="page"' : ""}>
               ${icon(item.iconName)}
               <span>${item.label}</span>
             </button>
@@ -6603,7 +6617,18 @@ function updateBottomNavigationOffset() {
   }
 
   const navigation = document.querySelector(".bottom-navigation");
-  if (!navigation || !navigation.getBoundingClientRect) {
+  if (!navigation) {
+    if (window.__driveAstralBottomNavigationObserver) {
+      window.__driveAstralBottomNavigationObserver.disconnect();
+      window.__driveAstralBottomNavigationObserver = null;
+      window.__driveAstralBottomNavigationTarget = null;
+    }
+    if (document.documentElement.style.removeProperty) {
+      document.documentElement.style.removeProperty("--bottom-navigation-measured-height");
+    }
+    return;
+  }
+  if (!navigation.getBoundingClientRect) {
     return;
   }
 
@@ -7225,13 +7250,25 @@ function bindEvents() {
   initConstellationAnimation();
 }
 
+let platformNavigationIsMobile = isMobilePlatformViewport();
+
+function handlePlatformViewportResize() {
+  const nextIsMobile = isMobilePlatformViewport();
+  if (nextIsMobile !== platformNavigationIsMobile) {
+    platformNavigationIsMobile = nextIsMobile;
+    render();
+    return;
+  }
+  updateBottomNavigationOffset();
+  initConstellationAnimation();
+}
+
 if (window.addEventListener) {
   window.addEventListener("popstate", () => {
     const routeState = routeStateFromLocation();
     setState(Object.keys(routeState).length ? routeState : { route: "landing", notice: "" });
   });
-  window.addEventListener("resize", updateBottomNavigationOffset);
-  window.addEventListener("resize", initConstellationAnimation);
+  window.addEventListener("resize", handlePlatformViewportResize);
 }
 
 render();

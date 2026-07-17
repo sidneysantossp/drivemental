@@ -84,6 +84,16 @@ function createBrowserLikeContext(
     Math,
     RegExp,
     Object,
+    innerWidth: Number(options.viewportWidth) || 1440,
+    matchMedia(query) {
+      const maxWidth = String(query).match(/max-width:\s*(\d+)px/);
+      return {
+        matches: maxWidth ? context.innerWidth <= Number(maxWidth[1]) : false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+      };
+    },
     localStorage: {
       getItem(key) {
         return storage.has(key) ? storage.get(key) : null;
@@ -525,7 +535,7 @@ assert.ok(styles.includes(".bottom-navigation {\n  position: relative;"));
 assert.ok(appSource.includes("setProperty(\"--bottom-navigation-measured-height\""));
 assert.ok(appSource.includes("new window.ResizeObserver"));
 assert.ok(appSource.includes("__driveAstralBottomNavigationTarget !== navigation"));
-assert.ok(appSource.includes('window.addEventListener("resize", updateBottomNavigationOffset)'));
+assert.ok(appSource.includes('window.addEventListener("resize", handlePlatformViewportResize)'));
 
 const selectionContext = createBrowserLikeContext();
 selectionContext.setState({
@@ -826,6 +836,71 @@ assert.ok(myDayHtml.includes("protocolo de hoje."));
 assert.ok(myDayHtml.includes("0 de 3 momentos conclu&iacute;dos."));
 assert.ok(myDayHtml.includes("iniciar"));
 assert.ok(myDayHtml.includes("VER CICLO ENERG&Eacute;TICO"));
+
+const desktopSidebarHtml = myDayHtml.slice(
+  myDayHtml.indexOf('<aside class="portal-sidebar">'),
+  myDayHtml.indexOf("</aside>") + "</aside>".length,
+);
+const desktopNavigationHtml = desktopSidebarHtml.slice(
+  desktopSidebarHtml.indexOf('<nav aria-label="Navega&ccedil;&atilde;o da plataforma">'),
+  desktopSidebarHtml.indexOf("</nav>") + "</nav>".length,
+);
+const expectedDesktopMenuItems = [
+  ["dashboard", "Home"],
+  ["my-day", "A&ccedil;&atilde;o do dia"],
+  ["home", "Nova consulta"],
+  ["energy-cycle", "Ciclo Energ&eacute;tico"],
+  ["journey", "Jornada de 30 dias"],
+  ["protocol", "Protocolo di&aacute;rio"],
+  ["profile", "Meu perfil"],
+];
+assert.strictEqual((myDayHtml.match(/class="portal-sidebar"/g) || []).length, 1);
+assert.strictEqual((myDayHtml.match(/aria-label="Navega&ccedil;&atilde;o da plataforma"/g) || []).length, 1);
+assert.strictEqual((myDayHtml.match(/class="bottom-navigation"/g) || []).length, 0);
+assert.strictEqual((myDayHtml.match(/aria-current="page"/g) || []).length, 1);
+for (const [route, label] of expectedDesktopMenuItems) {
+  assert.strictEqual((desktopNavigationHtml.match(new RegExp(`data-route="${route}"`, "g")) || []).length, 1);
+  assert.strictEqual((desktopNavigationHtml.match(new RegExp(label, "g")) || []).length, 1);
+}
+
+const dailyTriadHtml = myDayHtml.slice(
+  myDayHtml.indexOf('<div class="daily-triad dashboard-today-guidance">'),
+  myDayHtml.indexOf('<div class="daily-focus-card">'),
+);
+assert.strictEqual((myDayHtml.match(/class="daily-triad dashboard-today-guidance"/g) || []).length, 1);
+assert.strictEqual((dailyTriadHtml.match(/<article>/g) || []).length, 3);
+assert.strictEqual((dailyTriadHtml.match(/<(?:aside|nav)\b/g) || []).length, 0);
+
+for (const viewportWidth of [1440, 1280, 1024, 768, 430, 390, 360]) {
+  const responsiveMyDayContext = createBrowserLikeContext(
+    "http://localhost:4173/app/meu-dia",
+    { authenticated: true, viewportWidth },
+  );
+  responsiveMyDayContext.setState({
+    route: "my-day",
+    name: "Gabriel Ferreira",
+    birth: "1996-06-25",
+    selectedAreaId: "work-prosperity",
+    reading,
+    activeHistoryId: firstHistoryEntry.readingId,
+    history: [cloneForTest(firstHistoryEntry)],
+  });
+  const responsiveHtml = responsiveMyDayContext.__getHtml();
+  const expectsMobileNavigation = viewportWidth <= 900;
+  assert.strictEqual(
+    (responsiveHtml.match(/class="portal-sidebar"/g) || []).length,
+    expectsMobileNavigation ? 0 : 1,
+    `sidebar at ${viewportWidth}px`,
+  );
+  assert.strictEqual(
+    (responsiveHtml.match(/class="bottom-navigation"/g) || []).length,
+    expectsMobileNavigation ? 1 : 0,
+    `mobile navigation at ${viewportWidth}px`,
+  );
+  assert.strictEqual((responsiveHtml.match(/aria-current="page"/g) || []).length, 1);
+  assert.strictEqual((responsiveHtml.match(/class="daily-triad dashboard-today-guidance"/g) || []).length, 1);
+  assert.strictEqual((responsiveHtml.match(/class="daily-focus-card"/g) || []).length, 1);
+}
 
 const protocolDate = vm.runInContext("protocolDateKey()", myDayContext);
 myDayContext.localStorage.setItem("drive-astral-protocol-progress", JSON.stringify({
