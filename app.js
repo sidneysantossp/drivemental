@@ -2646,27 +2646,9 @@ function LandingScreen() {
             </div>
           </div>
           <div class="platform-preview" aria-label="Pr&eacute;via do dashboard Drive Mental">
-            <div class="preview-window">
-              <div class="preview-sidebar">
-                ${BrandMark(true)}
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="preview-content">
-                <div class="preview-topline"><span></span><b></b></div>
-                <div class="preview-welcome">
-                  <small>SEU DRIVE DE HOJE</small>
-                  <strong>Clareza para priorizar o que importa agora</strong>
-                  <span></span>
-                </div>
-                <div class="preview-grid">
-                  <article class="preview-kin"><small>ENERGIA DO DIA</small><strong>178</strong><span>Presen&ccedil;a e discernimento</span></article>
-                  <article><small>PRIORIDADE</small><strong>Base</strong><span>Estabilidade antes da pressa</span></article>
-                  <article><small>DRIVE DI&Aacute;RIO</small><strong>Clareza</strong><span>Uma a&ccedil;&atilde;o essencial</span></article>
-                </div>
-                <div class="preview-chart"><span></span><span></span><span></span><span></span><span></span></div>
-                <button class="preview-action" data-route="signup" type="button">Abrir jornada ${icon("arrow")}</button>
-              </div>
-            </div>
+            <figure class="preview-window preview-image-window">
+              <img src="/assets/landing/home-dashboard-hero.png" alt="Dashboard do Drive Mental com Home, a&ccedil;&atilde;o do dia e jornada" loading="eager" decoding="async" />
+            </figure>
             <div class="preview-orbit orbit-one"></div>
             <div class="preview-orbit orbit-two"></div>
           </div>
@@ -2745,7 +2727,7 @@ function LandingScreen() {
               </ul>
             </div>
             <figure class="showcase-screen">
-              <img src="/assets/landing/dashboard-drive-astral.png" alt="Dashboard do Drive Mental com prioridades, calend&aacute;rio e hist&oacute;rico" loading="lazy" decoding="async" />
+              <img src="/assets/landing/home-dashboard-hero.png" alt="Dashboard do Drive Mental com dire&ccedil;&atilde;o, a&ccedil;&atilde;o do dia e jornada" loading="lazy" decoding="async" />
             </figure>
           </div>
           <div class="showcase-detail-grid">

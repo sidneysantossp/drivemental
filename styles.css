@@ -5336,6 +5336,22 @@ body {
   transform: rotateY(-5deg) rotateX(2deg);
 }
 
+.preview-image-window {
+  display: block;
+  grid-template-columns: none;
+  min-height: 0;
+  margin: 0;
+  border-radius: 24px;
+  background: #03100d;
+}
+
+.preview-image-window img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
+}
+
 .preview-sidebar {
   display: flex;
   flex-direction: column;
