@@ -287,6 +287,36 @@
     return readingEntryFromRow(data);
   }
 
+  async function findReadingForCycle({
+    areaId,
+    readingDate,
+    engineVersion,
+    readingType = "",
+  }) {
+    const client = await getClient();
+    if (!client) {
+      return null;
+    }
+    let query = client
+      .from("readings")
+      .select("payload")
+      .eq("focus_area_id", areaId)
+      .eq("reading_date", readingDate)
+      .eq("engine_version", engineVersion)
+      .eq("reading_status", "completed");
+    if (readingType) {
+      query = query.eq("reading_type", readingType);
+    }
+    const { data, error } = await query
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
+    return readingEntryFromRow(data);
+  }
+
   async function saveReading(entry) {
     const client = await getClient();
     if (!client) {
@@ -318,7 +348,12 @@
       .select("payload")
       .single();
     if (error && error.code === "23505") {
-      const existing = await loadReadingById(entry.readingId);
+      const existing = await findReadingForCycle({
+        areaId: payload.focus_area_id,
+        readingDate: payload.reading_date,
+        engineVersion: payload.engine_version,
+        readingType: payload.reading_type,
+      }) || await loadReadingById(entry.readingId);
       if (existing) return existing;
     }
     if (error) {
@@ -632,6 +667,7 @@
     saveReading,
     loadReadingById,
     findFirstReading,
+    findReadingForCycle,
     loadLatestFirstReading,
     loadCloudState,
     saveTimelineEvent,

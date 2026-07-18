@@ -21,6 +21,10 @@ const firstReadingMigration = fs.readFileSync(
   "supabase/migrations/202607160001_first_reading_flow.sql",
   "utf8",
 );
+const consultationGuardrailsMigration = fs.readFileSync(
+  "supabase/migrations/202607170001_consultation_guardrails.sql",
+  "utf8",
+);
 const deleteAccount = fs.readFileSync(
   "supabase/functions/delete-account/index.ts",
   "utf8",
@@ -81,6 +85,16 @@ assert.ok(firstReadingMigration.includes("reading_status text not null default '
 assert.ok(firstReadingMigration.includes("'first-reading'"));
 assert.ok(firstReadingMigration.includes("readings_first_reading_lookup_idx"));
 assert.ok(firstReadingMigration.includes("revoke update on public.readings from authenticated"));
+assert.ok(consultationGuardrailsMigration.includes("readings_focus_area_id_check"));
+assert.ok(consultationGuardrailsMigration.includes("readings_completed_cycle_unique_idx"));
+assert.ok(consultationGuardrailsMigration.includes("user_id,\n    reading_type,\n    focus_area_id,\n    reading_date,\n    engine_version"));
+assert.ok(consultationGuardrailsMigration.includes("READING_USER_MISMATCH"));
+assert.ok(consultationGuardrailsMigration.includes("READING_BIRTH_DATE_MISMATCH"));
+assert.ok(consultationGuardrailsMigration.includes("READING_AREA_NOT_AVAILABLE_FOR_PLAN"));
+assert.ok(consultationGuardrailsMigration.includes("from public.profiles"));
+assert.ok(consultationGuardrailsMigration.includes("from public.admin_roles"));
+assert.ok(consultationGuardrailsMigration.includes("from public.user_access_plans"));
+assert.ok(consultationGuardrailsMigration.includes("before insert on public.readings"));
 
 assert.ok(deleteAccount.includes("auth.admin.deleteUser"));
 assert.ok(deleteAccount.includes("auth.getUser"));
@@ -103,6 +117,7 @@ assert.ok(clientSource.includes("saveAdminPlan"));
 assert.ok(clientSource.includes("assignAdminUserPlan"));
 assert.ok(clientSource.includes("loadReadingById"));
 assert.ok(clientSource.includes("findFirstReading"));
+assert.ok(clientSource.includes("findReadingForCycle"));
 assert.ok(clientSource.includes("loadLatestFirstReading"));
 assert.ok(clientSource.includes('.eq("reading_type", "first-reading")'));
 assert.ok(clientSource.includes('.eq("idempotency_key", readingId)'));

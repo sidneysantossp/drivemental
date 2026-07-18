@@ -139,6 +139,18 @@ function createBrowserLikeContext(
       getAccount() {
         return new Promise(() => {});
       },
+      getAdminRole() {
+        return Promise.resolve(null);
+      },
+      findReadingForCycle() {
+        return Promise.resolve(options.cloudExisting || null);
+      },
+      saveReading(entry) {
+        if (options.saveReadingError) {
+          return Promise.reject(new Error("NETWORK_FAILURE"));
+        }
+        return Promise.resolve(entry);
+      },
     };
   }
   vm.createContext(context);
@@ -500,30 +512,175 @@ const myDayRouteContext = createBrowserLikeContext("http://localhost:4173/app/me
 assert.strictEqual(vm.runInContext("state.route", myDayRouteContext), "my-day");
 assert.ok(myDayRouteContext.__getHtml().includes("A&ccedil;&atilde;o do dia"));
 
-assert.ok(homeHtml.includes("Onde voc&ecirc; deseja aplicar sua leitura de hoje?"));
-assert.ok(homeHtml.includes("A escolha contextualiza a pr&aacute;tica, sem alterar os c&aacute;lculos"));
-assert.ok(homeHtml.includes("area-carousel"));
-assert.ok(homeHtml.includes('role="radiogroup"'));
-assert.ok(homeHtml.includes('role="radio"'));
-assert.ok(homeHtml.includes("Deslize para ver mais &aacute;reas"));
-assert.ok(homeHtml.includes('data-area-id="general"'));
-assert.ok(homeHtml.includes('data-upgrade-area-id="work-prosperity"'));
-assert.strictEqual((homeHtml.match(/data-area-id="/g) || []).length, 1);
-assert.strictEqual((homeHtml.match(/data-upgrade-area-id="/g) || []).length, 6);
-assert.ok(!homeHtml.includes("area-grid"));
-assert.ok(!homeHtml.includes("theme-grid"));
-assert.ok(homeHtml.includes('type="submit" disabled'));
-assert.ok(!homeHtml.includes("Inten&ccedil;&atilde;o da Consulta"));
-assert.ok(!homeHtml.includes("Salvar nome"));
-assert.ok(homeHtml.includes("Mapa Energ&eacute;tico Visual"));
-assert.ok(styles.includes(".area-carousel"));
-assert.ok(styles.includes("overflow-x: auto"));
-assert.ok(styles.includes("scroll-snap-type: x mandatory"));
-assert.ok(styles.includes("scroll-snap-align: start"));
-assert.ok(styles.includes("scrollbar-width: none"));
-assert.ok(styles.includes("height: 102px"));
-assert.ok(styles.includes("flex: 0 0 clamp(150px, 42vw, 176px)"));
-assert.ok(appSource.includes("carousel.addEventListener(\"wheel\""));
+function seedConsultationBase(context, {
+  planId = "free",
+  primaryAreaId = "general",
+  consultedAreaId = "",
+  adminRole = "",
+  selectedAreaId = "",
+} = {}) {
+  const account = vm.runInContext("state.account", context) || {
+    name: "Pessoa Teste",
+    email: "pessoa@teste.local",
+    birth: "1990-01-01",
+    primaryAreaId: "general",
+    onboardingComplete: true,
+    accessMode: "supabase",
+  };
+  const reading = context.calculateReading(account.birth, primaryAreaId);
+  const history = [];
+  if (consultedAreaId) {
+    history.push(context.createReadingHistoryEntry({
+      name: account.name,
+      birth: account.birth,
+      area: {
+        id: consultedAreaId,
+        title: consultedAreaId,
+      },
+      reading: context.calculateReading(account.birth, consultedAreaId),
+      readingType: "first-reading",
+    }));
+  }
+  context.setState({
+    route: "home",
+    authenticated: true,
+    reading,
+    history,
+    selectedAreaId,
+    adminRole,
+    account: {
+      ...account,
+      id: "11111111-1111-4111-8111-111111111111",
+      planId,
+      primaryAreaId,
+      accessPlans: planId === "free"
+        ? []
+        : [{ plan_id: planId, status: "active" }],
+    },
+  });
+  return history;
+}
+
+const emptyConsultationContext = createBrowserLikeContext();
+seedConsultationBase(emptyConsultationContext);
+const emptyConsultationHtml = emptyConsultationContext.__getHtml();
+assert.ok(emptyConsultationHtml.includes("NOVA LEITURA &middot; APLICA&Ccedil;&Atilde;O POR &Aacute;REA"));
+assert.ok(emptyConsultationHtml.includes("0 de 7 &aacute;reas consultadas"));
+assert.ok(emptyConsultationHtml.includes("SUA BASE PESSOAL"));
+assert.ok(emptyConsultationHtml.includes("Pessoa Teste"));
+assert.ok(emptyConsultationHtml.includes("01/01/1990"));
+assert.ok(emptyConsultationHtml.includes("Kin pessoal"));
+assert.ok(emptyConsultationHtml.includes("Momento Atual"));
+assert.ok(emptyConsultationHtml.includes("Estes dados formam sua base pessoal"));
+assert.ok(emptyConsultationHtml.includes("Corrigir meus dados no perfil"));
+assert.ok(!emptyConsultationHtml.includes('name="name"'));
+assert.ok(!emptyConsultationHtml.includes('name="birth"'));
+assert.strictEqual((emptyConsultationHtml.match(/data-consultation-area-id="/g) || []).length, 1);
+assert.strictEqual((emptyConsultationHtml.match(/data-open-upgrade-modal/g) || []).length, 6);
+assert.ok(emptyConsultationHtml.includes("Selecione uma &aacute;rea dispon&iacute;vel"));
+assert.ok(emptyConsultationHtml.includes('role="progressbar"'));
+assert.ok(emptyConsultationHtml.includes('aria-valuenow="0"'));
+
+const completedConsultationContext = createBrowserLikeContext();
+const completedConsultationHistory = seedConsultationBase(completedConsultationContext, {
+  consultedAreaId: "general",
+});
+const completedConsultationHtml = completedConsultationContext.__getHtml();
+assert.ok(completedConsultationHtml.includes("1 de 7 &aacute;reas consultadas"));
+assert.ok(completedConsultationHtml.includes("Consulta conclu&iacute;da"));
+assert.ok(completedConsultationHtml.includes("&Aacute;rea principal"));
+assert.ok(completedConsultationHtml.includes("Ver resultado"));
+assert.ok(completedConsultationHtml.includes(`data-history-id="${completedConsultationHistory[0].readingId}"`));
+assert.ok(completedConsultationHtml.includes("Seu plano inclui uma &aacute;rea."));
+assert.strictEqual((completedConsultationHtml.match(/data-open-upgrade-modal/g) || []).length, 6);
+
+const selectionContext = createBrowserLikeContext();
+seedConsultationBase(selectionContext, {
+  planId: "premium",
+  selectedAreaId: "work-prosperity",
+});
+const selectedHtml = selectionContext.__getHtml();
+assert.strictEqual((selectedHtml.match(/is-selected/g) || []).length, 1);
+assert.strictEqual((selectedHtml.match(/aria-selected="true"/g) || []).length, 1);
+assert.ok(selectedHtml.includes('data-consultation-area-id="work-prosperity"'));
+assert.ok(selectedHtml.includes("Voc&ecirc; est&aacute; criando uma nova leitura para <strong>Vida Financeira</strong>"));
+assert.ok(selectedHtml.includes("Criar leitura para Vida Financeira"));
+assert.strictEqual((selectedHtml.match(/data-consultation-area-id="/g) || []).length, 7);
+assert.strictEqual((selectedHtml.match(/data-open-upgrade-modal/g) || []).length, 0);
+
+const adminConsultationContext = createBrowserLikeContext();
+seedConsultationBase(adminConsultationContext, { adminRole: "owner" });
+const adminConsultationHtml = adminConsultationContext.__getHtml();
+assert.ok(adminConsultationHtml.includes("Todas as &aacute;reas est&atilde;o dispon&iacute;veis"));
+assert.strictEqual((adminConsultationHtml.match(/data-consultation-area-id="/g) || []).length, 7);
+
+const freeSelectionContext = createBrowserLikeContext();
+seedConsultationBase(freeSelectionContext);
+freeSelectionContext.setState({
+  selectedAreaId: "work-prosperity",
+  upgradeModalOpen: false,
+});
+freeSelectionContext.submitAlignment("Pessoa adulterada", "2001-02-03");
+const freeSelectionState = vm.runInContext("state", freeSelectionContext);
+assert.strictEqual(freeSelectionState.upgradeModalOpen, true);
+assert.strictEqual(freeSelectionState.upgradeAreaId, "work-prosperity");
+assert.strictEqual(freeSelectionState.history.length, 0);
+assert.ok(freeSelectionContext.__getHtml().includes("Esta &aacute;rea n&atilde;o est&aacute; dispon&iacute;vel no seu plano atual."));
+
+const tamperedSubmissionContext = createBrowserLikeContext();
+seedConsultationBase(tamperedSubmissionContext, {
+  planId: "premium",
+  selectedAreaId: "work-prosperity",
+});
+tamperedSubmissionContext.setState({
+  name: "Pessoa adulterada",
+  birth: "2001-02-03",
+});
+tamperedSubmissionContext.submitAlignment("Outra pessoa", "1999-09-09");
+const tamperedSubmissionState = vm.runInContext("state", tamperedSubmissionContext);
+assert.strictEqual(tamperedSubmissionState.route, "chakras");
+assert.strictEqual(tamperedSubmissionState.history.length, 1);
+assert.strictEqual(tamperedSubmissionState.history[0].inputSnapshot.name, "Pessoa Teste");
+assert.strictEqual(tamperedSubmissionState.history[0].inputSnapshot.birthDate, "1990-01-01");
+
+tamperedSubmissionContext.setState({
+  route: "home",
+  selectedAreaId: "work-prosperity",
+});
+tamperedSubmissionContext.submitAlignment();
+const duplicateSubmissionState = vm.runInContext("state", tamperedSubmissionContext);
+assert.strictEqual(duplicateSubmissionState.route, "chakras");
+assert.strictEqual(duplicateSubmissionState.history.length, 1);
+assert.ok(duplicateSubmissionState.notice.includes("j&aacute; possui uma leitura"));
+
+completedConsultationContext.openConsultationHistoryEntry(completedConsultationHistory[0]);
+const reopenedSnapshotState = vm.runInContext("state", completedConsultationContext);
+assert.strictEqual(reopenedSnapshotState.route, "chakras");
+assert.strictEqual(reopenedSnapshotState.activeHistoryId, completedConsultationHistory[0].readingId);
+assert.strictEqual(reopenedSnapshotState.history.length, 1);
+
+for (const viewportWidth of [1440, 1280, 1024, 768, 430, 390, 360]) {
+  const responsiveContext = createBrowserLikeContext(
+    "http://localhost:4173/app/consulta",
+    { authenticated: true, viewportWidth },
+  );
+  seedConsultationBase(responsiveContext, {
+    planId: "premium",
+    selectedAreaId: "purpose",
+  });
+  const responsiveHtml = responsiveContext.__getHtml();
+  assert.ok(responsiveHtml.includes("new-consultation-area-grid"), viewportWidth);
+  assert.ok(responsiveHtml.includes("new-consultation-submit"), viewportWidth);
+  assert.ok(responsiveHtml.includes("consultation-aside"), viewportWidth);
+}
+
+assert.ok(styles.includes(".new-consultation-area-grid"));
+assert.ok(styles.includes("grid-template-columns: repeat(2, minmax(0, 1fr))"));
+assert.ok(styles.includes("@media (max-width: 768px)"));
+assert.ok(styles.includes("@media (max-width: 430px)"));
+assert.ok(styles.includes(".new-consultation-submit .primary-energy-button"));
+assert.ok(styles.includes("overflow-wrap: anywhere"));
+assert.ok(appSource.includes("submitConsultation(state.selectedAreaId)"));
 assert.ok(styles.includes("--bottom-navigation-height"));
 assert.ok(styles.includes("--bottom-navigation-measured-height: calc(var(--bottom-navigation-height) + env(safe-area-inset-bottom))"));
 assert.ok(styles.includes("--bottom-nav-offset: calc(var(--bottom-navigation-measured-height) + var(--bottom-content-gap))"));
@@ -536,47 +693,6 @@ assert.ok(appSource.includes("setProperty(\"--bottom-navigation-measured-height\
 assert.ok(appSource.includes("new window.ResizeObserver"));
 assert.ok(appSource.includes("__driveAstralBottomNavigationTarget !== navigation"));
 assert.ok(appSource.includes('window.addEventListener("resize", handlePlatformViewportResize)'));
-
-const selectionContext = createBrowserLikeContext();
-selectionContext.setState({
-  account: {
-    ...vm.runInContext("state.account", selectionContext),
-    planId: "premium",
-    accessPlans: [{ plan_id: "premium", status: "active" }],
-  },
-});
-for (const areaId of areaIds) {
-  selectionContext.setState({ route: "home", selectedAreaId: areaId });
-  const selectedHtml = selectionContext.__getHtml();
-  assert.strictEqual((selectedHtml.match(/is-selected/g) || []).length, 1, areaId);
-  assert.strictEqual((selectedHtml.match(/aria-checked="true"/g) || []).length, 1, areaId);
-  assert.ok(selectedHtml.includes(`data-area-id="${areaId}"`), areaId);
-  assert.ok(!selectedHtml.includes('type="submit" disabled'));
-}
-
-const freeSelectionContext = createBrowserLikeContext();
-freeSelectionContext.setState({
-  route: "home",
-  selectedAreaId: "general",
-  account: {
-    ...vm.runInContext("state.account", freeSelectionContext),
-    planId: "free",
-    primaryAreaId: "general",
-    accessPlans: [],
-  },
-  history: [],
-  upgradeModalOpen: false,
-});
-const freeSelectionHtml = freeSelectionContext.__getHtml();
-assert.ok(freeSelectionHtml.includes('data-area-id="general"'));
-assert.ok(freeSelectionHtml.includes('data-upgrade-area-id="work-prosperity"'));
-assert.ok(freeSelectionHtml.includes("Desbloqueie no plano Drive Mental."));
-freeSelectionContext.setState({ selectedAreaId: "work-prosperity", upgradeModalOpen: false });
-freeSelectionContext.submitAlignment("Pessoa Free", "1996-06-25");
-const freeSelectionState = vm.runInContext("state", freeSelectionContext);
-assert.strictEqual(freeSelectionState.upgradeModalOpen, true);
-assert.strictEqual(freeSelectionState.upgradeAreaId, "work-prosperity");
-assert.strictEqual(freeSelectionState.history.length, 0);
 
 const resultContext = createBrowserLikeContext();
 const reading = resultContext.calculateReading("1996-06-25", "financas");
@@ -927,8 +1043,9 @@ assert.ok(completedProtocolMyDayHtml.includes("Conclu"));
 
 freeDashboardContext.setState({ route: "home", selectedAreaId: "love-relationships", upgradeModalOpen: false });
 const lockedHomeHtml = freeDashboardContext.__getHtml();
-assert.ok(lockedHomeHtml.includes("Sua consulta gratuita j&aacute; foi usada"));
-assert.ok(lockedHomeHtml.includes("Desbloquear novas consultas"));
+assert.ok(lockedHomeHtml.includes("1 de 7 &aacute;reas consultadas"));
+assert.ok(lockedHomeHtml.includes("Dispon&iacute;vel no plano completo"));
+assert.ok(lockedHomeHtml.includes("Desbloquear &aacute;rea"));
 freeDashboardContext.submitAlignment("Gabriel Ferreira", "1996-06-25");
 const lockedConsultState = vm.runInContext("state", freeDashboardContext);
 assert.strictEqual(lockedConsultState.upgradeModalOpen, true);
@@ -1086,11 +1203,15 @@ const invalidDateContext = createBrowserLikeContext();
 invalidDateContext.setState({
   route: "home",
   selectedAreaId: "general",
+  account: {
+    ...vm.runInContext("state.account", invalidDateContext),
+    birth: "2026-02-30",
+  },
 });
 invalidDateContext.submitAlignment("Data Invalida", "2026-02-30");
 const invalidDateHtml = invalidDateContext.__getHtml();
 const invalidDateState = vm.runInContext("state", invalidDateContext);
-assert.ok(invalidDateHtml.includes("Informe uma data de nascimento v&aacute;lida."));
+assert.ok(invalidDateHtml.includes("N&atilde;o foi poss&iacute;vel localizar sua base pessoal."));
 assert.ok(!invalidDateHtml.includes("0.0 Hunab Ku"));
 assert.strictEqual(invalidDateState.route, "home");
 assert.strictEqual(invalidDateState.reading, null);
@@ -1102,32 +1223,42 @@ leapDayContext.setState({
   route: "home",
   selectedAreaId: "general",
   history: [],
+  account: {
+    ...vm.runInContext("state.account", leapDayContext),
+    birth: "2000-02-29",
+  },
 });
 leapDayContext.submitAlignment("Data Especial", "2000-02-29");
 const leapDayHtml = leapDayContext.__getHtml();
 const leapDayState = vm.runInContext("state", leapDayContext);
-assert.ok(leapDayHtml.includes("29 de fevereiro possui regra especial e ainda n&atilde;o est&aacute; dispon&iacute;vel nesta vers&atilde;o."));
-assert.ok(leapDayHtml.includes("A data 29 de fevereiro possui tratamento especial no Sincron&aacute;rio das 13 Luas."));
-assert.ok(leapDayHtml.includes("Para evitar uma leitura incorreta"));
-assert.ok(leapDayHtml.includes("Voc&ecirc; poder&aacute; continuar quando a regra metodol&oacute;gica de 29/02 for definida no Drive Mental."));
-assert.ok(!leapDayHtml.includes("Informe uma data de nascimento v&aacute;lida."));
-assert.ok(!leapDayHtml.includes("data inv&aacute;lida"));
+assert.ok(leapDayHtml.includes("N&atilde;o foi poss&iacute;vel localizar sua base pessoal."));
 assert.strictEqual(leapDayState.route, "home");
 assert.strictEqual(leapDayState.reading, null);
 assert.strictEqual(leapDayState.history.length, 0);
 assert.strictEqual(leapDayContext.__getSavedState(), null);
 
 const regularSubmissionContext = createBrowserLikeContext();
+const regularAccount = vm.runInContext("state.account", regularSubmissionContext);
 regularSubmissionContext.setState({
   route: "home",
+  reading: regularSubmissionContext.calculateReading("1982-12-10", "general"),
   selectedAreaId: "general",
   history: [],
+  account: {
+    ...regularAccount,
+    id: "22222222-2222-4222-8222-222222222222",
+    name: "Data Regular",
+    birth: "1982-12-10",
+    primaryAreaId: "general",
+  },
 });
-regularSubmissionContext.submitAlignment("Data Regular", "1982-12-10");
+regularSubmissionContext.submitAlignment("Nome adulterado", "2001-01-01");
 const regularSubmissionState = vm.runInContext("state", regularSubmissionContext);
 assert.strictEqual(regularSubmissionState.route, "chakras");
 assert.strictEqual(regularSubmissionState.reading.personal_map.kin.value, 166);
 assert.strictEqual(regularSubmissionState.history.length, 1);
+assert.strictEqual(regularSubmissionState.history[0].inputSnapshot.name, "Data Regular");
+assert.strictEqual(regularSubmissionState.history[0].inputSnapshot.birthDate, "1982-12-10");
 assert.ok(regularSubmissionContext.__getSavedState());
 
 const sameColorContext = createBrowserLikeContext();
@@ -1479,4 +1610,57 @@ assert.ok(styles.includes(".timeline-coordinate-grid"));
 assert.ok(appSource.includes("timelineEvents"));
 assert.ok(appSource.includes("Nenhuma coordenada foi recalculada"));
 
-console.log("app-render tests passed");
+(async () => {
+  const networkFailureContext = createBrowserLikeContext(
+    "http://localhost:4173/app/consulta",
+    {
+      authenticated: true,
+      supabaseMode: true,
+      saveReadingError: true,
+    },
+  );
+  seedConsultationBase(networkFailureContext, {
+    planId: "premium",
+    selectedAreaId: "purpose",
+  });
+  await networkFailureContext.submitConsultation("purpose");
+  const failedNetworkState = vm.runInContext("state", networkFailureContext);
+  assert.strictEqual(failedNetworkState.route, "home");
+  assert.strictEqual(failedNetworkState.history.length, 0);
+  assert.strictEqual(failedNetworkState.consultationStatus, "idle");
+  assert.strictEqual(failedNetworkState.noticeKind, "processing_failed");
+  assert.ok(failedNetworkState.notice.includes("criar sua leitura agora"));
+
+  const cloudSourceContext = createBrowserLikeContext();
+  const cloudReading = cloudSourceContext.calculateReading("1990-01-01", "purpose");
+  const cloudEntry = cloudSourceContext.createReadingHistoryEntry({
+    name: "Pessoa Teste",
+    birth: "1990-01-01",
+    area: { id: "purpose", title: "Prop&oacute;sito" },
+    reading: cloudReading,
+    readingType: "consultation",
+  });
+  const otherDeviceContext = createBrowserLikeContext(
+    "http://localhost:4173/app/consulta",
+    {
+      authenticated: true,
+      supabaseMode: true,
+      cloudExisting: cloneForTest(cloudEntry),
+    },
+  );
+  seedConsultationBase(otherDeviceContext, {
+    planId: "premium",
+    selectedAreaId: "purpose",
+  });
+  await otherDeviceContext.submitConsultation("purpose");
+  const otherDeviceState = vm.runInContext("state", otherDeviceContext);
+  assert.strictEqual(otherDeviceState.route, "chakras");
+  assert.strictEqual(otherDeviceState.history.length, 1);
+  assert.strictEqual(otherDeviceState.activeHistoryId, cloudEntry.readingId);
+  assert.ok(otherDeviceState.notice.includes("j&aacute; possui uma leitura"));
+
+  console.log("app-render tests passed");
+})().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

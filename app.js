@@ -400,6 +400,37 @@ const consultationAreas = Object.freeze([
   },
 ]);
 
+const consultationAreaPresentation = Object.freeze({
+  general: {
+    label: "Momento Atual",
+    description: "Uma leitura ampla sobre seus ciclos e sua fase atual.",
+  },
+  purpose: {
+    label: "Prop&oacute;sito e Dire&ccedil;&atilde;o",
+    description: "Escolhas, voca&ccedil;&atilde;o, significado e pr&oacute;ximos movimentos.",
+  },
+  "work-prosperity": {
+    label: "Vida Financeira",
+    description: "Trabalho, organiza&ccedil;&atilde;o, prosperidade e decis&otilde;es financeiras.",
+  },
+  "love-relationships": {
+    label: "Relacionamentos",
+    description: "Conex&otilde;es, conviv&ecirc;ncia, comunica&ccedil;&atilde;o e v&iacute;nculos.",
+  },
+  "challenges-blocks": {
+    label: "Desafios e Bloqueios",
+    description: "Padr&otilde;es recorrentes, resist&ecirc;ncias e pontos de aten&ccedil;&atilde;o.",
+  },
+  "energy-spirituality": {
+    label: "Equil&iacute;brio e Energia",
+    description: "Ritmo pessoal, disposi&ccedil;&atilde;o, limites e direcionamento.",
+  },
+  "decisions-cycles": {
+    label: "Mudan&ccedil;as e Ciclos",
+    description: "Transi&ccedil;&otilde;es, encerramentos, come&ccedil;os e adapta&ccedil;&atilde;o.",
+  },
+});
+
 const timelineCategories = Object.freeze([
   "Trabalho e Prosperidade",
   "Amor e Relacionamentos",
@@ -813,6 +844,7 @@ const defaultState = {
   firstReadingStatus: "pending",
   firstReadingStep: 0,
   firstReadingError: "",
+  consultationStatus: "idle",
   areaCarouselTouched: false,
   reading: null,
   history: [],
@@ -3273,7 +3305,7 @@ function PortalTopbar() {
   const titles = {
     dashboard: ["Home", "Resumo da sua plataforma"],
     "my-day": ["A&ccedil;&atilde;o do dia", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
-    home: ["Nova consulta", "Escolha uma &aacute;rea e gere suas coordenadas"],
+    home: ["Nova consulta", "Escolha uma nova &aacute;rea para aplicar sua base pessoal"],
     chakras: ["Resultado da consulta", "Seu mapa completo foi calculado"],
     "energy-cycle": ["Ciclo Energ&eacute;tico", "Plasmas, chakras e ciclo natural"],
     history: ["Hist&oacute;rico", "Leituras e marcos preservados"],
@@ -4351,56 +4383,307 @@ function DashboardScreen() {
   `);
 }
 
+function consultationAreaCopy(areaId) {
+  const area = consultationAreas.find((item) => item.id === areaId);
+  return consultationAreaPresentation[areaId] || {
+    label: area ? area.title : "&Aacute;rea",
+    description: area ? area.description : "",
+  };
+}
+
+function readingDateForHistoryEntry(entry) {
+  const snapshot = entry && entry.readingSnapshot;
+  const snapshotDate = snapshot && snapshot.input && snapshot.input.current_date
+    ? snapshot.input.current_date.value
+    : "";
+  const coordinateDate = entry
+    && entry.calculationSnapshot
+    && entry.calculationSnapshot.dayKin
+    ? entry.calculationSnapshot.dayKin.date
+    : "";
+  return String(snapshotDate || coordinateDate || "").slice(0, 10);
+}
+
+function completedAreaHistoryEntries() {
+  return normalizedHistoryList(state.history)
+    .filter((entry) => (
+      entry.readingStatus === "completed"
+      && normalizeAreaId(entry.areaId)
+      && entry.readingSnapshot
+    ))
+    .sort((left, right) => String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
+}
+
+function latestAreaHistoryEntry(areaId, readingDate = "") {
+  const normalizedAreaId = normalizeAreaId(areaId);
+  return completedAreaHistoryEntries().find((entry) => (
+    normalizeAreaId(entry.areaId) === normalizedAreaId
+    && (!readingDate || readingDateForHistoryEntry(entry) === readingDate)
+  )) || null;
+}
+
+function persistedPersonalBase() {
+  const account = state.account || null;
+  const name = account && account.name ? String(account.name).trim() : "";
+  const birth = account && account.birth ? String(account.birth).trim() : "";
+  const primaryAreaId = normalizeAreaId(account && account.primaryAreaId);
+  const baseEntry = completedAreaHistoryEntries().find((entry) => entry.readingType === "first-reading")
+    || completedAreaHistoryEntries()[0]
+    || null;
+  const persistedReading = state.reading
+    && state.reading.input
+    && state.reading.input.birth_date
+    && state.reading.input.birth_date.value === birth
+    ? state.reading
+    : null;
+  const baseReading = baseEntry ? readingForHistoryEntry(baseEntry) : persistedReading;
+  const kin = personalKin(baseReading);
+
+  return {
+    account,
+    name,
+    birth,
+    primaryAreaId,
+    kin,
+    valid: Boolean(
+      state.authenticated
+      && account
+      && name
+      && validateBirthDateForProduct(birth).status === "valid"
+      && kin,
+    ),
+  };
+}
+
+function newConsultationContext() {
+  const base = persistedPersonalBase();
+  const readingDate = todayForEngine();
+  const consultedAreaIds = [...new Set(
+    completedAreaHistoryEntries().map((entry) => normalizeAreaId(entry.areaId)).filter(Boolean),
+  )];
+  const areaStates = consultationAreas.map((area) => {
+    const currentEntry = latestAreaHistoryEntry(area.id, readingDate);
+    const primary = base.primaryAreaId === area.id;
+    const locked = !currentEntry && !canStartConsultationForArea(area.id);
+    const selected = !currentEntry && !locked && state.selectedAreaId === area.id;
+    return {
+      area,
+      copy: consultationAreaCopy(area.id),
+      currentEntry,
+      latestEntry: latestAreaHistoryEntry(area.id),
+      primary,
+      locked,
+      selected,
+      status: currentEntry ? "completed" : locked ? "locked" : "available",
+    };
+  });
+  const selectedState = areaStates.find((item) => item.selected) || null;
+
+  return {
+    base,
+    readingDate,
+    consultedAreaIds,
+    consultedCount: consultedAreaIds.length,
+    areaStates,
+    selectedState,
+    isAdmin: isAdminProfile(),
+    isFullPlan: hasPremiumAccess(),
+    processing: state.consultationStatus === "processing",
+  };
+}
+
+function consultationProgressCopy(context) {
+  const remaining = Math.max(0, consultationAreas.length - context.consultedCount);
+  const primaryCopy = consultationAreaCopy(context.base.primaryAreaId);
+  if (context.isAdmin) {
+    return "Todas as &aacute;reas est&atilde;o dispon&iacute;veis para consulta e revis&atilde;o.";
+  }
+  if (!context.isFullPlan) {
+    const started = context.consultedCount === 1
+      ? `Voc&ecirc; j&aacute; iniciou sua leitura em ${primaryCopy.label}. Ainda existem ${remaining} &aacute;reas que podem ampliar sua compreens&atilde;o. `
+      : "";
+    return `${started}Seu plano inclui uma &aacute;rea. Desbloqueie as demais para construir uma vis&atilde;o mais ampla.`;
+  }
+  return "Continue explorando as &aacute;reas que mais representam seu momento.";
+}
+
+function ConsultationProgress(context) {
+  const total = consultationAreas.length;
+  const percent = Math.round((context.consultedCount / total) * 100);
+  return `
+    <section class="consultation-progress-card" aria-labelledby="consultation-progress-title">
+      <div>
+        <span class="eyebrow">SEU PROGRESSO NAS &Aacute;REAS</span>
+        <h3 id="consultation-progress-title">${context.consultedCount} de ${total} &aacute;reas consultadas</h3>
+        <p>${consultationProgressCopy(context)}</p>
+      </div>
+      <div
+        class="consultation-progress-track"
+        role="progressbar"
+        aria-label="Explora&ccedil;&atilde;o das &aacute;reas"
+        aria-valuenow="${context.consultedCount}"
+        aria-valuemin="0"
+        aria-valuemax="${total}"
+      ><span style="width:${percent}%"></span></div>
+      <small>Explora&ccedil;&atilde;o das &aacute;reas</small>
+    </section>
+  `;
+}
+
+function PersonalBaseCard(context) {
+  const primaryCopy = consultationAreaCopy(context.base.primaryAreaId);
+  if (!context.base.valid) {
+    return `
+      <section class="consultation-base-card is-missing" role="alert">
+        <span class="consultation-base-lock">${icon("lock")}</span>
+        <div>
+          <span class="eyebrow">SUA BASE PESSOAL</span>
+          <h3>N&atilde;o foi poss&iacute;vel localizar sua base pessoal.</h3>
+          <p>Revise seus dados no perfil antes de criar uma nova leitura.</p>
+          <button class="button-text" data-route="profile" type="button">Corrigir meus dados no perfil ${icon("arrow")}</button>
+        </div>
+      </section>
+    `;
+  }
+  return `
+    <section class="consultation-base-card" aria-labelledby="consultation-base-title">
+      <span class="consultation-base-lock" aria-hidden="true">${icon("lock")}</span>
+      <div class="consultation-base-content">
+        <div class="consultation-base-heading">
+          <span class="eyebrow">SUA BASE PESSOAL</span>
+          <h3 id="consultation-base-title">Dados preservados nesta consulta</h3>
+        </div>
+        <dl>
+          <div><dt>Nome completo</dt><dd>${escapeHtml(context.base.name)}</dd></div>
+          <div><dt>Data de nascimento</dt><dd>${escapeHtml(formatDatePtBr(context.base.birth))}</dd></div>
+          <div><dt>Kin pessoal</dt><dd>Kin ${escapeHtml(context.base.kin)}</dd></div>
+          <div><dt>&Aacute;rea principal</dt><dd>${primaryCopy.label}</dd></div>
+        </dl>
+        <p>${icon("lock")} Estes dados formam sua base pessoal e n&atilde;o podem ser alterados durante uma consulta.</p>
+        <button class="button-text" data-route="profile" type="button">Corrigir meus dados no perfil ${icon("arrow")}</button>
+      </div>
+    </section>
+  `;
+}
+
+function ConsultationAreaCards(context) {
+  return `
+    <section class="new-consultation-areas" aria-labelledby="new-consultation-areas-title">
+      <header>
+        <span class="eyebrow">ESCOLHA UMA &Aacute;REA</span>
+        <h3 id="new-consultation-areas-title">&Aacute;reas da sua leitura</h3>
+      </header>
+      <div class="new-consultation-area-grid" role="listbox" aria-label="&Aacute;reas dispon&iacute;veis para uma nova leitura">
+        ${context.areaStates.map((item) => {
+          const selectedClass = item.selected ? "is-selected" : "";
+          const primaryBadge = item.primary ? '<span class="consultation-area-badge is-primary">&Aacute;rea principal</span>' : "";
+          if (item.currentEntry) {
+            return `
+              <button
+                class="new-consultation-area-card is-completed ${item.primary ? "is-primary" : ""}"
+                data-history-id="${escapeHtml(item.currentEntry.readingId)}"
+                type="button"
+                role="option"
+                aria-selected="false"
+                aria-label="${item.copy.label}: consulta conclu&iacute;da. Ver resultado."
+              >
+                <span class="new-consultation-area-icon">${icon("check")}</span>
+                <span class="new-consultation-area-copy">
+                  <strong>${item.copy.label}</strong>
+                  <small>Leitura de ${escapeHtml(formatReadingCreatedAtLong(item.currentEntry.createdAt))}</small>
+                </span>
+                <span class="consultation-area-badges">${primaryBadge}<span class="consultation-area-badge is-completed">Consulta conclu&iacute;da</span></span>
+                <span class="new-consultation-area-action">Ver resultado ${icon("arrow")}</span>
+              </button>
+            `;
+          }
+          if (item.locked) {
+            return `
+              <button
+                class="new-consultation-area-card is-locked ${item.primary ? "is-primary" : ""}"
+                data-open-upgrade-modal
+                data-upgrade-area-id="${escapeHtml(item.area.id)}"
+                type="button"
+                role="option"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="${item.copy.label}: dispon&iacute;vel no plano completo. Desbloquear &aacute;rea."
+              >
+                <span class="new-consultation-area-icon">${icon("lock")}</span>
+                <span class="new-consultation-area-copy"><strong>${item.copy.label}</strong><small>${item.copy.description}</small></span>
+                <span class="consultation-area-badges">${primaryBadge}<span class="consultation-area-badge">Dispon&iacute;vel no plano completo</span></span>
+                <span class="new-consultation-area-action">Desbloquear &aacute;rea ${icon("arrow")}</span>
+              </button>
+            `;
+          }
+          return `
+            <button
+              class="new-consultation-area-card is-available ${selectedClass} ${item.primary ? "is-primary" : ""}"
+              data-consultation-area-id="${escapeHtml(item.area.id)}"
+              type="button"
+              role="option"
+              aria-selected="${item.selected ? "true" : "false"}"
+              aria-label="${item.copy.label}: dispon&iacute;vel para consultar."
+            >
+              <span class="new-consultation-area-icon">${icon(item.selected ? "check" : item.area.icon)}</span>
+              <span class="new-consultation-area-copy"><strong>${item.copy.label}</strong><small>${item.copy.description}</small></span>
+              <span class="consultation-area-badges">${primaryBadge}<span class="consultation-area-badge">Dispon&iacute;vel para consultar</span></span>
+              <span class="new-consultation-area-action">Selecionar &aacute;rea ${icon("arrow")}</span>
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function HomeScreen() {
-  const consultationLocked = freeConsultationUsed();
+  const context = newConsultationContext();
+  const selectedCopy = context.selectedState ? context.selectedState.copy : null;
+  const submitText = context.processing
+    ? "Preparando sua leitura..."
+    : selectedCopy
+      ? `Criar leitura para ${selectedCopy.label}`
+      : "Selecione uma &aacute;rea dispon&iacute;vel";
+  const submitDisabled = !context.base.valid || !context.selectedState || context.processing;
   return PlatformShell(`
     <section class="consultation-heading">
-      <span class="eyebrow">GPS do Sincron&aacute;rio &middot; Mapa Energ&eacute;tico Visual</span>
+      <span class="eyebrow">NOVA LEITURA &middot; APLICA&Ccedil;&Atilde;O POR &Aacute;REA</span>
       <h2>Qual &aacute;rea da sua vida pede mais clareza hoje?</h2>
-      <p>Confirme seus dados, escolha um contexto e gere uma nova leitura. Os c&aacute;lculos s&atilde;o preservados no hist&oacute;rico.</p>
+      <p>Escolha uma &aacute;rea ainda dispon&iacute;vel. Sua base pessoal permanece a mesma; apenas a interpreta&ccedil;&atilde;o e a aplica&ccedil;&atilde;o pr&aacute;tica ser&atilde;o contextualizadas.</p>
     </section>
     <div class="consultation-layout">
-    ${GoldenCard(`
-      <div class="card-title-block">
-        <h2>Dados da consulta</h2>
-        ${GoldenDivider()}
+      <div class="new-consultation-main">
+        ${ConsultationProgress(context)}
+        ${PersonalBaseCard(context)}
+        ${ConsultationAreaCards(context)}
+        ${context.selectedState ? `
+          <section class="consultation-selection-summary" aria-live="polite">
+            ${icon("check")}
+            <p>Voc&ecirc; est&aacute; criando uma nova leitura para <strong>${selectedCopy.label}</strong>. Sua base pessoal permanece a mesma; apenas a aplica&ccedil;&atilde;o ser&aacute; contextualizada.</p>
+          </section>
+        ` : ""}
+        <form id="alignment-form" class="new-consultation-submit">
+          <button class="primary-energy-button" type="submit" ${submitDisabled ? "disabled" : ""} aria-live="polite" aria-busy="${context.processing ? "true" : "false"}">
+            ${context.processing ? '<i class="button-spinner" aria-hidden="true"></i>' : icon("spark")}
+            <span>${submitText}</span>
+          </button>
+        </form>
+        ${HomeNotice()}
       </div>
-      <form id="alignment-form" class="alignment-form">
-        ${GoldenInput({
-          label: "Nome completo",
-          name: "name",
-          value: state.name || (state.account && state.account.name),
-          placeholder: "Ex: Gabriel Ferreira",
-          type: "text",
-          iconName: "user",
-        })}
-        ${GoldenInput({
-          label: "Data de Nascimento",
-          name: "birth",
-          value: state.birth,
-          placeholder: "1996-06-25",
-          type: "date",
-          iconName: "calendar",
-        })}
-        ${ConsultationAreaSelector()}
-        ${consultationLocked
-          ? PrimaryEnergyButton("Desbloquear novas consultas", 'type="button" data-open-upgrade-modal')
-          : PrimaryEnergyButton("Calcular minhas coordenadas", `type="submit" ${state.selectedAreaId ? "" : "disabled"}`)}
-      </form>
-      ${HomeNotice()}
-    `, "home-card")}
       <aside class="consultation-aside">
         <span class="consultation-aside-icon">${icon("spark")}</span>
-        <span class="eyebrow">O QUE VOC&Ecirc; RECEBER&Aacute;</span>
-        <h3>Uma leitura completa, organizada em etapas.</h3>
+        <span class="eyebrow">O QUE ESTA NOVA LEITURA APRESENTAR&Aacute;</span>
+        <h3>Uma aplica&ccedil;&atilde;o completa da sua base pessoal na &aacute;rea escolhida.</h3>
         <ul>
-          <li>${icon("check")} Resumo do GPS de hoje</li>
-          <li>${icon("check")} Coordenadas de nascimento e do dia</li>
+          <li>${icon("check")} Sua base pessoal j&aacute; calculada</li>
+          <li>${icon("check")} Coordenada do ciclo consultado</li>
           <li>${icon("check")} Sincroniza&ccedil;&atilde;o com seu Kin pessoal</li>
-          <li>${icon("check")} Pergunta e pr&aacute;tica para a &aacute;rea escolhida</li>
+          <li>${icon("check")} Pergunta contextualizada</li>
+          <li>${icon("check")} Pr&aacute;tica aplicada &agrave; &aacute;rea</li>
           <li>${icon("check")} Snapshot salvo no hist&oacute;rico</li>
         </ul>
-        <p>${icon("info")} A &aacute;rea escolhida contextualiza o conte&uacute;do, sem alterar as f&oacute;rmulas do c&aacute;lculo.</p>
+        <p>${icon("info")} Sua base pessoal n&atilde;o muda. A &aacute;rea escolhida altera apenas a interpreta&ccedil;&atilde;o e a aplica&ccedil;&atilde;o pr&aacute;tica.</p>
       </aside>
     </div>
   `);
@@ -6413,102 +6696,147 @@ async function submitOnboarding(birthValue) {
   }
 }
 
-function submitAlignment(nameValue, birthValue) {
-  const name = String(nameValue || "").trim();
-  const birth = String(birthValue || "").trim();
-  const area = selectedConsultationArea();
+function consultationIdempotencyKey({ userId, areaId, readingDate, engineVersion }) {
+  return [
+    "consultation",
+    userId || "local-user",
+    areaId,
+    readingDate,
+    engineVersion,
+  ].map((part) => String(part || "unknown").replace(/[^a-zA-Z0-9._-]/g, "-")).join(":");
+}
 
-  if (!name || !birth) {
-    setState({
-      name,
-      birth,
-      notice: "Informe nome e data para iniciar a sintonia.",
-      noticeKind: "missing_input",
-    });
-    return;
+function openConsultationHistoryEntry(entry, notice = "") {
+  const normalizedEntry = normalizeHistoryEntry(entry);
+  if (!normalizedEntry || !normalizedEntry.readingSnapshot) {
+    throw new Error("CONSULTATION_SNAPSHOT_INVALID");
+  }
+  setState({
+    route: "chakras",
+    consultationStatus: "idle",
+    selectedAreaId: normalizeAreaId(normalizedEntry.areaId),
+    reading: readingForHistoryEntry(normalizedEntry),
+    activeHistoryId: normalizedEntry.readingId,
+    requestedReadingId: normalizedEntry.readingId,
+    history: [
+      normalizedEntry,
+      ...normalizedHistoryList(state.history).filter((item) => item.readingId !== normalizedEntry.readingId),
+    ].slice(0, 8),
+    notice,
+    noticeKind: notice ? "existing_consultation" : "",
+  }, { persist: true, updateUrl: true });
+}
+
+async function submitConsultation(areaIdValue = state.selectedAreaId) {
+  if (state.consultationStatus === "processing") {
+    return null;
   }
 
-  const birthDateValidation = validateBirthDateForProduct(birth);
-  if (birthDateValidation.status === "invalid") {
+  const base = persistedPersonalBase();
+  if (!base.valid) {
     setState({
-      name,
-      birth,
-      reading: null,
-      notice: "Informe uma data de nascimento v&aacute;lida.",
-      noticeKind: "invalid_date",
+      consultationStatus: "idle",
+      notice: "N&atilde;o foi poss&iacute;vel localizar sua base pessoal. Revise seus dados no perfil.",
+      noticeKind: "missing_personal_base",
     });
-    return;
+    return null;
   }
 
-  if (birthDateValidation.status === "pending_method_decision") {
-    setState({
-      name,
-      birth,
-      reading: null,
-      notice: "29 de fevereiro possui regra especial e ainda n&atilde;o est&aacute; dispon&iacute;vel nesta vers&atilde;o.",
-      noticeKind: "pending_method_decision",
-    });
-    return;
-  }
-
+  const areaId = normalizeAreaId(areaIdValue);
+  const area = consultationAreas.find((item) => item.id === areaId) || null;
   if (!area) {
     setState({
-      name,
-      birth,
-      areaCarouselTouched: true,
-      notice: "Escolha uma &aacute;rea para iniciar a sintonia.",
-      noticeKind: "missing_area",
+      consultationStatus: "idle",
+      selectedAreaId: "",
+      notice: "Selecione uma &aacute;rea v&aacute;lida para continuar.",
+      noticeKind: "invalid_area",
     });
-    return;
+    return null;
+  }
+
+  const readingDate = todayForEngine();
+  const engineVersion = currentEngineVersion();
+  const localExisting = latestAreaHistoryEntry(area.id, readingDate);
+  if (localExisting) {
+    openConsultationHistoryEntry(
+      localExisting,
+      "Esta &aacute;rea j&aacute; possui uma leitura neste ciclo.",
+    );
+    return localExisting;
   }
 
   if (!canStartConsultationForArea(area.id)) {
     setState({
-      name,
-      birth,
+      consultationStatus: "idle",
       selectedAreaId: area.id,
       upgradeModalOpen: true,
       upgradeAreaId: area.id,
-      notice: "",
-      noticeKind: "",
+      notice: "Esta &aacute;rea n&atilde;o est&aacute; dispon&iacute;vel no seu plano atual.",
+      noticeKind: "permission_denied",
     });
-    return;
+    return null;
   }
-
-  const reading = calculateReading(birth, area.id);
-  const kin = personalKin(reading);
-
-  if (!kin) {
-    setState({
-      name,
-      birth,
-      reading,
-      notice: "Informe uma data de nascimento v&aacute;lida.",
-      noticeKind: "invalid_date",
-    });
-    return;
-  }
-
-  const historyEntry = createReadingHistoryEntry({ name, birth, area, reading });
 
   setState({
-    name,
-    birth,
-    selectedAreaId: area.id,
-    areaCarouselTouched: false,
-    reading,
-    activeHistoryId: historyEntry.readingId,
-    history: [historyEntry, ...normalizedHistoryList(state.history)].slice(0, 8),
-    route: "chakras",
+    consultationStatus: "processing",
     notice: "",
     noticeKind: "",
-  }, { persist: true, updateUrl: true });
+  });
 
-  if (isSupabaseMode()) {
-    supabaseService().saveReading(historyEntry).catch(() => {
-      // The local copy remains available and can be synchronized on a later attempt.
+  try {
+    if (isSupabaseMode()) {
+      const cloudExisting = await supabaseService().findReadingForCycle({
+        areaId: area.id,
+        readingDate,
+        engineVersion,
+      });
+      if (cloudExisting) {
+        openConsultationHistoryEntry(
+          cloudExisting,
+          "Esta &aacute;rea j&aacute; possui uma leitura neste ciclo.",
+        );
+        return cloudExisting;
+      }
+    }
+
+    const reading = calculateReading(base.birth, area.id);
+    if (!personalKin(reading)) {
+      throw new Error("CONSULTATION_CALCULATION_FAILED");
+    }
+    const historyEntry = createReadingHistoryEntry({
+      name: base.name,
+      birth: base.birth,
+      area,
+      reading,
+      readingId: consultationIdempotencyKey({
+        userId: base.account.id || base.account.email || "local-user",
+        areaId: area.id,
+        readingDate,
+        engineVersion,
+      }),
+      readingType: "consultation",
     });
+    const savedEntry = isSupabaseMode()
+      ? await supabaseService().saveReading(historyEntry)
+      : historyEntry;
+    if (!savedEntry || !savedEntry.readingSnapshot) {
+      throw new Error("CONSULTATION_SNAPSHOT_NOT_SAVED");
+    }
+    openConsultationHistoryEntry(savedEntry);
+    return savedEntry;
+  } catch {
+    setState({
+      route: "home",
+      consultationStatus: "idle",
+      notice: "N&atilde;o foi poss&iacute;vel criar sua leitura agora. Tente novamente sem alterar seus dados.",
+      noticeKind: "processing_failed",
+    }, { updateUrl: true });
+    return null;
   }
+}
+
+function submitAlignment() {
+  return submitConsultation(state.selectedAreaId);
 }
 
 function render() {
@@ -6877,6 +7205,21 @@ function bindEvents() {
     });
   });
 
+  document.querySelectorAll("[data-consultation-area-id]").forEach((element) => {
+    element.addEventListener("click", () => {
+      const areaId = normalizeAreaId(element.dataset.consultationAreaId);
+      if (!areaId || !canStartConsultationForArea(areaId) || latestAreaHistoryEntry(areaId, todayForEngine())) {
+        return;
+      }
+      setState({
+        selectedAreaId: areaId,
+        areaCarouselTouched: true,
+        notice: "",
+        noticeKind: "",
+      });
+    });
+  });
+
   document.querySelectorAll("[data-history-section]").forEach((button) => {
     button.addEventListener("click", () => {
       setState({
@@ -7146,8 +7489,7 @@ function bindEvents() {
   if (form) {
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const formData = new FormData(form);
-      submitAlignment(formData.get("name"), formData.get("birth"));
+      submitConsultation(state.selectedAreaId);
     });
   }
 
