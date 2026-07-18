@@ -1506,10 +1506,10 @@ const chakraExpectations = [
   ["root", "1", "Raiz", "Muladhara", "Seli"],
   ["sacral", "2", "Sacral", "Svadhisthana", "Kali"],
   ["solarPlexus", "3", "Plexo Solar", "Manipura", "Limi"],
-  ["heart", "4", "Card&iacute;aco", "Anahata", "Silio"],
-  ["throat", "5", "Lar&iacute;ngeo", "Vishuddha", "Alfa"],
+  ["heart", "4", "Cardíaco", "Anahata", "Silio"],
+  ["throat", "5", "Laríngeo", "Vishuddha", "Alfa"],
   ["thirdEye", "6", "Terceiro Olho", "Ajna", "Gama"],
-  ["crown", "7", "Coron&aacute;rio", "Sahasrara", "Dali"],
+  ["crown", "7", "Coronário", "Sahasrara", "Dali"],
 ];
 
 for (const [id, number, name, traditional, plasmaName] of chakraExpectations) {
@@ -1518,17 +1518,26 @@ for (const [id, number, name, traditional, plasmaName] of chakraExpectations) {
   assert.ok(chakraHtml.includes(`Chakra ${number}`), id);
   assert.ok(chakraHtml.includes(name), id);
   assert.ok(chakraHtml.includes(traditional), id);
-  assert.ok(chakraHtml.includes("Tema no ciclo"), id);
-  assert.ok(chakraHtml.includes("Situa&ccedil;&atilde;o na consulta"), id);
+  assert.ok(chakraHtml.includes("Ciclo Energ&eacute;tico"), id);
+  assert.ok(chakraHtml.includes("Voltar ao Mapa dos Chakras"), id);
+  assert.ok(chakraHtml.includes("Situa&ccedil;&atilde;o nesta leitura"), id);
+  assert.ok(chakraHtml.includes("Resumo r&aacute;pido"), id);
+  assert.ok(chakraHtml.includes("Como este chakra aparece no ciclo"), id);
+  assert.ok(chakraHtml.includes("Como ele se relaciona com sua leitura"), id);
   assert.ok(chakraHtml.includes("O que observar"), id);
-  assert.ok(chakraHtml.includes("Pr&aacute;tica da leitura"), id);
+  assert.ok(chakraHtml.includes("Pr&aacute;tica sugerida"), id);
+  assert.ok(chakraHtml.includes("Abrir Protocolo Di&aacute;rio"), id);
+  assert.ok(chakraHtml.includes("Entenda a metodologia"), id);
   assert.ok(chakraHtml.includes(`Plasma ${plasmaName}`), id);
   assert.ok(chakraHtml.includes("Refer\u00eancia do ciclo"), id);
-  assert.ok(chakraHtml.includes("sem indicar estado individual"), id);
+  assert.ok(chakraHtml.includes("n&atilde;o indica estado individual"), id);
   assert.ok(chakraHtml.includes("Trabalho e Prosperidade"), id);
   assert.ok(chakraHtml.includes('data-route="energy-cycle"'), id);
+  assert.ok(chakraHtml.includes('data-route="protocol"'), id);
   assert.ok(chakraHtml.includes("Navega&ccedil;&atilde;o entre chakras"), id);
-  assert.ok(chakraHtml.includes("A metodologia atual calcula correspond&ecirc;ncias"), id);
+  assert.ok(chakraHtml.includes("A metodologia organiza correspond&ecirc;ncias simb&oacute;licas"), id);
+  assert.ok(chakraHtml.includes("Chakra anterior"), id);
+  assert.ok(chakraHtml.includes("Próximo chakra"), id);
   assert.ok(!chakraHtml.includes("O que este chakra representa"), id);
   assert.ok(!chakraHtml.includes("Perguntas para reflex&atilde;o"), id);
   assert.ok(!chakraHtml.includes("Adicionar ao meu protocolo"), id);
@@ -1539,7 +1548,7 @@ for (const [id, number, name, traditional, plasmaName] of chakraExpectations) {
   assert.ok(!chakraHtml.includes("Drenado"), id);
   assert.ok(!chakraHtml.includes("Ferido"), id);
   assert.ok(!chakraHtml.includes("Hiperativo"), id);
-  const headerMatch = chakraHtml.match(/<header class="app-header">[\s\S]*?<\/header>/);
+  const headerMatch = chakraHtml.match(/<header class="chakra-detail-header">[\s\S]*?<\/header>/);
   assert.ok(headerMatch, id);
   assert.ok(!headerMatch[0].includes("#"), id);
 }
@@ -1552,15 +1561,14 @@ calculatedChakraContext.setState({
   reading,
 });
 const calculatedChakraHtml = calculatedChakraContext.__getHtml();
-assert.ok(calculatedChakraHtml.includes("Coordenada calculada: dia atual"));
+assert.ok(calculatedChakraHtml.includes("Coordenada do dia"));
 assert.ok(calculatedChakraHtml.includes("Silio / Cora\u00e7\u00e3o / Card\u00edaco"));
-assert.ok(calculatedChakraHtml.includes("Pr\u00e1tica validada da leitura"));
 assert.ok(calculatedChakraHtml.includes("Levante informa\u00e7\u00f5es, n\u00fameros e prioridades antes de decidir"));
 assert.ok(!calculatedChakraHtml.includes("Ferido"));
 
 const directGeneralContext = createBrowserLikeContext("http://localhost:4173/chakras/root");
 const directGeneralHtml = directGeneralContext.__getHtml();
-assert.ok(directGeneralHtml.includes("Consulta: Vis\u00e3o Geral"));
+assert.ok(directGeneralHtml.includes("&Aacute;rea consultada: Vis\u00e3o Geral"));
 assert.ok(directGeneralHtml.includes("Refer\u00eancia do ciclo"));
 assert.ok(!directGeneralHtml.includes("Trabalho e Prosperidade"));
 

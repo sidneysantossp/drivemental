@@ -5093,28 +5093,40 @@ function ChakraSummaryList(items) {
   `;
 }
 
-function ChakraSimpleDiagnosis(summary, areaTitle) {
+function ChakraDetailStatus(chakra, reading) {
+  const coordinates = readingCoordinates(reading) || {};
+  const birthCalendar = coordinates.birth && coordinates.birth.thirteen_moons
+    ? coordinates.birth.thirteen_moons
+    : {};
+  const dayCalendar = coordinates.day && coordinates.day.thirteen_moons
+    ? coordinates.day.thirteen_moons
+    : {};
+  const birth = coordinateChakraSummary(birthCalendar);
+  const day = coordinateChakraSummary(dayCalendar);
+  const birthMatch = birth.chakraId === chakra.id;
+  const dayMatch = day.chakraId === chakra.id;
+  return {
+    label: decodeStoredText(energyReportStatus({ birthMatch, dayMatch, cycleReference: true })),
+    birthMatch,
+    dayMatch,
+    birth,
+    day,
+  };
+}
+
+function ChakraDetailNavCard(chakra, label, direction) {
   return `
-    <section class="chakra-simple-diagnosis" style="--state-tone:${summary.stateTone}">
-      <article class="chakra-simple-cell chakra-theme-cell">
-        <span>Tema no ciclo</span>
-        <strong>${readableText(summary.theme)}</strong>
-      </article>
-      <article class="chakra-simple-cell chakra-state-cell">
-        <span>Situa&ccedil;&atilde;o na consulta</span>
-        <strong><i></i>${readableText(summary.status)}</strong>
-        <p>${readableText(summary.statusDescription)}</p>
-        <small>Consulta: ${readableText(areaTitle)}</small>
-      </article>
-      <article class="chakra-simple-cell">
-        <span>O que observar</span>
-        ${ChakraSummaryList(summary.observationItems)}
-      </article>
-      <article class="chakra-simple-cell">
-        <span>Pr&aacute;tica da leitura</span>
-        ${ChakraSummaryList(summary.practiceItems)}
-      </article>
-    </section>
+    <button
+      class="chakra-detail-nav-card"
+      style="--chakra-destination:${chakra.color}"
+      data-chakra-id="${chakra.id}"
+      type="button"
+      aria-label="${readableText(label)}: Chakra ${chakra.number}, ${readableText(chakra.name)}"
+    >
+      <span>${readableText(label)}</span>
+      <strong>${direction === "previous" ? icon("back") : ""}<i>${chakra.number}</i>${readableText(chakra.name)}${direction === "next" ? icon("arrow") : ""}</strong>
+      <small>${readableText(chakra.traditional)}</small>
+    </button>
   `;
 }
 
@@ -5132,36 +5144,113 @@ function ChakraDetailScreen() {
     ? area.title
     : interpretation.areaTitle || "Vis&atilde;o Geral";
   const summary = chakraConsultationSummary(chakra, areaId, areaTitle);
+  const status = ChakraDetailStatus(chakra, state.reading);
+  const plasma = chakraMethodologyPlasma(chakra.id);
+  const application = chakraAreaApplication(areaId);
+  const applicationText = application && application.description
+    ? application.description
+    : "A aplica&ccedil;&atilde;o por &aacute;rea contextualiza a leitura sem alterar o c&aacute;lculo do ciclo.";
+  const observation = summary.observationItems[0] || chakra.observationSignals[0] || chakra.phrase;
+  const reflectionQuestion = chakra.reflectionQuestions[0] || "O que pede mais presen&ccedil;a no seu pr&oacute;ximo passo?";
+  const practice = summary.practiceItems[0] || chakra.practices[0] || "Escolha uma a&ccedil;&atilde;o pequena e conclua antes de iniciar outra.";
+  const practiceAction = practice.replace(/^Pr&aacute;tica validada da leitura:\s*/i, "");
+  const relationCopy = status.birthMatch || status.dayMatch
+    ? `Nesta consulta, o Chakra ${readableText(chakra.name)} aparece como ${readableText(status.label.toLowerCase())} na &aacute;rea ${readableText(areaTitle)}.`
+    : `Nesta consulta, o Chakra ${readableText(chakra.name)} aparece como refer&ecirc;ncia do ciclo dos sete plasmas na &aacute;rea ${readableText(areaTitle)}.`;
+  const coordinateDetails = [
+    status.birthMatch ? `Nascimento: ${status.birth.plasmaName} / ${status.birth.chakraLabel}` : "",
+    status.dayMatch ? `Dia atual: ${status.day.plasmaName} / ${status.day.chakraLabel}` : "",
+  ].filter(Boolean);
   const orderedChakras = [...chakras].sort((a, b) => a.number - b.number);
   const currentIndex = orderedChakras.findIndex((item) => item.id === chakra.id);
   const previousChakra = orderedChakras[(currentIndex - 1 + orderedChakras.length) % orderedChakras.length];
   const nextChakra = orderedChakras[(currentIndex + 1) % orderedChakras.length];
 
   return PlatformShell(`
-    ${AppHeader(`Chakra ${chakra.name}`, `${chakra.traditional} &bull; Chakra ${chakra.number}`, { back: true, backRoute: "energy-cycle" })}
-    <section class="chakra-detail-stack chakra-simple-stack" style="--chakra:${chakra.color}">
-      <section class="chakra-detail-hero chakra-simple-hero">
-        <div class="chakra-hero-symbol">
-          ${icon(chakra.symbol)}
+    <section
+      class="chakra-detail-editorial"
+      style="--chakra-color:${chakra.color}; --chakra-color-soft:color-mix(in srgb, ${chakra.color}, transparent 82%); --chakra-color-border:color-mix(in srgb, ${chakra.color}, var(--gold) 28%); --chakra-color-glow:color-mix(in srgb, ${chakra.color}, transparent 54%); --chakra-color-background:color-mix(in srgb, ${chakra.color}, #02110f 88%);"
+    >
+      <header class="chakra-detail-header">
+        <nav aria-label="Breadcrumb">
+          <button data-route="energy-cycle" type="button">Ciclo Energ&eacute;tico</button>
+          <span>/</span>
+          <strong>Chakra ${readableText(chakra.name)}</strong>
+        </nav>
+        <button class="chakra-detail-back" data-route="energy-cycle" type="button" aria-label="Voltar ao Mapa dos Chakras">${icon("back")} Voltar ao Mapa dos Chakras</button>
+        <button class="chakra-detail-info" type="button" aria-label="Informa&ccedil;&otilde;es sobre a leitura">${icon("info")}</button>
+      </header>
+
+      <section class="chakra-detail-hero">
+        <div class="chakra-detail-hero-main">
+          <span class="chakra-detail-number">${chakra.number}</span>
+          <div class="chakra-hero-symbol">${icon(chakra.symbol)}</div>
+          <div class="chakra-hero-copy">
+            <span>Chakra ${chakra.number}</span>
+            <h1>Chakra ${readableText(chakra.name)}</h1>
+            <strong>${readableText(chakra.traditional)} &middot; Chakra ${chakra.number}</strong>
+            <p>${readableText(chakra.phrase)}</p>
+          </div>
         </div>
-        <div class="chakra-hero-copy">
-          <span>Chakra ${chakra.number}</span>
-          <h2>${chakra.name}</h2>
-          <strong>${chakra.traditional}</strong>
-          <p>${chakra.phrase}</p>
+        <div class="chakra-detail-status-panel">
+          <span>Situa&ccedil;&atilde;o nesta leitura</span>
+          <strong><i aria-hidden="true"></i>${readableText(status.label)}</strong>
+          <small>&Aacute;rea consultada: ${readableText(areaTitle)}</small>
         </div>
       </section>
 
-      ${ChakraSimpleDiagnosis(summary, areaTitle)}
-
-      <section class="chakra-detail-transparency">
-        <h2>Valida&ccedil;&atilde;o metodol&oacute;gica</h2>
-        <p>A metodologia atual calcula correspond&ecirc;ncias do ciclo dos sete plasmas e sua aplica&ccedil;&atilde;o por &aacute;rea. Ela n&atilde;o calcula bloqueio, hiperatividade, ferida ou estado individual do chakra.</p>
+      <section class="chakra-detail-quick-summary" aria-label="Resumo r&aacute;pido">
+        <article><span>Plasma</span><strong>${readableText(plasma.name || "N&atilde;o dispon&iacute;vel")}</strong></article>
+        <article><span>Papel no ciclo</span><strong>${readableText(chakra.phrase)}</strong></article>
+        <article><span>Situa&ccedil;&atilde;o</span><strong>${readableText(status.label)}</strong></article>
       </section>
+
+      <section class="chakra-detail-columns">
+        <article class="chakra-detail-panel">
+          <h2>Como este chakra aparece no ciclo</h2>
+          <p><strong>Tema no ciclo:</strong> ${readableText(decodeStoredText(summary.theme))}</p>
+          <p><strong>Rela&ccedil;&atilde;o com o plasma:</strong> ${readableText(plasma.observation_guidance || chakra.phrase)}</p>
+          <p>${readableText(chakra.essence)}</p>
+          <p>${readableText(applicationText)}</p>
+        </article>
+        <article class="chakra-detail-panel">
+          <h2>Como ele se relaciona com sua leitura</h2>
+          <p>${relationCopy}</p>
+          ${coordinateDetails.length ? `<p><strong>Coordenada:</strong> ${coordinateDetails.map(readableText).join(" &middot; ")}</p>` : ""}
+          <p>Ele foi utilizado como correspond&ecirc;ncia simb&oacute;lica dentro da metodologia do ciclo, considerando a &aacute;rea consultada e as coordenadas dispon&iacute;veis.</p>
+          <p>Isso n&atilde;o indica estado individual, bloqueio, n&iacute;vel energ&eacute;tico ou diagn&oacute;stico do chakra.</p>
+        </article>
+      </section>
+
+      <section class="chakra-detail-observe">
+        <span>${icon("target")}</span>
+        <div>
+          <h2>O que observar</h2>
+          <p>${readableText(observation)}</p>
+          <strong>${readableText(reflectionQuestion)}</strong>
+        </div>
+      </section>
+
+      <section class="chakra-detail-practice">
+        <div>
+          <span>Pr&aacute;tica sugerida</span>
+          <h2>${readableText(practiceAction)}</h2>
+          <p>Esta pr&aacute;tica vem da &aacute;rea escolhida e da semana crom&aacute;tica, n&atilde;o de um diagn&oacute;stico do chakra.</p>
+        </div>
+        <button class="button-primary" data-route="protocol" type="button">${icon("protocol")} Abrir Protocolo Di&aacute;rio</button>
+      </section>
+
+      <details class="chakra-methodology-accordion">
+        <summary aria-expanded="false">${icon("info")} Entenda a metodologia</summary>
+        <p>A metodologia organiza correspond&ecirc;ncias simb&oacute;licas do ciclo dos sete plasmas e sua aplica&ccedil;&atilde;o por &aacute;rea. Ela n&atilde;o calcula doen&ccedil;a, bloqueio, hiperatividade, ferida ou estado individual do chakra.</p>
+      </details>
 
       <nav class="chakra-detail-nav" aria-label="Navega&ccedil;&atilde;o entre chakras">
-        <button data-chakra-id="${previousChakra.id}" type="button">${icon("back")}<span>${previousChakra.name}</span></button>
-        <button data-chakra-id="${nextChakra.id}" type="button"><span>${nextChakra.name}</span>${icon("arrow")}</button>
+        <button class="chakra-detail-map-link" data-route="energy-cycle" type="button">Voltar ao Mapa dos 7 Chakras</button>
+        <div>
+          ${ChakraDetailNavCard(previousChakra, "Chakra anterior", "previous")}
+          ${ChakraDetailNavCard(nextChakra, "Pr&oacute;ximo chakra", "next")}
+        </div>
       </nav>
     </section>
   `);
@@ -7538,6 +7627,17 @@ function bindEvents() {
       if (typeof window.print === "function") {
         window.print();
       }
+    });
+  });
+
+  document.querySelectorAll(".chakra-methodology-accordion").forEach((element) => {
+    const summary = element.querySelector("summary");
+    if (!summary) {
+      return;
+    }
+    summary.setAttribute("aria-expanded", element.open ? "true" : "false");
+    element.addEventListener("toggle", () => {
+      summary.setAttribute("aria-expanded", element.open ? "true" : "false");
     });
   });
 
