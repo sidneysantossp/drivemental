@@ -1630,7 +1630,7 @@ function normalizePlanId(value) {
 }
 
 function paidPlanIds() {
-  return ["premium", "mentor", "monthly", "guided", "drive", "drive-astral", "jornada-guiada"];
+  return ["essential", "essencial", "basic", "premium", "mentor", "monthly", "guided", "drive", "drive-astral", "jornada-guiada"];
 }
 
 function isPaidPlanId(planId) {
@@ -1694,6 +1694,9 @@ function currentPlanBadge() {
     mentor: "MENTOR",
     guided: "MENTOR",
     "jornada-guiada": "MENTOR",
+    essential: "ESSENCIAL",
+    essencial: "ESSENCIAL",
+    basic: "ESSENCIAL",
     premium: "PREMIUM",
     monthly: "PREMIUM",
     drive: "PREMIUM",
@@ -4477,13 +4480,14 @@ function dashboardJourneyStreak(completedDays, currentDay) {
 
 function dashboardPermissions() {
   const fullAccess = hasPremiumAccess();
+  const journeyPolicy = journeyAccessPolicy();
   return {
     planId: currentPlanId(),
     planBadge: currentPlanBadge(),
     allowedAreas: consultationAreas
       .filter((area) => canStartConsultationForArea(area.id))
       .map((area) => area.id),
-    allowedJourneyDays: 30,
+    allowedJourneyDays: journeyPolicy.allowedDays || 0,
     historyAccess: true,
     evolutionAccess: fullAccess,
   };
@@ -4507,8 +4511,9 @@ function dashboardContext() {
   const journey = snapshotReading ? journeyPlan(snapshotReading) : [];
   const today = journey[journeyDay - 1] || null;
   const todayCompleted = completedDays.includes(journeyDay);
-  const journeyCompleted = completedDays.length >= 30;
   const permissions = dashboardPermissions();
+  const journeyCompleted = permissions.allowedJourneyDays > 0
+    && completedDays.length >= permissions.allowedJourneyDays;
   const consultedAreasCount = new Set(history.map((entry) => normalizeAreaId(entry.areaId)).filter(Boolean)).size;
   const protocolProgress = loadProtocolProgress();
   const protocolCompleted = Array.isArray(protocolProgress.completed)
@@ -4528,7 +4533,7 @@ function dashboardContext() {
     today,
     todayCompleted,
     journeyCompleted,
-    journeyPercent: Math.round((completedDays.length / permissions.allowedJourneyDays) * 100),
+    journeyPercent: Math.round((completedDays.length / Math.max(1, permissions.allowedJourneyDays || 1)) * 100),
     streak: dashboardJourneyStreak(completedDays, journeyDay),
     protocolCompleted,
     consultedAreasCount,
@@ -5684,20 +5689,106 @@ function isAdminProfile() {
   return ["owner", "admin"].includes(String(state.adminRole || "").toLowerCase());
 }
 
-function canAccessJourneyDay(dayNumber, currentDay) {
-  return isAdminProfile() || normalizeJourneyDayNumber(dayNumber) <= currentDay;
+function journeyAccessPolicy() {
+  const planId = currentPlanId();
+  const isAdmin = isAdminProfile();
+  const isEssential = ["essential", "essencial", "basic"].includes(planId);
+  const hasFullAccess = isAdmin || ["premium", "mentor", "monthly", "guided", "drive", "drive-astral", "jornada-guiada"].includes(planId);
+  const allowedDays = hasFullAccess ? 30 : isEssential ? 3 : 0;
+  const planLabel = isAdmin ? "Admin" : isEssential ? "Essencial" : hasFullAccess ? "Completo" : "Free";
+
+  return {
+    planId,
+    planLabel,
+    allowedDays,
+    hasFullAccess,
+    isEssential,
+    isFree: allowedDays === 0,
+    isAdmin,
+    needsUpgrade: !isAdmin && allowedDays < 30,
+  };
+}
+
+function journeySequentialLimit(completedDays, currentDay, allowedDays) {
+  if (allowedDays <= 0) {
+    return 0;
+  }
+  const completedSet = new Set((Array.isArray(completedDays) ? completedDays : []).map(normalizeJourneyDayNumber));
+  let nextAvailable = 1;
+  while (nextAvailable <= allowedDays && completedSet.has(nextAvailable)) {
+    nextAvailable += 1;
+  }
+  return Math.min(allowedDays, currentDay, nextAvailable);
+}
+
+function journeyDayState(dayNumber, progress, currentDay) {
+  const normalizedDay = normalizeJourneyDayNumber(dayNumber);
+  const policy = journeyAccessPolicy();
+  const completedDays = Array.isArray(progress && progress.completedDays) ? progress.completedDays : [];
+  const isCompleted = completedDays.map(normalizeJourneyDayNumber).includes(normalizedDay);
+
+  if (policy.isAdmin) {
+    return {
+      status: isCompleted ? "completed" : normalizedDay === currentDay ? "available" : "unlocked",
+      isCompleted,
+      isLocked: false,
+      lockReason: "",
+      label: isCompleted ? "Conclu&iacute;do" : normalizedDay === currentDay ? "Dispon&iacute;vel hoje" : "Liberado para revis&atilde;o",
+    };
+  }
+
+  if (normalizedDay > policy.allowedDays) {
+    return {
+      status: "plan-locked",
+      isCompleted: false,
+      isLocked: true,
+      lockReason: "plan",
+      label: "Dispon&iacute;vel no plano completo",
+    };
+  }
+
+  const sequentialLimit = journeySequentialLimit(completedDays, currentDay, policy.allowedDays);
+  if (normalizedDay > sequentialLimit) {
+    return {
+      status: "progress-locked",
+      isCompleted: false,
+      isLocked: true,
+      lockReason: "progress",
+      label: "Conclua o dia anterior",
+    };
+  }
+
+  return {
+    status: isCompleted ? "completed" : normalizedDay === sequentialLimit ? "available" : "unlocked",
+    isCompleted,
+    isLocked: false,
+    lockReason: "",
+    label: isCompleted ? "Conclu&iacute;do" : normalizedDay === sequentialLimit ? "Dispon&iacute;vel hoje" : "Desbloqueado",
+  };
+}
+
+function canAccessJourneyDay(dayNumber, progress, currentDay) {
+  return !journeyDayState(dayNumber, progress, currentDay).isLocked;
 }
 
 function accessibleJourneyDayNumber(dayNumber, currentDay) {
   const normalizedDay = normalizeJourneyDayNumber(dayNumber || currentDay);
-  return canAccessJourneyDay(normalizedDay, currentDay) ? normalizedDay : currentDay;
+  const progress = loadJourneyProgress() || { completedDays: [], startDate: todayForEngine(), contextKey: journeyContextKey() };
+  if (canAccessJourneyDay(normalizedDay, progress, currentDay)) {
+    return normalizedDay;
+  }
+  const policy = journeyAccessPolicy();
+  if (policy.allowedDays <= 0) {
+    return 1;
+  }
+  return Math.max(1, journeySequentialLimit(progress.completedDays, currentDay, policy.allowedDays));
 }
 
 function visibleJourneyCompletedDays(progress, currentDay) {
   const completedDays = Array.isArray(progress.completedDays) ? progress.completedDays : [];
   return [...new Set(completedDays)]
     .map((day) => normalizeJourneyDayNumber(day))
-    .filter((day) => canAccessJourneyDay(day, currentDay))
+    .filter((day) => journeyDayState(day, progress, currentDay).isCompleted)
     .sort((left, right) => left - right);
 }
 
@@ -5705,8 +5796,16 @@ function toggleJourneyDay(dayNumber) {
   const progress = ensureJourneyProgress();
   const currentDay = currentJourneyDay(progress);
   const normalizedDay = normalizeJourneyDayNumber(dayNumber);
-  if (!canAccessJourneyDay(normalizedDay, currentDay)) {
-    state.journeySelectedDay = currentDay;
+  const dayState = journeyDayState(normalizedDay, progress, currentDay);
+  if (dayState.isLocked) {
+    state.journeySelectedDay = accessibleJourneyDayNumber(state.journeySelectedDay, currentDay);
+    state.notice = dayState.lockReason === "plan"
+      ? "Este dia est&aacute; dispon&iacute;vel no plano completo."
+      : "Conclua o dia anterior para desbloquear esta etapa.";
+    state.noticeKind = "journey_locked";
+    if (dayState.lockReason === "plan") {
+      state.upgradeModalOpen = true;
+    }
     render();
     return;
   }
@@ -5772,21 +5871,32 @@ function journeyDisplayDate(value) {
 
 function JourneyDayButton(day, progress, currentDay, selectedDay) {
   const date = addDaysToDateOnly(progress.startDate, day.number - 1);
-  const isCompleted = progress.completedDays.includes(day.number);
+  const dayState = journeyDayState(day.number, progress, currentDay);
+  const isCompleted = dayState.isCompleted;
   const isCurrent = day.number === currentDay;
   const isSelected = day.number === selectedDay;
-  const isLocked = !canAccessJourneyDay(day.number, currentDay);
+  const isLocked = dayState.isLocked;
+  const statusClass = `is-${dayState.status}`;
+  const statusIcon = isLocked ? icon("lock") : isCompleted ? icon("check") : day.number;
+  const lockAttribute = isLocked ? `data-journey-lock="${dayState.lockReason}"` : "";
+  const ariaDetail = isLocked
+    ? dayState.lockReason === "plan"
+      ? ", dispon&iacute;vel no plano completo"
+      : ", conclua o dia anterior para desbloquear"
+    : `, ${dayState.label}`;
 
   return `
     <button
-      class="journey-day-button ${isCompleted ? "is-completed" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${isLocked ? "is-locked" : ""}"
+      class="journey-day-button ${statusClass} ${isCompleted ? "is-completed" : ""} ${isCurrent ? "is-current" : ""} ${isSelected ? "is-selected" : ""} ${isLocked ? "is-locked" : ""}"
       data-journey-day="${day.number}"
+      ${lockAttribute}
       type="button"
-      aria-label="Dia ${day.number}, ${journeyDisplayDate(date)}${isLocked ? ", bloqueado at&eacute; a data chegar" : ""}"
+      aria-label="Dia ${day.number}, ${journeyDisplayDate(date)}${ariaDetail}"
       ${isLocked ? 'aria-disabled="true" disabled' : ""}
     >
-      <span>${isCompleted ? icon("check") : day.number}</span>
+      <span>${statusIcon}</span>
       <small>${journeyDisplayDate(date)}</small>
+      <em>${dayState.label}</em>
     </button>
   `;
 }
@@ -5795,19 +5905,59 @@ function JourneyScreen() {
   const progress = ensureJourneyProgress();
   const plan = journeyPlan();
   const currentDay = currentJourneyDay(progress);
+  const policy = journeyAccessPolicy();
   const selectedDayNumber = accessibleJourneyDayNumber(state.journeySelectedDay, currentDay);
   const selectedDay = plan[selectedDayNumber - 1] || plan[0];
   const visibleCompletedDays = visibleJourneyCompletedDays(progress, currentDay);
   const visibleProgress = { ...progress, completedDays: visibleCompletedDays };
   const weekStart = Math.floor((selectedDay.number - 1) / 7) * 7;
   const weekDays = plan.slice(weekStart, Math.min(weekStart + 7, plan.length));
-  const completionPercent = Math.round((visibleCompletedDays.length / 30) * 100);
+  const progressMax = Math.max(1, policy.allowedDays || 1);
+  const completionPercent = Math.round((visibleCompletedDays.length / progressMax) * 100);
   const selectedCompleted = visibleCompletedDays.includes(selectedDay.number);
   const selectedDate = addDaysToDateOnly(progress.startDate, selectedDay.number - 1);
+  const selectedDayState = journeyDayState(selectedDay.number, visibleProgress, currentDay);
+  const selectedLocked = selectedDayState.isLocked;
+  const availableLimit = journeySequentialLimit(visibleCompletedDays, currentDay, policy.allowedDays);
+  const planProgressText = policy.allowedDays >= 30
+    ? `${visibleCompletedDays.length} de 30`
+    : policy.allowedDays > 0
+      ? `${visibleCompletedDays.length} de ${policy.allowedDays} liberados`
+      : "0 de 0 liberados";
+  const upgradeHint = policy.allowedDays >= 30
+    ? ""
+    : policy.allowedDays > 0
+      ? " / upgrade para 30"
+      : " / assine para iniciar";
+  const journeyNotice = state.notice && state.noticeKind === "journey_locked"
+    ? `<p class="form-notice journey-notice" role="alert">${state.notice}</p>`
+    : "";
+  const upgradeBlock = policy.needsUpgrade
+    ? `
+      <section class="journey-upgrade-card">
+        <div>
+          <span>${icon("unlock")} Desbloqueie os 30 dias completos</span>
+          <h2>Desbloqueie sua jornada completa</h2>
+          <p>Seu plano atual ${policy.allowedDays > 0 ? `libera apenas os ${policy.allowedDays} primeiros dias` : "ainda n&atilde;o libera a Jornada"}. Fa&ccedil;a upgrade para acessar os 30 dias, continuar sua evolu&ccedil;&atilde;o e abrir as pr&oacute;ximas etapas conforme concluir cada pr&aacute;tica.</p>
+        </div>
+        <ul>
+          <li>${icon("check")} 30 dias completos</li>
+          <li>${icon("check")} Desbloqueio progressivo</li>
+          <li>${icon("check")} Acompanhamento cont&iacute;nuo</li>
+          <li>${icon("check")} Vis&atilde;o integral da jornada</li>
+        </ul>
+        <div class="journey-upgrade-actions">
+          ${UpgradeCta("button-primary button-large")}
+          <a class="button-ghost button-large" href="/?qa=plans#premium">Ver benef&iacute;cios do plano completo ${icon("arrow")}</a>
+        </div>
+      </section>
+    `
+    : "";
 
   return PlatformShell(`
     ${AppHeader("Jornada de 30 dias", selectedDay.areaTitle, { back: true, backRoute: "dashboard" })}
     <div class="journey-stack">
+      ${journeyNotice}
       <section class="journey-hero">
         <div class="journey-hero-copy">
           <span class="journey-eyebrow">Dia ${selectedDay.number} de 30 ${selectedDay.number === currentDay ? "&middot; Hoje" : ""}</span>
@@ -5815,8 +5965,14 @@ function JourneyScreen() {
           <p>${selectedDay.phaseDescription}</p>
         </div>
         <div class="journey-total-progress">
-          <div><span>Progresso da jornada</span><strong>${visibleCompletedDays.length}/30</strong></div>
+          <div><span>Plano atual</span><strong>${policy.planLabel}</strong></div>
           <div class="journey-progress-track"><span style="width: ${completionPercent}%"></span></div>
+          <dl class="journey-progress-list">
+            <div><dt>Dia atual</dt><dd>${currentDay}</dd></div>
+            <div><dt>Dias conclu&iacute;dos</dt><dd>${visibleCompletedDays.length}</dd></div>
+            <div><dt>Dias liberados</dt><dd>${policy.allowedDays}</dd></div>
+            <div><dt>Progresso</dt><dd>${planProgressText}${upgradeHint}</dd></div>
+          </dl>
           <small>In&iacute;cio em ${formatDatePtBr(progress.startDate)}</small>
         </div>
       </section>
@@ -5824,39 +5980,44 @@ function JourneyScreen() {
       <section class="journey-today-card">
         <div class="journey-today-heading">
           <div>
-            <span>Frase do dia</span>
-            <h2>&ldquo;${decodeStoredText(selectedDay.mantra)}&rdquo;</h2>
+            <span>${selectedLocked ? "Etapa bloqueada" : "Frase do dia"}</span>
+            <h2>${selectedLocked ? "Desbloqueie sua jornada para acessar esta etapa." : `&ldquo;${decodeStoredText(selectedDay.mantra)}&rdquo;`}</h2>
           </div>
           <span class="journey-day-seal">${selectedDay.number}</span>
         </div>
         <div class="journey-action-card">
           <span>${icon("target")} A&ccedil;&atilde;o do dia</span>
-          <strong>${escapeHtml(decodeStoredText(selectedDay.action))}</strong>
+          <strong>${selectedLocked ? selectedDayState.label : escapeHtml(decodeStoredText(selectedDay.action))}</strong>
         </div>
         <div class="journey-today-footer">
           <span>${icon("calendar")} ${journeyDisplayDate(selectedDate)} &middot; ${escapeHtml(decodeStoredText(selectedDay.areaTitle))}</span>
-          <button class="${selectedCompleted ? "is-completed" : ""}" data-complete-journey-day="${selectedDay.number}" type="button">
-            ${icon(selectedCompleted ? "check" : "clock")}
-            ${selectedCompleted ? "Dia conclu&iacute;do" : "Concluir este dia"}
-          </button>
+          ${selectedLocked
+            ? UpgradeCta("button-primary")
+            : `<button class="${selectedCompleted ? "is-completed" : ""}" data-complete-journey-day="${selectedDay.number}" type="button">
+                ${icon(selectedCompleted ? "check" : "clock")}
+                ${selectedCompleted ? "Dia conclu&iacute;do" : "Concluir este dia"}
+              </button>`}
+          <small class="journey-current-status">${selectedDayState.label}</small>
         </div>
       </section>
 
       <section class="journey-week-section">
         <div class="journey-section-heading">
           <div><span>Semana ${Math.floor((selectedDay.number - 1) / 7) + 1}</span><h2>Seu ciclo atual</h2></div>
-          <p>${isAdminProfile() ? "Perfil admin: todos os dias est&atilde;o liberados para revis&atilde;o." : "Dias futuros ficam bloqueados. Os dias de hoje e anteriores permanecem dispon&iacute;veis."}</p>
+          <p>${policy.isAdmin ? "Perfil admin: todos os dias est&atilde;o liberados para revis&atilde;o." : `Seu plano libera ${policy.allowedDays} dia${policy.allowedDays === 1 ? "" : "s"}. Conclua a etapa dispon&iacute;vel para abrir a pr&oacute;xima.`}</p>
         </div>
         <div class="journey-week-strip">
           ${weekDays.map((day) => JourneyDayButton(day, visibleProgress, currentDay, selectedDay.number)).join("")}
         </div>
       </section>
 
+      ${upgradeBlock}
+
       <section class="journey-overview">
         <details>
           <summary>
             <span>${icon("calendar")}</span>
-            <span><strong>Ver os 30 dias</strong><small>Vis&atilde;o completa organizada por fases.</small></span>
+            <span><strong>Ver os 30 dias</strong><small>Vis&atilde;o completa organizada por fases. Pr&oacute;ximo dia liberado: ${availableLimit || 1}.</small></span>
             ${icon("arrow")}
           </summary>
           <div class="journey-overview-content">
@@ -7873,10 +8034,19 @@ function bindEvents() {
       const progress = ensureJourneyProgress();
       const currentDay = currentJourneyDay(progress);
       const journeyDay = normalizeJourneyDayNumber(button.dataset.journeyDay);
-      if (!canAccessJourneyDay(journeyDay, currentDay)) {
+      const dayState = journeyDayState(journeyDay, progress, currentDay);
+      if (dayState.isLocked) {
+        setState({
+          journeySelectedDay: accessibleJourneyDayNumber(state.journeySelectedDay, currentDay),
+          notice: dayState.lockReason === "plan"
+            ? "Este dia est&aacute; dispon&iacute;vel no plano completo."
+            : "Conclua o dia anterior para desbloquear esta etapa.",
+          noticeKind: "journey_locked",
+          upgradeModalOpen: dayState.lockReason === "plan",
+        });
         return;
       }
-      setState({ journeySelectedDay: journeyDay });
+      setState({ journeySelectedDay: journeyDay, notice: "", noticeKind: "" });
     });
   });
 

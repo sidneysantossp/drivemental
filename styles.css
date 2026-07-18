@@ -3721,6 +3721,34 @@ svg {
   font-size: 1.2rem;
 }
 
+.journey-progress-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.journey-progress-list div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(243, 228, 195, 0.08);
+}
+
+.journey-progress-list dt,
+.journey-progress-list dd {
+  margin: 0;
+  color: rgba(243, 228, 195, 0.62);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.journey-progress-list dd {
+  color: #f3dfb4;
+  text-align: right;
+}
+
 .journey-progress-track {
   height: 7px;
   overflow: hidden;
@@ -3818,6 +3846,7 @@ svg {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  flex-wrap: wrap;
 }
 
 .journey-today-footer > span {
@@ -3858,6 +3887,16 @@ svg {
 .journey-today-footer button svg {
   width: 16px;
   height: 16px;
+}
+
+.journey-current-status {
+  width: 100%;
+  color: rgba(243, 228, 195, 0.54);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 .journey-week-section {
@@ -3949,6 +3988,20 @@ svg {
   white-space: nowrap;
 }
 
+.journey-day-button em {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  color: rgba(243, 228, 195, 0.42);
+  font-size: 0.54rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .journey-day-button.is-current {
   border-color: rgba(214, 165, 58, 0.5);
   box-shadow: inset 0 3px 0 rgba(214, 165, 58, 0.7);
@@ -3969,11 +4022,32 @@ svg {
   color: #8bcf90;
 }
 
+.journey-day-button.is-available {
+  border-color: rgba(226, 185, 82, 0.58);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(226, 185, 82, 0.18), transparent 5rem),
+    rgba(3, 22, 18, 0.86);
+}
+
+.journey-day-button.is-available em {
+  color: var(--gold-light);
+}
+
 .journey-day-button.is-locked,
 .journey-day-button:disabled {
   cursor: not-allowed;
   opacity: 0.42;
   filter: grayscale(0.45);
+}
+
+.journey-day-button.is-plan-locked {
+  border-style: dashed;
+  border-color: rgba(226, 185, 82, 0.3);
+  background: rgba(6, 20, 16, 0.72);
+}
+
+.journey-day-button.is-progress-locked {
+  border-color: rgba(243, 228, 195, 0.08);
 }
 
 .journey-day-button.is-locked > span,
@@ -4076,6 +4150,81 @@ svg {
 
 .journey-phase-days {
   grid-template-columns: repeat(7, minmax(62px, 1fr));
+}
+
+.journey-notice {
+  margin: 0;
+}
+
+.journey-upgrade-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.7fr) minmax(220px, 0.6fr);
+  align-items: center;
+  gap: 18px;
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid rgba(214, 165, 58, 0.32);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 0% 100%, rgba(214, 165, 58, 0.13), transparent 18rem),
+    linear-gradient(135deg, rgba(11, 51, 38, 0.92), rgba(3, 22, 18, 0.9));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+}
+
+.journey-upgrade-card span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.journey-upgrade-card h2 {
+  margin: 8px 0 8px;
+  color: #f4e4c1;
+  font-family: var(--font-title);
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  font-weight: 500;
+}
+
+.journey-upgrade-card p {
+  margin: 0;
+  color: rgba(243, 228, 195, 0.68);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.journey-upgrade-card ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journey-upgrade-card li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(243, 228, 195, 0.78);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.journey-upgrade-card svg {
+  width: 16px;
+  height: 16px;
+}
+
+.journey-upgrade-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.journey-upgrade-actions .button-large {
+  width: 100%;
 }
 
 .chakra-detail-stack,
@@ -12639,6 +12788,10 @@ html {
     width: 100%;
   }
 
+  .journey-current-status {
+    text-align: left;
+  }
+
   .journey-section-heading {
     display: grid;
     gap: 7px;
@@ -12659,6 +12812,10 @@ html {
     min-height: 70px;
   }
 
+  .journey-day-button em {
+    display: none;
+  }
+
   .journey-overview-content {
     overflow-x: auto;
     padding: 14px;
@@ -12666,6 +12823,15 @@ html {
 
   .journey-phase-days {
     min-width: 490px;
+  }
+
+  .journey-upgrade-card {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .journey-upgrade-actions .button-large {
+    min-height: 46px;
   }
 
   .protocol-journey-link {

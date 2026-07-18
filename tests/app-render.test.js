@@ -890,6 +890,13 @@ vm.runInContext('state.reading.guidance.interpretation.synthesis = "CONTEÚDO AT
 assert.ok(!freeDashboardContext.__getHtml().includes("CONTEÚDO ATUAL QUE NÃO PODE SUBSTITUIR O SNAPSHOT"));
 
 const freeJourneyContextKey = vm.runInContext("journeyContextKey()", freeDashboardContext);
+freeDashboardContext.setState({
+  account: {
+    ...vm.runInContext("state.account", freeDashboardContext),
+    planId: "premium",
+    accessPlans: [{ plan_id: "premium", status: "active" }],
+  },
+});
 freeDashboardContext.localStorage.setItem("drive-astral-journey-progress", JSON.stringify({
   contextKey: freeJourneyContextKey,
   startDate: "2026-06-02",
@@ -1041,7 +1048,16 @@ assert.ok(completedProtocolMyDayHtml.includes("foi conclu"));
 assert.ok(completedProtocolMyDayHtml.includes("3 de 3 momentos conclu&iacute;dos."));
 assert.ok(completedProtocolMyDayHtml.includes("Conclu"));
 
-freeDashboardContext.setState({ route: "home", selectedAreaId: "love-relationships", upgradeModalOpen: false });
+freeDashboardContext.setState({
+  route: "home",
+  selectedAreaId: "love-relationships",
+  upgradeModalOpen: false,
+  account: {
+    ...vm.runInContext("state.account", freeDashboardContext),
+    planId: "free",
+    accessPlans: [],
+  },
+});
 const lockedHomeHtml = freeDashboardContext.__getHtml();
 assert.ok(lockedHomeHtml.includes("1 de 7 &aacute;reas consultadas"));
 assert.ok(lockedHomeHtml.includes("Dispon&iacute;vel no plano completo"));
@@ -1234,7 +1250,15 @@ assert.deepStrictEqual(protocolProgress.completed, ["day"]);
 assert.ok(completedProtocolHtml.includes("1 de 3 momentos conclu&iacute;dos"));
 assert.ok(completedProtocolHtml.includes("Pr&aacute;tica conclu&iacute;da"));
 
-resultContext.setState({ route: "journey", journeySelectedDay: 0 });
+resultContext.setState({
+  route: "journey",
+  journeySelectedDay: 0,
+  account: {
+    ...vm.runInContext("state.account", resultContext),
+    planId: "premium",
+    accessPlans: [{ plan_id: "premium", status: "active" }],
+  },
+});
 const journeyHtml = resultContext.__getHtml();
 const journeyPlan = vm.runInContext("journeyPlan()", resultContext);
 assert.strictEqual(journeyPlan.length, 30);
@@ -1251,7 +1275,7 @@ assert.ok(journeyHtml.includes("Ver os 30 dias"));
 assert.ok(journeyHtml.includes(resultContext.escapeHtml(resultContext.decodeStoredText(journeyPlan[0].action))));
 assert.ok((journeyHtml.match(/data-journey-day="/g) || []).length >= 30);
 assert.strictEqual((journeyHtml.match(/data-complete-journey-day="/g) || []).length, 1);
-assert.ok(journeyHtml.includes("Dias futuros ficam bloqueados"));
+assert.ok(journeyHtml.includes("Conclua a etapa dispon&iacute;vel para abrir a pr&oacute;xima."));
 assert.ok(/data-journey-day="2"[\s\S]*?disabled/.test(journeyHtml));
 
 resultContext.toggleJourneyDay(8);
@@ -1263,7 +1287,7 @@ resultContext.toggleJourneyDay(1);
 const completedJourneyHtml = resultContext.__getHtml();
 const journeyProgress = JSON.parse(resultContext.localStorage.getItem("drive-astral-journey-progress"));
 assert.deepStrictEqual(journeyProgress.completedDays, [1]);
-assert.ok(completedJourneyHtml.includes("1/30"));
+assert.ok(completedJourneyHtml.includes("1 de 30"));
 assert.ok(completedJourneyHtml.includes("Dia conclu&iacute;do"));
 
 resultContext.setState({ journeySelectedDay: 8 });
@@ -1278,6 +1302,42 @@ assert.ok(adminJourneyHtml.includes("Dia 8 de 30"));
 assert.ok(adminJourneyHtml.includes("Organizar: Ordem para sustentar o caminho"));
 assert.ok(adminJourneyHtml.includes("Perfil admin: todos os dias est&atilde;o liberados"));
 assert.ok(!adminJourneyHtml.includes('aria-disabled="true" disabled'));
+
+const freeJourneyPlanContext = createBrowserLikeContext();
+seedConsultationBase(freeJourneyPlanContext, { planId: "free", primaryAreaId: "general" });
+freeJourneyPlanContext.setState({ route: "journey", journeySelectedDay: 1 });
+const freeJourneyPlanHtml = freeJourneyPlanContext.__getHtml();
+assert.ok(freeJourneyPlanHtml.includes("Plano atual"));
+assert.ok(freeJourneyPlanHtml.includes("Free"));
+assert.ok(freeJourneyPlanHtml.includes("Etapa bloqueada"));
+assert.ok(freeJourneyPlanHtml.includes("Desbloqueie sua jornada completa"));
+assert.ok(freeJourneyPlanHtml.includes("Dispon&iacute;vel no plano completo"));
+assert.strictEqual((freeJourneyPlanHtml.match(/data-complete-journey-day="/g) || []).length, 0);
+assert.ok(/data-journey-day="1"[\s\S]*?disabled/.test(freeJourneyPlanHtml));
+
+const essentialJourneyContext = createBrowserLikeContext();
+seedConsultationBase(essentialJourneyContext, { planId: "essential", primaryAreaId: "general" });
+const essentialJourneyContextKey = vm.runInContext("journeyContextKey()", essentialJourneyContext);
+essentialJourneyContext.localStorage.setItem("drive-astral-journey-progress", JSON.stringify({
+  contextKey: essentialJourneyContextKey,
+  startDate: "2026-06-03",
+  completedDays: [],
+}));
+essentialJourneyContext.setState({ route: "journey", journeySelectedDay: 1 });
+const essentialJourneyHtml = essentialJourneyContext.__getHtml();
+assert.ok(essentialJourneyHtml.includes("Essencial"));
+assert.ok(essentialJourneyHtml.includes("0 de 3 liberados"));
+assert.ok(essentialJourneyHtml.includes("upgrade para 30"));
+assert.ok(/data-journey-day="2"[\s\S]*?disabled/.test(essentialJourneyHtml));
+assert.ok(/data-journey-day="4"[\s\S]*?data-journey-lock="plan"[\s\S]*?disabled/.test(essentialJourneyHtml));
+essentialJourneyContext.toggleJourneyDay(1);
+const essentialDayTwoHtml = essentialJourneyContext.__getHtml();
+assert.ok(/class="journey-day-button is-available[\s\S]*?data-journey-day="2"/.test(essentialDayTwoHtml));
+essentialJourneyContext.toggleJourneyDay(4);
+const essentialLockedState = vm.runInContext("state", essentialJourneyContext);
+const essentialLockedProgress = JSON.parse(essentialJourneyContext.localStorage.getItem("drive-astral-journey-progress"));
+assert.strictEqual(essentialLockedState.upgradeModalOpen, true);
+assert.deepStrictEqual(essentialLockedProgress.completedDays, [1]);
 
 const directJourneyContext = createBrowserLikeContext("http://localhost:4173/app/jornada");
 assert.strictEqual(vm.runInContext("state.route", directJourneyContext), "journey");
