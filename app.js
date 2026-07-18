@@ -4392,35 +4392,54 @@ function DailyDirectionSection() {
   }
 
   return `
-    <section class="daily-direction dashboard-today-card">
+    <section class="daily-direction dashboard-today-card myday-main-card">
       <div class="dashboard-today-heading">
         <div>
-          <span class="eyebrow">OL&Aacute;, ${escapeHtml(name).toUpperCase()} &middot; SUA DIRE&Ccedil;&Atilde;O DE HOJE</span>
+          <span class="eyebrow">A&Ccedil;&Atilde;O DO DIA</span>
+          <p class="myday-subtitle">Sua dire&ccedil;&atilde;o e pr&aacute;tica para hoje</p>
           <span class="dashboard-today-metadata">${escapeHtml(areaTitle)} &middot; ${escapeHtml(displayDate)} &middot; ${escapeHtml(journeyStatusText)}</span>
-          <h2>${direction.headline}</h2>
-          <p>${direction.direction}</p>
+          <h2>Observe o momento antes de tentar resolver tudo.</h2>
+          <p>Escolha o ponto que mais pede aten&ccedil;&atilde;o e avance com um passo simples.</p>
         </div>
         <span class="dashboard-today-symbol">${icon("compass")}</span>
       </div>
-      <div class="daily-triad dashboard-today-guidance">
-        <article>
-          <span>${icon("spark")} Frase do dia</span>
-          <strong>&ldquo;${escapeHtml(todayMantra)}&rdquo;</strong>
-        </article>
-        <article>
-          <span>${icon("target")} A&ccedil;&atilde;o do dia</span>
-          <strong>${escapeHtml(todayAction)}</strong>
-        </article>
-        <article>
-          <span>${icon("compass")} Pergunta do dia</span>
-          <strong>${escapeHtml(todayQuestion)}</strong>
-        </article>
+      <div class="myday-progress-card" role="status">
+        <span>Progresso</span>
+        <strong>${completedMomentsCount} de 3 momentos conclu&iacute;dos</strong>
+        <div class="journey-progress-track" aria-hidden="true"><span style="width:${Math.round((completedMomentsCount / 3) * 100)}%"></span></div>
       </div>
 
-      <div class="daily-focus-card">
+      <div class="daily-routine-card">
         <div class="daily-focus-header">
           ${icon("target")}
-          <span>FOCO DE HOJE</span>
+          <span>ROTINA EM TR&Ecirc;S MOMENTOS</span>
+        </div>
+        <div class="daily-triad dashboard-today-guidance myday-routine-grid">
+        <article>
+          <span>${icon("spark")} Manh&atilde;</span>
+          <small>Comece com presen&ccedil;a</small>
+          <strong>Frase do dia</strong>
+          <p>&ldquo;${escapeHtml(todayMantra)}&rdquo;</p>
+        </article>
+        <article>
+          <span>${icon("target")} Dia</span>
+          <small>Execute o essencial</small>
+          <strong>A&ccedil;&atilde;o do dia</strong>
+          <p>${escapeHtml(todayAction)}</p>
+        </article>
+        <article>
+          <span>${icon("compass")} Noite</span>
+          <small>Feche o dia em paz</small>
+          <strong>Pergunta do dia</strong>
+          <p>${escapeHtml(todayQuestion)}</p>
+        </article>
+        </div>
+      </div>
+
+      <div class="legacy-focus-card is-legacy-hidden">
+        <div class="daily-focus-header">
+          ${icon("target")}
+          <span></span>
         </div>
         <div class="daily-focus-grid">
           <div class="daily-focus-item">
@@ -4445,10 +4464,11 @@ function DailyDirectionSection() {
       <div class="myday-actions-block">
         <div class="myday-actions-row">
           <button class="button-primary" data-route="protocol" type="button">${icon("protocol")} ${protocolBtnText}</button>
-          <button class="button-ghost" data-route="journey" type="button">${icon("calendar")} ${journeyBtnText}</button>
+          <button class="button-ghost" data-route="journey" type="button">${icon("calendar")} Ver minha jornada</button>
         </div>
         <div class="myday-actions-link">
           <button class="button-text" data-route="chakras" type="button">Rever minha leitura ${icon("arrow")}</button>
+          <button class="button-text" data-route="protocol" type="button">Princ&iacute;pios da pr&aacute;tica ${icon("arrow")}</button>
         </div>
       </div>
     </section>
@@ -6421,6 +6441,7 @@ function ProfileScreen() {
             <button class="profile-avatar-camera" type="button" aria-label="Alterar foto">${icon("camera")}</button>
           </div>
           <div class="profile-hero-copy">
+            <span class="profile-summary-label">Resumo do perfil</span>
             <h2>${escapeHtml(name)}</h2>
             <p>${planLabel === "FREE" ? "Caminhante da Luz" : `Plano ${planLabel}`}</p>
             <span>${icon("calendar")} Membro desde &bull; ${escapeHtml(memberSince)}</span>
@@ -6429,7 +6450,7 @@ function ProfileScreen() {
         </section>
 
         <section class="profile-panel">
-          <h2>Informa&ccedil;&otilde;es pessoais</h2>
+          <h2>Dados pessoais</h2>
           <div class="profile-action-list">
             ${ProfileActionRow({ iconName: "user", title: "Nome completo", subtitle: escapeHtml(name) })}
             ${ProfileActionRow({ iconName: "calendar", title: "Data de nascimento", subtitle: birth ? escapeHtml(formatDatePtBr(birth)) : "Adicionar data" })}
@@ -6440,7 +6461,20 @@ function ProfileScreen() {
         </section>
 
         <section class="profile-panel">
-          <h2>Seguran&ccedil;a</h2>
+          <h2>Plano e acesso</h2>
+          <div class="profile-action-list">
+            ${ProfileActionRow({ iconName: "profile", title: "Gerenciar assinatura", subtitle: `Plano atual: ${planLabel}` })}
+            ${ProfileActionRow({ iconName: "compass", title: "&Aacute;rea padr&atilde;o", subtitle: escapeHtml(focusArea) })}
+            <button class="profile-action-row" data-install-platform type="button" hidden>
+              <span class="profile-action-icon">${icon("device")}</span>
+              <span class="profile-action-copy"><strong>Instalar no dispositivo</strong><small>Acessar o Drive Mental como aplicativo</small></span>
+              <span class="profile-action-arrow">${icon("arrow")}</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="profile-panel">
+          <h2>Seguran&ccedil;a da conta</h2>
           <div class="profile-action-list">
             ${ProfileActionRow({ iconName: "lock", title: "Alterar senha", subtitle: "Atualize sua senha de acesso" })}
             ${ProfileToggleRow({ iconName: "shield", title: "Autentica&ccedil;&atilde;o em duas etapas", subtitle: "Proteja ainda mais sua conta", active: true })}
@@ -6448,22 +6482,20 @@ function ProfileScreen() {
         </section>
 
         <section class="profile-panel">
-          <h2>Prefer&ecirc;ncias</h2>
+          <h2>Prefer&ecirc;ncias reais</h2>
           <div class="profile-action-list">
             ${ProfileToggleRow({ iconName: "bell", title: "Notifica&ccedil;&otilde;es", subtitle: "Receber lembretes e mensagens", active: true })}
             ${ProfileToggleRow({ iconName: "moon", title: "Modo escuro", subtitle: "Tema premium ativo", active: true })}
             ${ProfileActionRow({ iconName: "leaf", title: "Idioma", subtitle: "Portugu&ecirc;s" })}
             ${ProfileActionRow({ iconName: "ruler", title: "Unidade de medida", subtitle: "M&eacute;trica (kg, cm)" })}
             ${ProfileActionRow({ iconName: "clock", title: "Hor&aacute;rio de pr&aacute;tica di&aacute;rio", subtitle: "06:00" })}
-            ${ProfileActionRow({ iconName: "compass", title: "&Aacute;rea padr&atilde;o", subtitle: escapeHtml(focusArea) })}
           </div>
         </section>
 
         <section class="profile-panel">
-          <h2>Conta</h2>
+          <h2>Privacidade e dados</h2>
           ${state.notice ? `<p class="form-notice" role="status">${state.notice}</p>` : ""}
           <div class="profile-action-list">
-            ${ProfileActionRow({ iconName: "profile", title: "Gerenciar assinatura", subtitle: `Plano atual: ${planLabel}` })}
             <button class="profile-action-row" data-export-backup type="button">
               <span class="profile-action-icon">${icon("download")}</span>
               <span class="profile-action-copy"><strong>Exportar meus dados</strong><small>Baixar backup das suas informa&ccedil;&otilde;es</small></span>
@@ -6472,11 +6504,6 @@ function ProfileScreen() {
             <button class="profile-action-row" data-import-backup type="button">
               <span class="profile-action-icon">${icon("upload")}</span>
               <span class="profile-action-copy"><strong>Importar backup</strong><small>Restaurar informa&ccedil;&otilde;es salvas</small></span>
-              <span class="profile-action-arrow">${icon("arrow")}</span>
-            </button>
-            <button class="profile-action-row" data-install-platform type="button" hidden>
-              <span class="profile-action-icon">${icon("device")}</span>
-              <span class="profile-action-copy"><strong>Instalar no dispositivo</strong><small>Acessar o Drive Mental como aplicativo</small></span>
               <span class="profile-action-arrow">${icon("arrow")}</span>
             </button>
             <a class="profile-action-row" href="/privacy.html" target="_blank" rel="noopener">
@@ -6490,6 +6517,12 @@ function ProfileScreen() {
               <span class="profile-action-arrow">${icon("arrow")}</span>
             </a>
             <input id="backup-file-input" data-backup-file type="file" accept="application/json,.json" hidden />
+          </div>
+        </section>
+
+        <section class="profile-panel profile-risk-panel">
+          <h2>Zona de risco</h2>
+          <div class="profile-action-list">
             ${ProfileActionRow({
               iconName: "trash",
               title: "Excluir conta",

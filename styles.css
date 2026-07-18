@@ -5047,6 +5047,16 @@ svg {
   line-height: 1.05;
 }
 
+.profile-hero-copy .profile-summary-label {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--gold);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .profile-hero-copy p {
   margin: 10px 0 16px;
   color: var(--gold);
@@ -5079,6 +5089,13 @@ svg {
 
 .profile-panel {
   padding: clamp(20px, 3vw, 30px);
+}
+
+.profile-risk-panel {
+  border-color: rgba(255, 85, 85, 0.28);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 85, 85, 0.08), transparent 18rem),
+    rgba(4, 22, 18, 0.9);
 }
 
 .profile-panel h2 {
@@ -14521,6 +14538,72 @@ html {
   font-size: 0.82rem;
   font-weight: 500;
   opacity: 0.85;
+}
+
+.myday-main-card {
+  gap: 24px;
+}
+
+.myday-subtitle {
+  margin: 6px 0 0;
+  color: rgba(243, 228, 195, 0.72);
+  font-size: 0.92rem;
+}
+
+.myday-progress-card,
+.daily-routine-card {
+  padding: clamp(18px, 2.4vw, 24px);
+  border: 1px solid rgba(214, 165, 58, 0.18);
+  border-radius: 15px;
+  background: rgba(2, 17, 14, 0.56);
+}
+
+.myday-progress-card {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+}
+
+.myday-progress-card > span,
+.daily-routine-card .daily-focus-header span {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.myday-progress-card strong {
+  color: #f2e2bf;
+  font-size: 0.96rem;
+}
+
+.daily-routine-card {
+  display: grid;
+  gap: 18px;
+}
+
+.myday-routine-grid article {
+  align-content: start;
+  gap: 8px;
+}
+
+.myday-routine-grid article small {
+  color: rgba(243, 228, 195, 0.58);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.myday-routine-grid article p {
+  margin: 0;
+  color: rgba(243, 228, 195, 0.82);
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.legacy-focus-card.is-legacy-hidden {
+  display: none;
 }
 
 /* Card Foco de Hoje */

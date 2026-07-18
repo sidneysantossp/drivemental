@@ -943,21 +943,22 @@ myDayContext.setState({
   history: [cloneForTest(firstHistoryEntry)],
 });
 const myDayHtml = myDayContext.__getHtml();
-assert.ok(myDayHtml.includes("SUA DIRE&Ccedil;&Atilde;O DE HOJE"));
+assert.ok(myDayHtml.includes("A&Ccedil;&Atilde;O DO DIA"));
+assert.ok(myDayHtml.includes("Sua dire&ccedil;&atilde;o e pr&aacute;tica para hoje"));
+assert.ok(myDayHtml.includes("Observe o momento antes de tentar resolver tudo."));
 assert.ok(myDayHtml.includes("Frase do dia"));
 assert.ok(myDayHtml.includes("A&ccedil;&atilde;o do dia"));
 assert.ok(myDayHtml.includes("Pergunta do dia"));
-assert.strictEqual((myDayHtml.match(/FOCO DE HOJE/g) || []).length, 1);
-assert.strictEqual((myDayHtml.match(/class="daily-focus-card"/g) || []).length, 1);
-assert.strictEqual((myDayHtml.match(/class="daily-focus-item"/g) || []).length, 4);
-assert.ok(myDayHtml.indexOf('class="daily-triad dashboard-today-guidance"') < myDayHtml.indexOf('class="daily-focus-card"'));
-assert.ok(!myDayHtml.slice(
-  myDayHtml.indexOf('class="daily-triad dashboard-today-guidance"'),
-  myDayHtml.indexOf('class="daily-focus-card"'),
-).includes("daily-focus-card"));
-assert.ok(myDayHtml.includes("protocolo de hoje."));
-assert.ok(myDayHtml.includes("0 de 3 momentos conclu&iacute;dos."));
-assert.ok(myDayHtml.includes("iniciar"));
+assert.ok(myDayHtml.includes("ROTINA EM TR&Ecirc;S MOMENTOS"));
+assert.ok(myDayHtml.includes("Manh&atilde;"));
+assert.ok(myDayHtml.includes("Comece com presen&ccedil;a"));
+assert.ok(myDayHtml.includes("Execute o essencial"));
+assert.ok(myDayHtml.includes("Feche o dia em paz"));
+assert.ok(myDayHtml.includes("0 de 3 momentos conclu&iacute;dos"));
+assert.ok(myDayHtml.includes("Ver minha jornada"));
+assert.ok(myDayHtml.includes("Princ&iacute;pios da pr&aacute;tica"));
+assert.strictEqual((myDayHtml.match(/FOCO DE HOJE/g) || []).length, 0);
+assert.strictEqual((myDayHtml.match(/class="daily-focus-card"/g) || []).length, 0);
 assert.ok(myDayHtml.includes("VER CICLO ENERG&Eacute;TICO"));
 
 const desktopSidebarHtml = myDayHtml.slice(
@@ -987,10 +988,10 @@ for (const [route, label] of expectedDesktopMenuItems) {
 }
 
 const dailyTriadHtml = myDayHtml.slice(
-  myDayHtml.indexOf('<div class="daily-triad dashboard-today-guidance">'),
-  myDayHtml.indexOf('<div class="daily-focus-card">'),
+  myDayHtml.indexOf('<div class="daily-triad dashboard-today-guidance myday-routine-grid">'),
+  myDayHtml.indexOf('<div class="myday-actions-block">'),
 );
-assert.strictEqual((myDayHtml.match(/class="daily-triad dashboard-today-guidance"/g) || []).length, 1);
+assert.strictEqual((myDayHtml.match(/class="daily-triad dashboard-today-guidance myday-routine-grid"/g) || []).length, 1);
 assert.strictEqual((dailyTriadHtml.match(/<article>/g) || []).length, 3);
 assert.strictEqual((dailyTriadHtml.match(/<(?:aside|nav)\b/g) || []).length, 0);
 
@@ -1021,8 +1022,8 @@ for (const viewportWidth of [1440, 1280, 1024, 768, 430, 390, 360]) {
     `mobile navigation at ${viewportWidth}px`,
   );
   assert.strictEqual((responsiveHtml.match(/aria-current="page"/g) || []).length, 1);
-  assert.strictEqual((responsiveHtml.match(/class="daily-triad dashboard-today-guidance"/g) || []).length, 1);
-  assert.strictEqual((responsiveHtml.match(/class="daily-focus-card"/g) || []).length, 1);
+  assert.strictEqual((responsiveHtml.match(/class="daily-triad dashboard-today-guidance myday-routine-grid"/g) || []).length, 1);
+  assert.strictEqual((responsiveHtml.match(/FOCO DE HOJE/g) || []).length, 0);
 }
 
 const protocolDate = vm.runInContext("protocolDateKey()", myDayContext);
@@ -1032,10 +1033,8 @@ myDayContext.localStorage.setItem("drive-astral-protocol-progress", JSON.stringi
 }));
 myDayContext.setState({ route: "my-day" });
 const partialProtocolMyDayHtml = myDayContext.__getHtml();
-assert.strictEqual((partialProtocolMyDayHtml.match(/FOCO DE HOJE/g) || []).length, 1);
-assert.ok(partialProtocolMyDayHtml.includes("Continue de onde parou."));
-assert.ok(partialProtocolMyDayHtml.includes("2 de 3 momentos conclu&iacute;dos."));
-assert.ok(partialProtocolMyDayHtml.includes("Em andamento"));
+assert.strictEqual((partialProtocolMyDayHtml.match(/FOCO DE HOJE/g) || []).length, 0);
+assert.ok(partialProtocolMyDayHtml.includes("2 de 3 momentos conclu&iacute;dos"));
 
 myDayContext.localStorage.setItem("drive-astral-protocol-progress", JSON.stringify({
   date: protocolDate,
@@ -1043,10 +1042,8 @@ myDayContext.localStorage.setItem("drive-astral-protocol-progress", JSON.stringi
 }));
 myDayContext.setState({ route: "my-day" });
 const completedProtocolMyDayHtml = myDayContext.__getHtml();
-assert.strictEqual((completedProtocolMyDayHtml.match(/FOCO DE HOJE/g) || []).length, 1);
-assert.ok(completedProtocolMyDayHtml.includes("foi conclu"));
-assert.ok(completedProtocolMyDayHtml.includes("3 de 3 momentos conclu&iacute;dos."));
-assert.ok(completedProtocolMyDayHtml.includes("Conclu"));
+assert.strictEqual((completedProtocolMyDayHtml.match(/FOCO DE HOJE/g) || []).length, 0);
+assert.ok(completedProtocolMyDayHtml.includes("3 de 3 momentos conclu&iacute;dos"));
 
 freeDashboardContext.setState({
   route: "home",
@@ -1548,9 +1545,13 @@ assert.ok(!legacyHtml.includes("Ativo"));
 resultContext.setState({ route: "profile" });
 const platformProfileHtml = resultContext.__getHtml();
 assert.ok(platformProfileHtml.includes("Meu Perfil"));
-assert.ok(platformProfileHtml.includes("Informa&ccedil;&otilde;es pessoais"));
-assert.ok(platformProfileHtml.includes("Seguran&ccedil;a"));
-assert.ok(platformProfileHtml.includes("Prefer&ecirc;ncias"));
+assert.ok(platformProfileHtml.includes("Resumo do perfil"));
+assert.ok(platformProfileHtml.includes("Dados pessoais"));
+assert.ok(platformProfileHtml.includes("Plano e acesso"));
+assert.ok(platformProfileHtml.includes("Seguran&ccedil;a da conta"));
+assert.ok(platformProfileHtml.includes("Prefer&ecirc;ncias reais"));
+assert.ok(platformProfileHtml.includes("Privacidade e dados"));
+assert.ok(platformProfileHtml.includes("Zona de risco"));
 assert.ok(platformProfileHtml.includes("Gerenciar assinatura"));
 assert.ok(platformProfileHtml.includes("Instalar no dispositivo"));
 assert.ok(platformProfileHtml.includes("Baixar backup"));
@@ -1561,6 +1562,13 @@ assert.ok(platformProfileHtml.includes("Termos de uso"));
 assert.ok(platformProfileHtml.includes('href="/terms.html"'));
 assert.ok(platformProfileHtml.includes("Excluir meus dados deste dispositivo"));
 assert.ok(platformProfileHtml.includes("Sair da conta"));
+assert.ok(platformProfileHtml.indexOf("Resumo do perfil") < platformProfileHtml.indexOf("Dados pessoais"));
+assert.ok(platformProfileHtml.indexOf("Dados pessoais") < platformProfileHtml.indexOf("Plano e acesso"));
+assert.ok(platformProfileHtml.indexOf("Plano e acesso") < platformProfileHtml.indexOf("Seguran&ccedil;a da conta"));
+assert.ok(platformProfileHtml.indexOf("Seguran&ccedil;a da conta") < platformProfileHtml.indexOf("Prefer&ecirc;ncias reais"));
+assert.ok(platformProfileHtml.indexOf("Prefer&ecirc;ncias reais") < platformProfileHtml.indexOf("Privacidade e dados"));
+assert.ok(platformProfileHtml.indexOf("Privacidade e dados") < platformProfileHtml.indexOf("Zona de risco"));
+assert.ok(platformProfileHtml.indexOf("Zona de risco") < platformProfileHtml.indexOf("Sair da conta"));
 
 const chakraExpectations = [
   ["root", "1", "Raiz", "Muladhara", "Seli"],
