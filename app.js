@@ -2458,7 +2458,7 @@ function EnergyReportViewModel() {
         dayMatch,
         cycleReference: true,
       })),
-      observation: summary.observationItems.slice(0, 2).map(decodeStoredText),
+      observation: summary.observationItems.slice(0, 1).map(decodeStoredText),
       suggestedPractice: decodeStoredText(
         chakra.practices[0] || currentPractice || "Nenhuma pr&aacute;tica espec&iacute;fica dispon&iacute;vel.",
       ),
@@ -2546,14 +2546,17 @@ function ReportSheet({ pageId, className, active, labelledBy, content }) {
 
 function EnergyReportBodyFigure(viewModel) {
   return `
-    <figure class="energy-report-body">
-      ${ChakraBodyMap()}
-      <figcaption>Representa&ccedil;&atilde;o abstrata da sequ&ecirc;ncia vertical dos sete chakras.</figcaption>
-      <div class="energy-report-coordinate-legend">
-        <span>${icon("spark")} Nascimento: ${readableText(viewModel.metadata.birthChakra || "n&atilde;o destacada")}</span>
-        <span>${icon("target")} Dia: ${readableText(viewModel.metadata.structuralChakra || "n&atilde;o destacado")}</span>
-      </div>
-    </figure>
+    <section class="energy-report-figure-block" aria-label="Figura dos chakras">
+      <h2>Figura dos chakras</h2>
+      <figure class="energy-report-body">
+        ${ChakraBodyMap()}
+        <figcaption>Sequ&ecirc;ncia vertical dos sete chakras no ciclo simb&oacute;lico.</figcaption>
+        <div class="energy-report-coordinate-legend">
+          <span>${icon("spark")} Nascimento: ${readableText(viewModel.metadata.birthChakra || "n&atilde;o destacada")}</span>
+          <span>${icon("target")} Dia: ${readableText(viewModel.metadata.structuralChakra || "n&atilde;o destacado")}</span>
+        </div>
+      </figure>
+    </section>
   `;
 }
 
@@ -2573,14 +2576,14 @@ function EnergyReportChakraRow(chakra) {
       type="button"
       aria-label="Abrir detalhes do Chakra ${readableText(chakra.name)}. ${readableText(chakra.consultationStatus)}."
     >
-      <span class="energy-report-chakra-identity">
+      <span class="energy-report-chakra-title">
         <i>${chakra.number}</i>
-        <span><strong>${readableText(chakra.name)}</strong><small>${readableText(chakra.sanskritName)}</small></span>
+        <span><small>Chakra ${chakra.number}</small><strong>${readableText(chakra.name)}</strong><em>${readableText(chakra.sanskritName)}</em></span>
       </span>
-      <span data-report-label="Tema no ciclo">${readableText(chakra.cycleTheme)}</span>
-      <span data-report-label="Situa&ccedil;&atilde;o">${readableText(chakra.consultationStatus)}</span>
-      <span data-report-label="O que observar">${chakra.observation.map((item) => `<small>${readableText(item)}</small>`).join("")}</span>
-      <span data-report-label="Pr&aacute;tica sugerida">${readableText(chakra.suggestedPractice)}</span>
+      <span class="energy-report-chakra-field"><small>Tema</small><strong>${readableText(chakra.cycleTheme)}</strong></span>
+      <span class="energy-report-chakra-field"><small>Situa&ccedil;&atilde;o</small><strong>${readableText(chakra.consultationStatus)}</strong></span>
+      <span class="energy-report-chakra-field"><small>Observa&ccedil;&atilde;o</small><strong>${chakra.observation.map(readableText).join(" ")}</strong></span>
+      <span class="energy-report-chakra-field"><small>Pr&aacute;tica</small><strong>${readableText(chakra.suggestedPractice)}</strong></span>
       <b class="screen-only" aria-hidden="true">${icon("arrow")}</b>
     </button>
   `;
@@ -2598,19 +2601,19 @@ function EnergyMapReportSheet(viewModel, active) {
         <span>DRIVE MENTAL &middot; RELAT&Oacute;RIO DO CICLO</span>
         <h1>Mapa dos 7 Chakras</h1>
         <h2>Leitura simb&oacute;lica do ciclo pessoal</h2>
+      </header>
+      <section class="energy-report-metadata-panel" aria-label="Mapa e metadados">
+        <h2>Mapa e metadados</h2>
         <div class="energy-report-metadata">
-          <span>Mapa base: <strong>Kin ${metadata.personalKin || "-"} &middot; ${readableText(metadata.personalSignature || "Assinatura n&atilde;o dispon&iacute;vel")}</strong></span>
-          <span>&Aacute;rea consultada: <strong>${readableText(metadata.readingArea)}</strong></span>
-          <span>Ciclo consultado: <strong>${readableText(formatDatePtBr(metadata.readingDate) || "Data n&atilde;o dispon&iacute;vel")}</strong></span>
+          <span>Mapa base <strong>Kin ${metadata.personalKin || "-"} &middot; ${readableText(metadata.personalSignature || "Assinatura n&atilde;o dispon&iacute;vel")}</strong></span>
+          <span>&Aacute;rea consultada <strong>${readableText(metadata.readingArea)}</strong></span>
+          <span>Ciclo consultado <strong>${readableText(formatDatePtBr(metadata.readingDate) || "Data n&atilde;o dispon&iacute;vel")}</strong></span>
         </div>
         <p>Este mapa organiza correspond&ecirc;ncias simb&oacute;licas do ciclo. Ele n&atilde;o mede doen&ccedil;as, bloqueios ou estados cl&iacute;nicos dos chakras.</p>
-      </header>
+      </section>
       <div class="energy-report-map-layout">
         ${EnergyReportBodyFigure(viewModel)}
-        <section class="energy-report-chakra-table" aria-label="Tabela editorial dos sete chakras">
-          <header aria-hidden="true">
-            <span>Chakra</span><span>Tema no ciclo</span><span>Situa&ccedil;&atilde;o</span><span>O que observar</span><span>Pr&aacute;tica sugerida</span>
-          </header>
+        <section class="energy-report-chakra-table" aria-label="Leitura simples dos sete chakras">
           ${viewModel.chakras.map(EnergyReportChakraRow).join("")}
         </section>
       </div>

@@ -8007,25 +8007,47 @@ body {
 }
 
 .energy-report-metadata {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 7px 18px;
-  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   color: rgba(243, 228, 195, 0.65);
   font-size: 0.72rem;
+}
+
+.energy-report-metadata-panel {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid rgba(214, 165, 58, 0.22);
+  border-radius: 14px;
+  background: rgba(2, 17, 16, 0.72);
+}
+
+.energy-report-metadata-panel h2,
+.energy-report-figure-block h2 {
+  margin: 0 0 12px;
+  color: #dfb953;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.energy-report-metadata span {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(214, 165, 58, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .energy-report-metadata strong {
   color: #f2e4c5;
 }
 
-.energy-report-sheet-header > p {
-  max-width: 760px;
-  margin: 15px auto 0;
-  padding: 10px 16px;
-  border: 1px solid rgba(214, 165, 58, 0.18);
-  border-radius: 8px;
+.energy-report-metadata-panel p {
+  margin: 12px 0 0;
   color: rgba(243, 228, 195, 0.62);
   font-size: 0.68rem;
   line-height: 1.55;
@@ -8033,10 +8055,16 @@ body {
 
 .energy-report-map-layout {
   display: grid;
-  grid-template-columns: minmax(230px, 0.62fr) minmax(0, 1.78fr);
-  align-items: stretch;
+  grid-template-columns: minmax(230px, 0.55fr) minmax(0, 1.85fr);
+  align-items: start;
   gap: 22px;
-  margin-top: 28px;
+  margin-top: 18px;
+}
+
+.energy-report-figure-block {
+  display: grid;
+  align-content: start;
+  min-width: 0;
 }
 
 .energy-report-body {
@@ -8087,32 +8115,22 @@ body {
   display: grid;
   align-content: start;
   min-width: 0;
-  gap: 8px;
+  gap: 10px;
 }
 
-.energy-report-chakra-table > header,
 .energy-report-chakra-row {
   display: grid;
-  grid-template-columns: minmax(100px, 1.02fr) minmax(96px, 1fr) minmax(90px, 0.9fr) minmax(118px, 1.25fr) minmax(100px, 1fr) 16px;
-  align-items: center;
+  grid-template-columns: minmax(112px, 0.86fr) repeat(4, minmax(94px, 1fr)) 16px;
+  align-items: start;
   min-width: 0;
-  gap: 9px;
-}
-
-.energy-report-chakra-table > header {
-  padding: 0 12px 4px;
-  color: rgba(243, 228, 195, 0.48);
-  font-size: 0.54rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  gap: 10px;
 }
 
 .energy-report-chakra-row {
   position: relative;
   overflow: hidden;
-  min-height: 100px;
-  padding: 12px;
+  min-height: 118px;
+  padding: 13px;
   border: 1px solid color-mix(in srgb, var(--chakra), transparent 45%);
   border-radius: 12px;
   background:
@@ -8147,9 +8165,10 @@ body {
   border-color: color-mix(in srgb, var(--chakra), #f3e4c3 28%);
 }
 
-.energy-report-chakra-row > span:not(.energy-report-chakra-identity) {
+.energy-report-chakra-field {
   display: grid;
-  gap: 4px;
+  align-content: start;
+  gap: 6px;
   min-width: 0;
   overflow-wrap: anywhere;
   color: rgba(243, 228, 195, 0.7);
@@ -8157,9 +8176,18 @@ body {
   line-height: 1.38;
 }
 
-.energy-report-chakra-row > span small {
-  color: inherit;
-  font-size: inherit;
+.energy-report-chakra-field small {
+  color: color-mix(in srgb, var(--chakra), #f3e4c3 42%);
+  font-size: 0.53rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.energy-report-chakra-field strong {
+  color: rgba(243, 228, 195, 0.78);
+  font-size: 0.61rem;
+  font-weight: 650;
 }
 
 .energy-report-chakra-row > b {
@@ -8170,15 +8198,15 @@ body {
   width: 14px;
 }
 
-.energy-report-chakra-identity {
+.energy-report-chakra-title {
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 8px;
   min-width: 0;
 }
 
-.energy-report-chakra-identity > i {
+.energy-report-chakra-title > i {
   display: grid;
   width: 34px;
   height: 34px;
@@ -8192,25 +8220,36 @@ body {
   box-shadow: 0 0 13px color-mix(in srgb, var(--chakra), transparent 40%);
 }
 
-.energy-report-chakra-identity > span {
+.energy-report-chakra-title > span {
   min-width: 0;
 }
 
-.energy-report-chakra-identity strong,
-.energy-report-chakra-identity small {
+.energy-report-chakra-title strong,
+.energy-report-chakra-title small,
+.energy-report-chakra-title em {
   display: block;
   overflow-wrap: anywhere;
 }
 
-.energy-report-chakra-identity strong {
+.energy-report-chakra-title small {
+  margin-bottom: 4px;
+  color: color-mix(in srgb, var(--chakra), #f3e4c3 42%);
+  font-size: 0.54rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.energy-report-chakra-title strong {
   color: #f3e5c6;
   font-size: 0.69rem;
 }
 
-.energy-report-chakra-identity small {
+.energy-report-chakra-title em {
   margin-top: 3px;
   color: color-mix(in srgb, var(--chakra), #f3e4c3 42%);
   font-size: 0.56rem;
+  font-style: normal;
   font-weight: 750;
   text-transform: uppercase;
 }
@@ -8700,10 +8739,13 @@ body {
     margin-inline: auto;
   }
 
-  .energy-report-chakra-table > header,
   .energy-report-chakra-row {
-    grid-template-columns: minmax(90px, 1fr) minmax(82px, 0.9fr) minmax(86px, 0.85fr) minmax(100px, 1.15fr) minmax(90px, 0.9fr) 14px;
+    grid-template-columns: minmax(110px, 0.92fr) repeat(2, minmax(110px, 1fr));
     gap: 7px;
+  }
+
+  .energy-report-chakra-row > b {
+    display: none;
   }
 }
 
@@ -8738,14 +8780,12 @@ body {
   }
 
   .energy-report-metadata {
-    display: grid;
-    justify-content: stretch;
+    grid-template-columns: 1fr;
     text-align: left;
   }
 
-  .energy-report-sheet-header > p {
-    padding: 10px 0 0;
-    border: 0;
+  .energy-report-metadata-panel {
+    padding: 15px;
   }
 
   .energy-report-map-layout {
@@ -8761,10 +8801,6 @@ body {
     min-height: 620px;
   }
 
-  .energy-report-chakra-table > header {
-    display: none;
-  }
-
   .energy-report-chakra-row {
     display: grid;
     grid-template-columns: 1fr;
@@ -8773,17 +8809,8 @@ body {
     padding: 17px;
   }
 
-  .energy-report-chakra-row > span:not(.energy-report-chakra-identity) {
+  .energy-report-chakra-field strong {
     font-size: 0.72rem;
-  }
-
-  .energy-report-chakra-row > span:not(.energy-report-chakra-identity)::before {
-    content: attr(data-report-label);
-    color: color-mix(in srgb, var(--chakra), #f3e4c3 42%);
-    font-size: 0.55rem;
-    font-weight: 850;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
   }
 
   .energy-report-summary > div,
@@ -8960,14 +8987,28 @@ body {
   }
 
   .energy-report-metadata {
-    gap: 1mm 4mm;
-    margin-top: 2.5mm;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5mm;
     font-size: 5.8pt;
   }
 
-  .energy-report-sheet-header > p {
+  .energy-report-metadata-panel {
+    margin-top: 3mm;
+    padding: 2.2mm;
+  }
+
+  .energy-report-metadata-panel h2,
+  .energy-report-figure-block h2 {
+    margin-bottom: 1.5mm;
+    font-size: 7pt;
+  }
+
+  .energy-report-metadata span {
+    padding: 1.5mm 2mm;
+  }
+
+  .energy-report-metadata-panel p {
     margin-top: 2.5mm;
-    padding: 1.8mm 3mm;
     font-size: 5.2pt;
     line-height: 1.35;
   }
@@ -8986,45 +9027,44 @@ body {
     gap: 1mm;
   }
 
-  .energy-report-chakra-table > header,
   .energy-report-chakra-row {
-    grid-template-columns: 25mm 24mm 23mm 31mm 26mm;
+    grid-template-columns: 24mm 25mm 24mm 31mm 24mm;
     gap: 1.8mm;
   }
 
-  .energy-report-chakra-table > header {
-    padding: 0 2mm 1mm;
-    font-size: 4.7pt;
-  }
-
   .energy-report-chakra-row {
-    min-height: 15.5mm;
+    min-height: 18mm;
     padding: 1.2mm 1.6mm;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  .energy-report-chakra-row > span:not(.energy-report-chakra-identity) {
+  .energy-report-chakra-field strong {
     font-size: 4.35pt;
     line-height: 1.22;
   }
 
-  .energy-report-chakra-identity {
+  .energy-report-chakra-field small {
+    font-size: 3.8pt;
+  }
+
+  .energy-report-chakra-title {
     grid-template-columns: 8mm minmax(0, 1fr);
     gap: 1.3mm;
   }
 
-  .energy-report-chakra-identity > i {
+  .energy-report-chakra-title > i {
     width: 7mm;
     height: 7mm;
     font-size: 7pt;
   }
 
-  .energy-report-chakra-identity strong {
+  .energy-report-chakra-title strong {
     font-size: 5.6pt;
   }
 
-  .energy-report-chakra-identity small {
+  .energy-report-chakra-title small,
+  .energy-report-chakra-title em {
     font-size: 4.6pt;
   }
 
