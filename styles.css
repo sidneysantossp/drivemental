@@ -7858,6 +7858,1260 @@ body {
   margin-top: 0;
 }
 
+/* Energy report */
+.energy-cycle-page {
+  width: 100%;
+  max-width: 1180px;
+  gap: 22px;
+}
+
+.report-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 18px 20px;
+  border: 1px solid rgba(214, 165, 58, 0.24);
+  border-radius: 15px;
+  background: rgba(3, 24, 19, 0.9);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.2);
+}
+
+.report-controls > div:first-child {
+  min-width: 0;
+}
+
+.report-controls > div:first-child > span {
+  color: var(--gold);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-controls p {
+  margin: 4px 0 0;
+  color: rgba(243, 228, 195, 0.55);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.energy-report-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.energy-report-tabs button,
+.energy-report-pagination button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid rgba(214, 165, 58, 0.24);
+  border-radius: 9px;
+  background: rgba(2, 15, 12, 0.74);
+  color: rgba(243, 228, 195, 0.7);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.energy-report-tabs button[aria-selected="true"] {
+  border-color: rgba(228, 186, 87, 0.7);
+  background: rgba(214, 165, 58, 0.13);
+  color: #f0d999;
+}
+
+.energy-report-tabs .energy-report-download {
+  border-color: #d9ad4a;
+  background: linear-gradient(135deg, #efc75e, #c89326);
+  color: #062018;
+}
+
+.energy-report-tabs svg,
+.energy-report-pagination svg {
+  width: 15px;
+}
+
+.energy-report-tabs button:focus-visible,
+.energy-report-pagination button:focus-visible,
+.energy-report-chakra-row:focus-visible {
+  outline: 2px solid #edc55d;
+  outline-offset: 3px;
+}
+
+.report-document {
+  width: 100%;
+}
+
+.report-sheet {
+  box-sizing: border-box;
+  width: min(100%, 1120px);
+  min-width: 0;
+  margin: 0 auto;
+  border: 1px solid rgba(214, 165, 58, 0.32);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.46);
+}
+
+.report-sheet:not(.is-active) {
+  display: none;
+}
+
+.energy-map-sheet {
+  min-height: 1400px;
+  padding: clamp(28px, 4vw, 52px);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(197, 62, 219, 0.13), transparent 29rem),
+    radial-gradient(circle at 100% 60%, rgba(39, 169, 223, 0.09), transparent 34rem),
+    linear-gradient(155deg, #030b12, #041a16 52%, #020a08);
+  color: #f2e4c5;
+}
+
+.energy-report-sheet-header {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.energy-report-sheet-header > span,
+.energy-protocol-header > span {
+  color: #d9ad4b;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.energy-report-sheet-header h1,
+.energy-protocol-header h1 {
+  margin: 10px 0 1px;
+  font-family: var(--font-title);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: 0.035em;
+  line-height: 1.08;
+  text-transform: uppercase;
+}
+
+.energy-report-sheet-header h2,
+.energy-protocol-header h2 {
+  margin: 0;
+  color: #dfb953;
+  font-family: var(--font-title);
+  font-size: clamp(0.88rem, 1.6vw, 1.18rem);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.energy-report-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px 18px;
+  margin-top: 18px;
+  color: rgba(243, 228, 195, 0.65);
+  font-size: 0.72rem;
+}
+
+.energy-report-metadata strong {
+  color: #f2e4c5;
+}
+
+.energy-report-sheet-header > p {
+  max-width: 760px;
+  margin: 15px auto 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(214, 165, 58, 0.18);
+  border-radius: 8px;
+  color: rgba(243, 228, 195, 0.62);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.energy-report-map-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.62fr) minmax(0, 1.78fr);
+  align-items: stretch;
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.energy-report-body {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  margin: 0;
+}
+
+.energy-report-body .chakra-body-map {
+  min-height: 790px;
+  border: 1px solid rgba(95, 153, 183, 0.16);
+  border-radius: 150px 150px 38px 38px;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(197, 62, 219, 0.15), transparent 22%),
+    radial-gradient(ellipse at 50% 66%, rgba(245, 181, 27, 0.08), transparent 37%),
+    rgba(2, 12, 18, 0.56);
+}
+
+.energy-report-body figcaption {
+  margin-top: 12px;
+  color: rgba(243, 228, 195, 0.46);
+  font-size: 0.62rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.energy-report-coordinate-legend {
+  display: grid;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.energy-report-coordinate-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(243, 228, 195, 0.62);
+  font-size: 0.63rem;
+}
+
+.energy-report-coordinate-legend svg {
+  width: 13px;
+  color: #dbb657;
+}
+
+.energy-report-chakra-table {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 8px;
+}
+
+.energy-report-chakra-table > header,
+.energy-report-chakra-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1.02fr) minmax(96px, 1fr) minmax(90px, 0.9fr) minmax(118px, 1.25fr) minmax(100px, 1fr) 16px;
+  align-items: center;
+  min-width: 0;
+  gap: 9px;
+}
+
+.energy-report-chakra-table > header {
+  padding: 0 12px 4px;
+  color: rgba(243, 228, 195, 0.48);
+  font-size: 0.54rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.energy-report-chakra-row {
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--chakra), transparent 45%);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 0% 50%, color-mix(in srgb, var(--chakra), transparent 76%), transparent 28%),
+    rgba(2, 17, 16, 0.86);
+  color: #f2e4c5;
+  text-align: left;
+}
+
+.energy-report-chakra-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--chakra);
+  box-shadow: 0 0 14px var(--chakra);
+}
+
+.energy-report-chakra-row.is-birth {
+  box-shadow: inset 0 0 0 1px rgba(229, 190, 91, 0.3);
+}
+
+.energy-report-chakra-row.is-daily {
+  background:
+    radial-gradient(circle at 0% 50%, color-mix(in srgb, var(--chakra), transparent 62%), transparent 34%),
+    rgba(11, 40, 29, 0.94);
+}
+
+.energy-report-chakra-row:hover {
+  border-color: color-mix(in srgb, var(--chakra), #f3e4c3 28%);
+}
+
+.energy-report-chakra-row > span:not(.energy-report-chakra-identity) {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: rgba(243, 228, 195, 0.7);
+  font-size: 0.59rem;
+  line-height: 1.38;
+}
+
+.energy-report-chakra-row > span small {
+  color: inherit;
+  font-size: inherit;
+}
+
+.energy-report-chakra-row > b {
+  color: var(--chakra);
+}
+
+.energy-report-chakra-row > b svg {
+  width: 14px;
+}
+
+.energy-report-chakra-identity {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.energy-report-chakra-identity > i {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--chakra), #fff 24%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--chakra), #071511 35%);
+  color: white;
+  font-family: var(--font-title);
+  font-style: normal;
+  box-shadow: 0 0 13px color-mix(in srgb, var(--chakra), transparent 40%);
+}
+
+.energy-report-chakra-identity > span {
+  min-width: 0;
+}
+
+.energy-report-chakra-identity strong,
+.energy-report-chakra-identity small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.energy-report-chakra-identity strong {
+  color: #f3e5c6;
+  font-size: 0.69rem;
+}
+
+.energy-report-chakra-identity small {
+  margin-top: 3px;
+  color: color-mix(in srgb, var(--chakra), #f3e4c3 42%);
+  font-size: 0.56rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.energy-report-summary {
+  margin-top: 26px;
+  padding: 20px;
+  border: 1px solid rgba(214, 165, 58, 0.28);
+  border-radius: 13px;
+  background: rgba(1, 12, 15, 0.64);
+}
+
+.energy-report-summary h2,
+.energy-report-sequence > div > span {
+  margin: 0;
+  color: #dfb953;
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.energy-report-summary > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.energy-report-summary article {
+  padding: 13px;
+  border-radius: 9px;
+  background: rgba(243, 228, 195, 0.055);
+}
+
+.energy-report-summary article span {
+  color: #d8af53;
+  font-size: 0.56rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.energy-report-summary article p {
+  margin: 7px 0 0;
+  color: rgba(243, 228, 195, 0.8);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.energy-report-sequence {
+  margin-top: 18px;
+}
+
+.energy-report-sequence > div {
+  display: grid;
+  gap: 4px;
+}
+
+.energy-report-sequence > div small {
+  color: rgba(243, 228, 195, 0.48);
+  font-size: 0.58rem;
+}
+
+.energy-report-sequence ol {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.energy-report-sequence li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 4px;
+  border: 1px solid color-mix(in srgb, var(--chakra), transparent 62%);
+  border-radius: 9px;
+  text-align: center;
+}
+
+.energy-report-sequence li.is-current {
+  background: color-mix(in srgb, var(--chakra), transparent 86%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chakra), transparent 34%);
+}
+
+.energy-report-sequence li i {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--chakra);
+  color: white;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.energy-report-sequence li strong {
+  overflow-wrap: anywhere;
+  font-size: 0.56rem;
+}
+
+.energy-report-sequence li small {
+  color: rgba(243, 228, 195, 0.47);
+  font-size: 0.46rem;
+  line-height: 1.3;
+}
+
+.energy-report-method-note {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(214, 165, 58, 0.2);
+}
+
+.energy-report-method-note p {
+  max-width: 770px;
+  margin: 0;
+  color: rgba(243, 228, 195, 0.52);
+  font-size: 0.57rem;
+  line-height: 1.5;
+}
+
+.energy-report-method-note small {
+  flex: 0 0 auto;
+  color: rgba(243, 228, 195, 0.4);
+  font-size: 0.5rem;
+}
+
+.energy-protocol-sheet {
+  min-height: 1400px;
+  padding: clamp(30px, 4vw, 54px);
+  border-color: rgba(70, 107, 72, 0.4);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217, 173, 75, 0.12), transparent 28rem),
+    linear-gradient(145deg, #fffdf6, #f7f0df);
+  color: #183e2b;
+}
+
+.energy-protocol-header {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.energy-protocol-header > span {
+  color: #a7771d;
+}
+
+.energy-protocol-header h1 {
+  color: #174a2d;
+}
+
+.energy-protocol-header h2 {
+  color: #7b2c23;
+}
+
+.energy-protocol-header > p {
+  margin: 13px 0 0;
+  color: #5b5a4c;
+  font-size: 0.74rem;
+}
+
+.energy-protocol-header > p strong {
+  color: #174a2d;
+}
+
+.energy-protocol-objective {
+  margin-top: 23px;
+  padding: 17px 22px;
+  border: 1px solid rgba(23, 74, 45, 0.32);
+  border-radius: 11px;
+  text-align: center;
+}
+
+.energy-protocol-objective span,
+.energy-protocol-pillars h2,
+.energy-protocol-routine > header > span,
+.energy-protocol-golden-rules h2 {
+  color: #174a2d;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.energy-protocol-objective p {
+  max-width: 780px;
+  margin: 7px auto 0;
+  color: #55584d;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.energy-protocol-pillars {
+  margin-top: 22px;
+}
+
+.energy-protocol-pillars h2,
+.energy-protocol-golden-rules h2 {
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.energy-protocol-pillars > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid rgba(181, 134, 40, 0.28);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.energy-protocol-pillars article {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  min-width: 0;
+  gap: 5px;
+  padding: 15px 9px;
+  border-right: 1px solid rgba(181, 134, 40, 0.2);
+  text-align: center;
+}
+
+.energy-protocol-pillars article:last-child {
+  border-right: 0;
+}
+
+.energy-protocol-pillars article > span {
+  color: #a8771d;
+}
+
+.energy-protocol-pillars svg {
+  width: 22px;
+}
+
+.energy-protocol-pillars strong {
+  color: #19482e;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.energy-protocol-pillars p {
+  margin: 0;
+  color: #666457;
+  font-size: 0.55rem;
+  line-height: 1.35;
+}
+
+.energy-protocol-routine {
+  margin-top: 23px;
+}
+
+.energy-protocol-routine > header {
+  text-align: center;
+}
+
+.energy-protocol-routine > header h2 {
+  margin: 4px 0 0;
+  color: #323c31;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 550;
+}
+
+.energy-protocol-routine > div {
+  display: grid;
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.energy-report-protocol-moment {
+  --moment-tone: #8f2822;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--moment-tone), transparent 48%);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.energy-report-protocol-moment.day {
+  --moment-tone: #d88416;
+}
+
+.energy-report-protocol-moment.night {
+  --moment-tone: #24733e;
+}
+
+.energy-report-protocol-moment > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  background: var(--moment-tone);
+  color: white;
+}
+
+.energy-report-protocol-moment > header > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+}
+
+.energy-report-protocol-moment > header svg {
+  width: 17px;
+}
+
+.energy-report-protocol-moment > header small {
+  font-size: 0.52rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.energy-report-protocol-moment > header h3 {
+  margin: 2px 0 0;
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.energy-report-protocol-moment > header p {
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.54rem;
+}
+
+.energy-report-protocol-moment > header > strong {
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  font-size: 0.5rem;
+}
+
+.energy-report-moment-focus {
+  margin: 13px 15px 8px;
+  color: #273b2d;
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.energy-report-protocol-moment ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0 15px 14px;
+  list-style: none;
+}
+
+.energy-report-protocol-moment li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #53584e;
+  font-size: 0.6rem;
+  line-height: 1.4;
+}
+
+.energy-report-protocol-moment li i {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  border: 1px solid var(--moment-tone);
+  border-radius: 2px;
+}
+
+.energy-protocol-golden-rules {
+  margin-top: 22px;
+}
+
+.energy-protocol-golden-rules > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid rgba(181, 134, 40, 0.3);
+  border-radius: 11px;
+}
+
+.energy-protocol-golden-rules span {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 11px 8px;
+  border-right: 1px solid rgba(181, 134, 40, 0.22);
+  color: #4f584d;
+  font-size: 0.55rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.energy-protocol-golden-rules span:last-child {
+  border-right: 0;
+}
+
+.energy-protocol-golden-rules i {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: #b18428;
+  color: white;
+  font-size: 0.58rem;
+  font-style: normal;
+}
+
+.energy-protocol-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 15px 17px;
+  border: 1px solid rgba(23, 74, 45, 0.28);
+  border-radius: 11px;
+}
+
+.energy-protocol-action span {
+  color: #174a2d;
+  font-size: 0.61rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.energy-protocol-action p {
+  margin: 4px 0 0;
+  color: #65685c;
+  font-size: 0.58rem;
+}
+
+.energy-report-method-note.is-light {
+  border-color: rgba(23, 74, 45, 0.2);
+}
+
+.energy-report-method-note.is-light p,
+.energy-report-method-note.is-light small {
+  color: #6a6d61;
+}
+
+.energy-report-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 1120px);
+  margin: 16px auto 0;
+}
+
+.energy-report-pagination span {
+  color: rgba(243, 228, 195, 0.5);
+  font-size: 0.68rem;
+}
+
+@media (max-width: 1100px) {
+  .report-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .energy-report-tabs {
+    width: 100%;
+  }
+
+  .energy-report-tabs button {
+    flex: 1;
+  }
+
+  .energy-report-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .energy-report-body {
+    width: min(100%, 380px);
+    margin-inline: auto;
+  }
+
+  .energy-report-chakra-table > header,
+  .energy-report-chakra-row {
+    grid-template-columns: minmax(90px, 1fr) minmax(82px, 0.9fr) minmax(86px, 0.85fr) minmax(100px, 1.15fr) minmax(90px, 0.9fr) 14px;
+    gap: 7px;
+  }
+}
+
+@media (max-width: 700px) {
+  .energy-report-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .energy-report-tabs button {
+    width: 100%;
+  }
+
+  .report-sheet {
+    min-height: 0;
+    border-radius: 14px;
+  }
+
+  .energy-map-sheet,
+  .energy-protocol-sheet {
+    padding: 24px 18px;
+  }
+
+  .energy-report-sheet-header {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .energy-report-sheet-header h1,
+  .energy-protocol-header h1 {
+    font-size: clamp(1.8rem, 10vw, 2.55rem);
+  }
+
+  .energy-report-metadata {
+    display: grid;
+    justify-content: stretch;
+    text-align: left;
+  }
+
+  .energy-report-sheet-header > p {
+    padding: 10px 0 0;
+    border: 0;
+  }
+
+  .energy-report-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-report-body {
+    width: min(100%, 330px);
+    margin: 0 auto;
+  }
+
+  .energy-report-body .chakra-body-map {
+    min-height: 620px;
+  }
+
+  .energy-report-chakra-table > header {
+    display: none;
+  }
+
+  .energy-report-chakra-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 12px;
+    padding: 17px;
+  }
+
+  .energy-report-chakra-row > span:not(.energy-report-chakra-identity) {
+    font-size: 0.72rem;
+  }
+
+  .energy-report-chakra-row > span:not(.energy-report-chakra-identity)::before {
+    content: attr(data-report-label);
+    color: color-mix(in srgb, var(--chakra), #f3e4c3 42%);
+    font-size: 0.55rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .energy-report-summary > div,
+  .energy-report-sequence ol,
+  .energy-protocol-pillars > div,
+  .energy-protocol-golden-rules > div {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-report-sequence li {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: start;
+    text-align: left;
+  }
+
+  .energy-report-sequence li small {
+    grid-column: 2;
+  }
+
+  .energy-report-method-note,
+  .energy-protocol-action,
+  .energy-report-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .energy-report-method-note small {
+    flex: auto;
+  }
+
+  .energy-protocol-pillars article,
+  .energy-protocol-golden-rules span {
+    border-right: 0;
+    border-bottom: 1px solid rgba(181, 134, 40, 0.2);
+  }
+
+  .energy-protocol-pillars article:last-child,
+  .energy-protocol-golden-rules span:last-child {
+    border-bottom: 0;
+  }
+
+  .energy-report-protocol-moment > header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .energy-report-protocol-moment > header > strong {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .energy-protocol-action .button-primary,
+  .energy-report-pagination button {
+    width: 100%;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body,
+  .report-sheet {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body:has(.report-document) .app-shell.platform-shell {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body:has(.report-document) .portal-main,
+  body:has(.report-document) .platform-shell .screen.portal-content,
+  body:has(.report-document) .energy-cycle-page {
+    position: static !important;
+    display: block !important;
+    width: 210mm !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body:has(.report-document) .platform-shell .screen.portal-content > :not(.energy-cycle-page),
+  body:has(.report-document) .energy-cycle-page > :not(.report-document) {
+    display: none !important;
+  }
+
+  .portal-sidebar,
+  .portal-topbar,
+  .bottom-navigation,
+  .cosmic-background,
+  .report-controls,
+  .energy-report-pagination,
+  .screen-only {
+    display: none !important;
+  }
+
+  .app-shell.platform-shell,
+  .portal-main,
+  .platform-shell .screen.portal-content,
+  .energy-cycle-page,
+  .report-document {
+    display: block !important;
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  .report-sheet,
+  .report-sheet:not(.is-active) {
+    display: block !important;
+    box-sizing: border-box;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .report-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .energy-map-sheet,
+  .energy-protocol-sheet {
+    padding: 9mm 10mm 8mm;
+  }
+
+  .energy-map-sheet {
+    padding: 6mm 8mm;
+  }
+
+  .energy-report-sheet-header h1,
+  .energy-protocol-header h1 {
+    font-size: 22pt;
+  }
+
+  .energy-report-sheet-header > span {
+    font-size: 5.2pt;
+  }
+
+  .energy-report-sheet-header h1 {
+    margin-top: 1.5mm;
+    font-size: 18pt;
+  }
+
+  .energy-report-sheet-header h2 {
+    font-size: 8pt;
+  }
+
+  .energy-report-metadata {
+    gap: 1mm 4mm;
+    margin-top: 2.5mm;
+    font-size: 5.8pt;
+  }
+
+  .energy-report-sheet-header > p {
+    margin-top: 2.5mm;
+    padding: 1.8mm 3mm;
+    font-size: 5.2pt;
+    line-height: 1.35;
+  }
+
+  .energy-report-map-layout {
+    grid-template-columns: 42mm minmax(0, 1fr);
+    gap: 4mm;
+    margin-top: 3mm;
+  }
+
+  .energy-report-body .chakra-body-map {
+    min-height: 126mm;
+  }
+
+  .energy-report-chakra-table {
+    gap: 1mm;
+  }
+
+  .energy-report-chakra-table > header,
+  .energy-report-chakra-row {
+    grid-template-columns: 25mm 24mm 23mm 31mm 26mm;
+    gap: 1.8mm;
+  }
+
+  .energy-report-chakra-table > header {
+    padding: 0 2mm 1mm;
+    font-size: 4.7pt;
+  }
+
+  .energy-report-chakra-row {
+    min-height: 15.5mm;
+    padding: 1.2mm 1.6mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .energy-report-chakra-row > span:not(.energy-report-chakra-identity) {
+    font-size: 4.35pt;
+    line-height: 1.22;
+  }
+
+  .energy-report-chakra-identity {
+    grid-template-columns: 8mm minmax(0, 1fr);
+    gap: 1.3mm;
+  }
+
+  .energy-report-chakra-identity > i {
+    width: 7mm;
+    height: 7mm;
+    font-size: 7pt;
+  }
+
+  .energy-report-chakra-identity strong {
+    font-size: 5.6pt;
+  }
+
+  .energy-report-chakra-identity small {
+    font-size: 4.6pt;
+  }
+
+  .energy-report-summary {
+    margin-top: 2.5mm;
+    padding: 2mm;
+    break-inside: avoid;
+  }
+
+  .energy-report-summary > div {
+    margin-top: 1.2mm;
+  }
+
+  .energy-report-summary article {
+    padding: 1.4mm;
+  }
+
+  .energy-report-summary article p {
+    margin-top: 1mm;
+    font-size: 4.8pt;
+    line-height: 1.3;
+  }
+
+  .energy-report-sequence {
+    margin-top: 2mm;
+    break-inside: avoid;
+  }
+
+  .energy-report-sequence ol {
+    margin-top: 1.2mm;
+  }
+
+  .energy-report-sequence li {
+    padding: 1mm 0.6mm;
+  }
+
+  .energy-report-method-note {
+    margin-top: 2mm;
+    padding-top: 1.5mm;
+  }
+
+  .energy-protocol-objective,
+  .energy-protocol-pillars,
+  .energy-protocol-routine,
+  .energy-protocol-golden-rules,
+  .energy-report-protocol-moment {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .energy-protocol-objective {
+    margin-top: 4mm;
+    padding: 2.5mm 4mm;
+  }
+
+  .energy-protocol-pillars,
+  .energy-protocol-routine,
+  .energy-protocol-golden-rules {
+    margin-top: 4mm;
+  }
+
+  .energy-protocol-pillars article {
+    padding: 2.5mm 1.5mm;
+  }
+
+  .energy-report-protocol-moment > header {
+    padding: 2mm 3mm;
+  }
+
+  .energy-report-moment-focus {
+    margin: 2mm 3mm 1mm;
+  }
+
+  .energy-report-protocol-moment ul {
+    gap: 1mm;
+    padding: 0 3mm 2.5mm;
+  }
+
+  .energy-report-protocol-moment li {
+    font-size: 5.5pt;
+  }
+
+  .energy-protocol-golden-rules span {
+    padding: 2mm 1mm;
+  }
+}
+
 .dashboard-start-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

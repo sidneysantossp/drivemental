@@ -670,10 +670,10 @@ function coordinateChakraSummary(calendar) {
   };
 }
 
-function chakraConsultationSummary(chakra, areaId, areaTitle) {
-  const guidance = readingGuidance(state.reading);
+function chakraConsultationSummary(chakra, areaId, areaTitle, reading = state.reading) {
+  const guidance = readingGuidance(reading);
   const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
-  const coordinates = readingCoordinates(state.reading) || {};
+  const coordinates = readingCoordinates(reading) || {};
   const birthCalendar = coordinates.birth && coordinates.birth.thirteen_moons
     ? coordinates.birth.thirteen_moons
     : {};
@@ -845,6 +845,7 @@ const defaultState = {
   firstReadingStep: 0,
   firstReadingError: "",
   consultationStatus: "idle",
+  energyReportPage: "map",
   areaCarouselTouched: false,
   reading: null,
   history: [],
@@ -1143,6 +1144,8 @@ function decodeStoredText(value) {
     gt: ">",
     quot: "\"",
     apos: "'",
+    ldquo: "\u201c",
+    rdquo: "\u201d",
     nbsp: " ",
     aacute: "\u00e1",
     Aacute: "\u00c1",
@@ -2374,15 +2377,359 @@ function DailyPracticeCard(guidance) {
   `, "coordinate-card daily-practice-card");
 }
 
-function EnergyCycleContent() {
+const ENERGY_REPORT_VERSION = "energy-report-v1";
+const energyReportPlasmaOrder = Object.freeze([
+  "crown",
+  "root",
+  "thirdEye",
+  "sacral",
+  "throat",
+  "solarPlexus",
+  "heart",
+]);
+const energyReportGoldenRules = Object.freeze([
+  "Uma a&ccedil;&atilde;o por vez.",
+  "Presen&ccedil;a antes da pressa.",
+  "Const&acirc;ncia antes do excesso.",
+  "Registrar o que foi conclu&iacute;do.",
+  "Revisar antes de encerrar o dia.",
+]);
+
+function energyReportStatus({ birthMatch, dayMatch, cycleReference }) {
+  if (birthMatch && dayMatch) {
+    return "Coordenada de nascimento e do dia";
+  }
+  if (birthMatch) {
+    return "Coordenada de nascimento";
+  }
+  if (dayMatch) {
+    return "Coordenada do dia";
+  }
+  return cycleReference ? "Refer&ecirc;ncia do ciclo" : "Sem destaque nesta leitura";
+}
+
+function EnergyReportViewModel() {
+  const activeEntry = activeReadingHistoryEntry();
+  const reading = activeEntry && activeEntry.readingSnapshot
+    ? readingForHistoryEntry(activeEntry)
+    : state.reading;
+  const guidance = readingGuidance(reading);
+  const interpretation = guidance && guidance.interpretation ? guidance.interpretation : {};
+  const coordinates = readingCoordinates(reading) || {};
+  const birthCalendar = coordinates.birth && coordinates.birth.thirteen_moons
+    ? coordinates.birth.thirteen_moons
+    : {};
+  const dayCalendar = coordinates.day && coordinates.day.thirteen_moons
+    ? coordinates.day.thirteen_moons
+    : {};
+  const birthCoordinate = coordinateChakraSummary(birthCalendar);
+  const dayCoordinate = coordinateChakraSummary(dayCalendar);
+  const daily = dailyMap(reading) || {};
+  const dayMoon = dayCalendar.moon || {};
+  const dayWeek = dayCalendar.chromatic_week || {};
+  const dayPlasma = dayCalendar.plasma || {};
+  const dayChakra = dayCalendar.chakra || {};
+  const areaId = normalizeAreaId(interpretation.areaId || state.selectedAreaId) || "general";
+  const area = consultationAreas.find((item) => item.id === areaId);
+  const areaTitle = interpretation.areaTitle || (area ? area.title : "Vis&atilde;o Geral");
+  const direction = essentialDirectionCopy[areaId] || essentialDirectionCopy.general;
+  const readingDate = reading && reading.input && reading.input.current_date
+    ? reading.input.current_date.value
+    : activeEntry && activeEntry.createdAt
+      ? String(activeEntry.createdAt).slice(0, 10)
+      : "";
+  const currentPractice = interpretation.dailyPractice || interpretation.suggestedPractice || "";
+  const moments = protocolMoments(reading);
+  const protocolProgress = loadProtocolProgress();
+  const currentMomentId = currentProtocolMomentId();
+  const reportChakras = chakras.map((chakra) => {
+    const summary = chakraConsultationSummary(chakra, areaId, areaTitle, reading);
+    const birthMatch = birthCoordinate.chakraId === chakra.id;
+    const dayMatch = dayCoordinate.chakraId === chakra.id;
+    return {
+      id: chakra.id,
+      number: chakra.number,
+      name: decodeStoredText(chakra.name),
+      sanskritName: chakra.traditional,
+      colorToken: chakra.color,
+      cycleTheme: decodeStoredText(chakra.phrase),
+      consultationStatus: decodeStoredText(energyReportStatus({
+        birthMatch,
+        dayMatch,
+        cycleReference: true,
+      })),
+      observation: summary.observationItems.slice(0, 2).map(decodeStoredText),
+      suggestedPractice: decodeStoredText(
+        chakra.practices[0] || currentPractice || "Nenhuma pr&aacute;tica espec&iacute;fica dispon&iacute;vel.",
+      ),
+      isBirthCoordinate: birthMatch,
+      isDailyCoordinate: dayMatch,
+      isCycleReference: !birthMatch && !dayMatch,
+    };
+  });
+  const userName = (state.account && state.account.name)
+    || (activeEntry && activeEntry.inputSnapshot && activeEntry.inputSnapshot.name)
+    || state.name
+    || "Pessoa usu&aacute;ria";
+  const objective = decodeStoredText(direction.direction);
+
+  return {
+    metadata: {
+      userName,
+      readingArea: decodeStoredText(areaTitle),
+      readingDate,
+      personalKin: personalKin(reading),
+      personalSignature: personalSignature(reading),
+      dailyKin: daily.kin_of_day ? daily.kin_of_day.value : null,
+      moon: dayMoon.name || "",
+      chromaticWeek: dayWeek.name || "",
+      plasma: dayPlasma.name || "",
+      structuralChakra: dayChakra.label || dayChakra.name || "",
+      birthChakra: birthCalendar.chakra
+        ? birthCalendar.chakra.label || birthCalendar.chakra.name || ""
+        : "",
+    },
+    chakras: reportChakras,
+    summary: {
+      attentionAxis: decodeStoredText(
+        completePresentationText(interpretation.synthesis, 220) || direction.direction,
+      ),
+      nextMovement: decodeStoredText(
+        completePresentationText(currentPractice, 170)
+          || "Escolha uma a&ccedil;&atilde;o simples e conclua antes de iniciar outra.",
+      ),
+      centralPhrase: decodeStoredText(direction.mantra),
+      observationSequence: energyReportPlasmaOrder
+        .map((chakraId) => reportChakras.find((item) => item.id === chakraId))
+        .filter(Boolean),
+    },
+    protocol: {
+      objective,
+      pillars: [
+        { iconName: "spark", name: "Presen&ccedil;a", description: moments[0].subtitle },
+        { iconName: "protocol", name: "Ordem", description: "Organize o que sustenta sua rotina." },
+        { iconName: "target", name: "Foco", description: moments[1].subtitle },
+        { iconName: "chart", name: "Const&acirc;ncia", description: "Repita pequenos passos todos os dias." },
+        { iconName: "book", name: "Revis&atilde;o", description: moments[2].subtitle },
+      ],
+      morning: moments[0],
+      activePeriod: moments[1],
+      evening: moments[2],
+      currentMomentId,
+      completedMomentIds: protocolProgress.completed,
+      goldenRules: energyReportGoldenRules,
+    },
+    versions: {
+      engineVersion: reading && reading.engine ? reading.engine.version : "n&atilde;o dispon&iacute;vel",
+      knowledgeVersion: interpretation.contentVersion
+        || (reading && reading.knowledge_base ? reading.knowledge_base.version : "")
+        || "n&atilde;o dispon&iacute;vel",
+      reportVersion: ENERGY_REPORT_VERSION,
+    },
+  };
+}
+
+function ReportSheet({ pageId, className, active, labelledBy, content }) {
   return `
-    <p class="chakra-cycle-note">Esta se&ccedil;&atilde;o mostra a sequ&ecirc;ncia simb&oacute;lica dos plasmas e chakras no ciclo natural do Sincron&aacute;rio. N&atilde;o representa diagn&oacute;stico individual nem avalia o estado energ&eacute;tico dos seus chakras.</p>
-    <div class="chakra-layout">
+    <article
+      class="report-sheet ${className} ${active ? "is-active" : ""}"
+      data-report-sheet="${pageId}"
+      id="energy-report-${pageId}"
+      role="tabpanel"
+      aria-labelledby="${labelledBy}"
+      aria-hidden="${active ? "false" : "true"}"
+    >
+      ${content}
+    </article>
+  `;
+}
+
+function EnergyReportBodyFigure(viewModel) {
+  return `
+    <figure class="energy-report-body">
       ${ChakraBodyMap()}
-      <div class="chakra-list">
-        ${chakras.map(ChakraCard).join("")}
+      <figcaption>Representa&ccedil;&atilde;o abstrata da sequ&ecirc;ncia vertical dos sete chakras.</figcaption>
+      <div class="energy-report-coordinate-legend">
+        <span>${icon("spark")} Nascimento: ${readableText(viewModel.metadata.birthChakra || "n&atilde;o destacada")}</span>
+        <span>${icon("target")} Dia: ${readableText(viewModel.metadata.structuralChakra || "n&atilde;o destacado")}</span>
       </div>
-    </div>
+    </figure>
+  `;
+}
+
+function EnergyReportChakraRow(chakra) {
+  const coordinateClass = chakra.isBirthCoordinate && chakra.isDailyCoordinate
+    ? "is-birth is-daily"
+    : chakra.isBirthCoordinate
+      ? "is-birth"
+      : chakra.isDailyCoordinate
+        ? "is-daily"
+        : "";
+  return `
+    <button
+      class="energy-report-chakra-row ${coordinateClass}"
+      style="--chakra:${chakra.colorToken}"
+      data-chakra-id="${chakra.id}"
+      type="button"
+      aria-label="Abrir detalhes do Chakra ${readableText(chakra.name)}. ${readableText(chakra.consultationStatus)}."
+    >
+      <span class="energy-report-chakra-identity">
+        <i>${chakra.number}</i>
+        <span><strong>${readableText(chakra.name)}</strong><small>${readableText(chakra.sanskritName)}</small></span>
+      </span>
+      <span data-report-label="Tema no ciclo">${readableText(chakra.cycleTheme)}</span>
+      <span data-report-label="Situa&ccedil;&atilde;o">${readableText(chakra.consultationStatus)}</span>
+      <span data-report-label="O que observar">${chakra.observation.map((item) => `<small>${readableText(item)}</small>`).join("")}</span>
+      <span data-report-label="Pr&aacute;tica sugerida">${readableText(chakra.suggestedPractice)}</span>
+      <b class="screen-only" aria-hidden="true">${icon("arrow")}</b>
+    </button>
+  `;
+}
+
+function EnergyMapReportSheet(viewModel, active) {
+  const metadata = viewModel.metadata;
+  return ReportSheet({
+    pageId: "map",
+    className: "energy-map-sheet",
+    active,
+    labelledBy: "energy-report-map-tab",
+    content: `
+      <header class="energy-report-sheet-header">
+        <span>DRIVE MENTAL &middot; RELAT&Oacute;RIO DO CICLO</span>
+        <h1>Mapa dos 7 Chakras</h1>
+        <h2>Leitura simb&oacute;lica do ciclo pessoal</h2>
+        <div class="energy-report-metadata">
+          <span>Mapa base: <strong>Kin ${metadata.personalKin || "-"} &middot; ${readableText(metadata.personalSignature || "Assinatura n&atilde;o dispon&iacute;vel")}</strong></span>
+          <span>&Aacute;rea consultada: <strong>${readableText(metadata.readingArea)}</strong></span>
+          <span>Ciclo consultado: <strong>${readableText(formatDatePtBr(metadata.readingDate) || "Data n&atilde;o dispon&iacute;vel")}</strong></span>
+        </div>
+        <p>Este mapa organiza correspond&ecirc;ncias simb&oacute;licas do ciclo. Ele n&atilde;o mede doen&ccedil;as, bloqueios ou estados cl&iacute;nicos dos chakras.</p>
+      </header>
+      <div class="energy-report-map-layout">
+        ${EnergyReportBodyFigure(viewModel)}
+        <section class="energy-report-chakra-table" aria-label="Tabela editorial dos sete chakras">
+          <header aria-hidden="true">
+            <span>Chakra</span><span>Tema no ciclo</span><span>Situa&ccedil;&atilde;o</span><span>O que observar</span><span>Pr&aacute;tica sugerida</span>
+          </header>
+          ${viewModel.chakras.map(EnergyReportChakraRow).join("")}
+        </section>
+      </div>
+      <section class="energy-report-summary">
+        <h2>Resumo do seu mapa</h2>
+        <div>
+          <article><span>Eixo de aten&ccedil;&atilde;o atual</span><p>${readableText(viewModel.summary.attentionAxis)}</p></article>
+          <article><span>Pr&oacute;ximo movimento</span><p>${readableText(viewModel.summary.nextMovement)}</p></article>
+          <article><span>Frase central do ciclo</span><p>&ldquo;${readableText(viewModel.summary.centralPhrase)}&rdquo;</p></article>
+        </div>
+      </section>
+      <section class="energy-report-sequence">
+        <div><span>Sequ&ecirc;ncia de observa&ccedil;&atilde;o do ciclo</span><small>Ordem simb&oacute;lica dos sete plasmas; o chakra estrutural do dia recebe destaque.</small></div>
+        <ol>${viewModel.summary.observationSequence.map((chakra) => `
+          <li class="${chakra.isDailyCoordinate ? "is-current" : ""}" style="--chakra:${chakra.colorToken}">
+            <i>${chakra.number}</i><strong>${readableText(chakra.name)}</strong><small>${readableText(chakra.consultationStatus)}</small>
+          </li>
+        `).join("")}</ol>
+      </section>
+      <footer class="energy-report-method-note">
+        <p>Este relat&oacute;rio apresenta correspond&ecirc;ncias simb&oacute;licas do ciclo para reflex&atilde;o e organiza&ccedil;&atilde;o pessoal. N&atilde;o representa diagn&oacute;stico m&eacute;dico, psicol&oacute;gico ou energ&eacute;tico individual.</p>
+        <small>${readableText(viewModel.versions.reportVersion)} &middot; Motor ${readableText(viewModel.versions.engineVersion)} &middot; Conte&uacute;do ${readableText(viewModel.versions.knowledgeVersion)}</small>
+      </footer>
+    `,
+  });
+}
+
+function EnergyReportProtocolMoment(moment, viewModel) {
+  const isCurrent = viewModel.protocol.currentMomentId === moment.id;
+  const isCompleted = viewModel.protocol.completedMomentIds.includes(moment.id);
+  return `
+    <article class="energy-report-protocol-moment ${moment.tone}">
+      <header>
+        <span>${icon(moment.iconName)}</span>
+        <div><small>${moment.label} &middot; ${moment.time}</small><h3>${moment.title}</h3><p>${moment.subtitle}</p></div>
+        <strong class="screen-only">${isCompleted ? "Conclu&iacute;do" : isCurrent ? "Momento atual" : "Dispon&iacute;vel"}</strong>
+      </header>
+      <p class="energy-report-moment-focus">${readableText(moment.focus)}</p>
+      <ul>${moment.steps.map((step) => `<li><i aria-hidden="true"></i>${readableText(step)}</li>`).join("")}</ul>
+    </article>
+  `;
+}
+
+function EnergyProtocolReportSheet(viewModel, active) {
+  const metadata = viewModel.metadata;
+  return ReportSheet({
+    pageId: "protocol",
+    className: "energy-protocol-sheet",
+    active,
+    labelledBy: "energy-report-protocol-tab",
+    content: `
+      <header class="energy-protocol-header">
+        <span>DRIVE MENTAL &middot; PR&Aacute;TICA VINCULADA</span>
+        <h1>Protocolo Di&aacute;rio</h1>
+        <h2>Organiza&ccedil;&atilde;o, presen&ccedil;a e a&ccedil;&atilde;o pr&aacute;tica</h2>
+        <p>Aplica&ccedil;&atilde;o para <strong>${readableText(metadata.readingArea)}</strong></p>
+      </header>
+      <section class="energy-protocol-objective">
+        <span>Objetivo do protocolo</span>
+        <p>${readableText(viewModel.protocol.objective)}</p>
+      </section>
+      <section class="energy-protocol-pillars">
+        <h2>Pilares do protocolo</h2>
+        <div>${viewModel.protocol.pillars.map((pillar) => `
+          <article><span>${icon(pillar.iconName)}</span><strong>${pillar.name}</strong><p>${readableText(pillar.description)}</p></article>
+        `).join("")}</div>
+      </section>
+      <section class="energy-protocol-routine">
+        <header><span>Protocolo em tr&ecirc;s momentos</span><h2>Um passo de cada vez</h2></header>
+        <div>
+          ${EnergyReportProtocolMoment(viewModel.protocol.morning, viewModel)}
+          ${EnergyReportProtocolMoment(viewModel.protocol.activePeriod, viewModel)}
+          ${EnergyReportProtocolMoment(viewModel.protocol.evening, viewModel)}
+        </div>
+      </section>
+      <section class="energy-protocol-golden-rules">
+        <h2>Regras de ouro</h2>
+        <div>${viewModel.protocol.goldenRules.map((rule, index) => `<span><i>${index + 1}</i>${readableText(rule)}</span>`).join("")}</div>
+      </section>
+      <section class="energy-protocol-action screen-only">
+        <div><span>Pr&aacute;tica vinculada</span><p>A conclus&atilde;o dos momentos continua centralizada na p&aacute;gina funcional do Protocolo Di&aacute;rio.</p></div>
+        <button class="button-primary" data-route="protocol" type="button">${icon("protocol")} Abrir Protocolo Completo</button>
+      </section>
+      <footer class="energy-report-method-note is-light">
+        <p>Este relat&oacute;rio apresenta correspond&ecirc;ncias simb&oacute;licas do ciclo para reflex&atilde;o e organiza&ccedil;&atilde;o pessoal. N&atilde;o representa diagn&oacute;stico m&eacute;dico, psicol&oacute;gico ou energ&eacute;tico individual.</p>
+        <small>${readableText(viewModel.versions.reportVersion)} &middot; ${readableText(metadata.userName)} &middot; ${readableText(formatDatePtBr(metadata.readingDate))}</small>
+      </footer>
+    `,
+  });
+}
+
+function EnergyReportControls(activePage) {
+  return `
+    <section class="report-controls screen-only" aria-label="Controles do relat&oacute;rio">
+      <div>
+        <span>Visualiza&ccedil;&atilde;o do relat&oacute;rio</span>
+        <p>Consulte cada folha com conforto. A exporta&ccedil;&atilde;o inclui as duas p&aacute;ginas A4.</p>
+      </div>
+      <div class="energy-report-tabs" role="tablist" aria-label="P&aacute;ginas do relat&oacute;rio">
+        <button id="energy-report-map-tab" data-energy-report-page="map" type="button" role="tab" aria-controls="energy-report-map" aria-selected="${activePage === "map"}">Mapa dos Chakras</button>
+        <button id="energy-report-protocol-tab" data-energy-report-page="protocol" type="button" role="tab" aria-controls="energy-report-protocol" aria-selected="${activePage === "protocol"}">Protocolo vinculado</button>
+        <button class="energy-report-download" data-print-energy-report type="button">${icon("download")} Baixar relat&oacute;rio</button>
+      </div>
+    </section>
+  `;
+}
+
+function EnergyCycleContent(viewModel, activePage) {
+  return `
+    <section class="report-document" data-energy-report-document>
+      ${EnergyMapReportSheet(viewModel, activePage === "map")}
+      ${EnergyProtocolReportSheet(viewModel, activePage === "protocol")}
+    </section>
+    <nav class="energy-report-pagination screen-only" aria-label="Navega&ccedil;&atilde;o entre p&aacute;ginas do relat&oacute;rio">
+      <button data-energy-report-page="${activePage === "map" ? "protocol" : "map"}" type="button">
+        ${activePage === "map" ? `Pr&oacute;xima: Protocolo vinculado ${icon("arrow")}` : `${icon("back")} Voltar ao Mapa dos Chakras`}
+      </button>
+      <span>P&aacute;gina ${activePage === "map" ? "1" : "2"} de 2</span>
+    </nav>
   `;
 }
 
@@ -3307,7 +3654,7 @@ function PortalTopbar() {
     "my-day": ["A&ccedil;&atilde;o do dia", "Sua dire&ccedil;&atilde;o e seu pr&oacute;ximo passo"],
     home: ["Nova consulta", "Escolha uma nova &aacute;rea para aplicar sua base pessoal"],
     chakras: ["Resultado da consulta", "Seu mapa completo foi calculado"],
-    "energy-cycle": ["Ciclo Energ&eacute;tico", "Plasmas, chakras e ciclo natural"],
+    "energy-cycle": ["Ciclo Energ&eacute;tico", "Plasmas, chakras e ciclo simb&oacute;lico."],
     history: ["Hist&oacute;rico", "Leituras e marcos preservados"],
     protocol: ["Protocolo di&aacute;rio", "Pr&aacute;ticas para trazer a leitura ao cotidiano"],
     journey: ["Jornada de 30 dias", "Frases e a&ccedil;&otilde;es para acompanhar seu ciclo"],
@@ -4724,29 +5071,13 @@ function ChakraCard(chakra) {
 }
 
 function EnergyCycleScreen() {
-  const guidance = readingGuidance(state.reading);
-  const areaTitle = guidance && guidance.interpretation
-    ? guidance.interpretation.areaTitle
-    : "Vis&atilde;o Geral";
+  const viewModel = EnergyReportViewModel();
+  const activePage = state.energyReportPage === "protocol" ? "protocol" : "map";
 
   return PlatformShell(`
-    ${AppHeader("Ciclo Energ&eacute;tico", `${areaTitle} &bull; plasmas e chakras`, { back: true, backRoute: "dashboard" })}
     <section class="energy-cycle-page">
-      <section class="energy-cycle-hero">
-        <span class="energy-cycle-hero-icon">${icon("lotus")}</span>
-        <div>
-          <span>Ciclo natural do Sincron&aacute;rio</span>
-          <h2>Ciclo Energ&eacute;tico</h2>
-          <p>Uma leitura visual da sequ&ecirc;ncia simb&oacute;lica dos plasmas e chakras para apoiar reflex&atilde;o, organiza&ccedil;&atilde;o e presen&ccedil;a.</p>
-        </div>
-      </section>
-      <section class="energy-cycle-main-card">
-        ${EnergyCycleContent()}
-      </section>
-      <section class="dashboard-disclaimer energy-cycle-disclaimer">
-        ${icon("info")}
-        <p>Esta p&aacute;gina n&atilde;o mede bloqueios, doen&ccedil;as, hiperatividade ou estado individual dos chakras. Ela organiza correspond&ecirc;ncias simb&oacute;licas para autoconhecimento.</p>
-      </section>
+      ${EnergyReportControls(activePage)}
+      ${EnergyCycleContent(viewModel, activePage)}
     </section>
   `);
 }
@@ -4893,8 +5224,8 @@ function toggleProtocolMoment(momentId) {
   render();
 }
 
-function protocolMoments() {
-  const guidance = readingGuidance(state.reading);
+function protocolMoments(reading = state.reading) {
+  const guidance = readingGuidance(reading);
   const interpretation = guidance && guidance.interpretation;
   const areaId = interpretation ? interpretation.areaId : "general";
   const direction = essentialDirectionCopy[areaId] || essentialDirectionCopy.general;
@@ -7189,6 +7520,21 @@ function bindEvents() {
         selectedChakraId: normalizeChakraId(element.dataset.chakraId),
         notice: "",
       }, { updateUrl: true });
+    });
+  });
+
+  document.querySelectorAll("[data-energy-report-page]").forEach((element) => {
+    element.addEventListener("click", () => {
+      const reportPage = element.dataset.energyReportPage === "protocol" ? "protocol" : "map";
+      setState({ energyReportPage: reportPage });
+    });
+  });
+
+  document.querySelectorAll("[data-print-energy-report]").forEach((element) => {
+    element.addEventListener("click", () => {
+      if (typeof window.print === "function") {
+        window.print();
+      }
     });
   });
 

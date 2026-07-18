@@ -1120,12 +1120,96 @@ energyCycleContext.setState({
 const energyCycleHtml = energyCycleContext.__getHtml();
 assert.strictEqual(vm.runInContext("state.route", energyCycleContext), "energy-cycle");
 assert.ok(energyCycleHtml.includes("Ciclo Energ&eacute;tico"));
-assert.ok(energyCycleHtml.includes("Ciclo natural do Sincron&aacute;rio"));
-assert.ok(energyCycleHtml.includes("energy-cycle-main-card"));
-assert.ok(energyCycleHtml.includes("N&atilde;o representa diagn&oacute;stico individual"));
+assert.strictEqual((energyCycleHtml.match(/class="portal-sidebar"/g) || []).length, 1);
+assert.strictEqual((energyCycleHtml.match(/class="app-shell platform-shell/g) || []).length, 1);
+assert.strictEqual((energyCycleHtml.match(/class="energy-cycle-page"/g) || []).length, 1);
+assert.strictEqual((energyCycleHtml.match(/data-energy-report-document/g) || []).length, 1);
+assert.strictEqual((energyCycleHtml.match(/data-report-sheet=/g) || []).length, 2);
+assert.strictEqual((energyCycleHtml.match(/class="app-header"/g) || []).length, 0);
+assert.strictEqual((energyCycleHtml.match(/class="energy-cycle-hero"/g) || []).length, 0);
+assert.strictEqual((energyCycleHtml.match(/<h[1-6][^>]*>Ciclo Energ&eacute;tico<\/h[1-6]>/g) || []).length, 1);
+assert.ok(energyCycleHtml.includes("Mapa dos 7 Chakras"));
+assert.ok(energyCycleHtml.includes("Leitura simb&oacute;lica do ciclo pessoal"));
+assert.ok(energyCycleHtml.includes("Protocolo Di&aacute;rio"));
+assert.ok(energyCycleHtml.includes("Organiza&ccedil;&atilde;o, presen&ccedil;a e a&ccedil;&atilde;o pr&aacute;tica"));
+assert.ok(energyCycleHtml.includes("Mapa dos Chakras"));
+assert.ok(energyCycleHtml.includes("Protocolo vinculado"));
+assert.ok(energyCycleHtml.includes("Baixar relat&oacute;rio"));
+assert.ok(energyCycleHtml.includes("Resumo do seu mapa"));
+assert.ok(energyCycleHtml.includes("Sequ&ecirc;ncia de observa&ccedil;&atilde;o do ciclo"));
+assert.ok(energyCycleHtml.includes("Pilares do protocolo"));
+assert.ok(energyCycleHtml.includes("Regras de ouro"));
+assert.ok(energyCycleHtml.includes("Abrir Protocolo Completo"));
+assert.ok(energyCycleHtml.includes("N&atilde;o representa diagn&oacute;stico m&eacute;dico, psicol&oacute;gico ou energ&eacute;tico individual."));
+assert.ok(!energyCycleHtml.includes("Diagn&oacute;stico energ&eacute;tico pessoal"));
+assert.ok(!energyCycleHtml.includes("Ordem de tratamento"));
+assert.ok(!energyCycleHtml.includes("chakra cr&iacute;tico"));
+assert.strictEqual((energyCycleHtml.match(/class="chakra-body-map"/g) || []).length, 1);
 assert.strictEqual((energyCycleHtml.match(/data-chakra-id="/g) || []).length, 7);
 assert.ok(energyCycleHtml.includes('data-chakra-id="root"'));
-assert.ok(energyCycleHtml.includes('aria-label="Abrir detalhes do Chakra Raiz"'));
+assert.ok(energyCycleHtml.includes("Coordenada do dia"));
+assert.ok(energyCycleHtml.includes("Coordenada de nascimento"));
+assert.ok(energyCycleHtml.includes("Refer\u00eancia do ciclo"));
+
+const energyReportViewModel = vm.runInContext("EnergyReportViewModel()", energyCycleContext);
+assert.strictEqual(energyReportViewModel.metadata.personalKin, 168);
+assert.strictEqual(energyReportViewModel.metadata.dailyKin, 178);
+assert.strictEqual(energyReportViewModel.metadata.plasma, "Silio");
+assert.strictEqual(energyReportViewModel.metadata.structuralChakra, "Cora\u00e7\u00e3o / Card\u00edaco");
+assert.strictEqual(energyReportViewModel.chakras.length, 7);
+assert.strictEqual(energyReportViewModel.chakras.filter((chakra) => chakra.isDailyCoordinate).length, 1);
+assert.strictEqual(energyReportViewModel.chakras.filter((chakra) => chakra.isBirthCoordinate).length, 1);
+assert.strictEqual(energyReportViewModel.summary.observationSequence.length, 7);
+assert.strictEqual(energyReportViewModel.protocol.goldenRules.length, 5);
+assert.strictEqual(energyReportViewModel.versions.reportVersion, "energy-report-v1");
+
+energyCycleContext.setState({ energyReportPage: "protocol" });
+const energyProtocolHtml = energyCycleContext.__getHtml();
+assert.ok(energyProtocolHtml.includes('data-report-sheet="protocol"'));
+assert.ok(energyProtocolHtml.includes('id="energy-report-protocol-tab"'));
+assert.ok(energyProtocolHtml.includes('aria-selected="true"'));
+assert.ok(energyProtocolHtml.includes("P&aacute;gina 2 de 2"));
+
+const noBirthChakraReading = cloneForTest(reading);
+delete noBirthChakraReading.coordinates.birth.thirteen_moons.chakra;
+delete noBirthChakraReading.coordinates.birth.thirteen_moons.plasma;
+energyCycleContext.setState({
+  energyReportPage: "map",
+  reading: noBirthChakraReading,
+  activeHistoryId: "",
+  history: [],
+});
+const noBirthViewModel = vm.runInContext("EnergyReportViewModel()", energyCycleContext);
+assert.strictEqual(noBirthViewModel.chakras.filter((chakra) => chakra.isBirthCoordinate).length, 0);
+assert.strictEqual(noBirthViewModel.chakras.filter((chakra) => chakra.isDailyCoordinate).length, 1);
+
+const longReportReading = cloneForTest(reading);
+longReportReading.guidance.interpretation.areaTitle = "Planejamento financeiro familiar, profissional e patrimonial de longo prazo";
+longReportReading.guidance.interpretation.synthesis = "Organize as prioridades atuais com clareza. Preserve os compromissos essenciais e escolha uma etapa verific&aacute;vel antes de iniciar um novo movimento.";
+energyCycleContext.setState({
+  reading: longReportReading,
+  account: {
+    ...vm.runInContext("state.account", energyCycleContext),
+    name: "Nome Completo Muito Longo Para Validar a Composi&ccedil;&atilde;o Editorial do Relat&oacute;rio",
+  },
+});
+const longReportHtml = energyCycleContext.__getHtml();
+assert.ok(longReportHtml.includes("Planejamento financeiro familiar"));
+assert.ok(longReportHtml.includes("Nome Completo Muito Longo"));
+assert.ok(!longReportHtml.includes("text-overflow: ellipsis"));
+
+assert.ok(styles.includes("@page"));
+assert.ok(styles.includes("size: A4 portrait"));
+assert.ok(styles.includes(".report-sheet:not(.is-active)"));
+assert.ok(styles.includes("width: 210mm"));
+assert.ok(styles.includes("min-height: 297mm"));
+assert.ok(styles.includes("page-break-after: always"));
+assert.ok(styles.includes("break-inside: avoid"));
+assert.ok(styles.includes("print-color-adjust: exact"));
+assert.ok(styles.includes("-webkit-print-color-adjust: exact"));
+assert.ok(styles.includes("@media print"));
+assert.ok(styles.includes("@media (max-width: 700px)"));
+assert.ok(appSource.includes("window.print()"));
 
 resultContext.setState({ route: "protocol" });
 const protocolHtml = resultContext.__getHtml();
