@@ -1,0 +1,42 @@
+# Evidência externa — projeto Supabase de destino
+
+## Projeto
+
+URL do painel: https://supabase.com/dashboard/project/qgvlkpaociypyxduvsqm
+Project URL: https://qgvlkpaociypyxduvsqm.supabase.co
+Organização observada: Connect7 Projetos
+Status observado: Healthy
+Região observada: us-east-1 (East US / North Virginia)
+Plano/compute observado: PRO / MICRO
+
+## Table Editor
+
+URL: https://supabase.com/dashboard/project/qgvlkpaociypyxduvsqm/editor
+
+O Table Editor exibiu as tabelas públicas esperadas após a aplicação na outra tela: `admin_audit_logs`, `admin_roles`, `app_settings`, `consent_records`, `journey_progress`, `plan_catalog`, `profiles`, `protocol_progress`, `readings`, `timeline_events` e `user_access_plans`. As tabelas antigas removidas (`access_entitlements` e `payment_webhook_events`) não aparecem, conforme a sequência versionada de migrations.
+
+## Edge Functions
+
+URL: https://supabase.com/dashboard/project/qgvlkpaociypyxduvsqm/functions
+
+A área de Edge Functions mostrou o estado inicial sem funções publicadas e disponibilizou `Deploy a new function`, `Open Editor` e `View CLI Instructions`. A função `delete-account` ainda precisa ser criada/publicada no destino.
+
+Nenhuma credencial, token, chave privada ou dado de usuário foi salvo neste registro.
+
+## Atualização: Edge Function publicada
+
+A função `delete-account` foi publicada com sucesso no projeto novo. O painel redirecionou para `https://supabase.com/dashboard/project/qgvlkpaociypyxduvsqm/functions/delete-account/details`, exibindo o endpoint `https://qgvlkpaociypyxduvsqm.supabase.co/functions/v1/delete-account` e o timestamp de publicação de poucos segundos atrás. O código publicado é o conteúdo versionado de `supabase/functions/delete-account/index.ts`; nenhum segredo, token, chave privada ou dado de usuário foi registrado.
+
+Estado atual: função ativa; probes HTTP não destrutivos ainda pendentes.
+
+## Atualização: deploy correto e probes HTTP
+
+Após a substituição manual do conteúdo de `index.ts` no editor do Supabase, o código versionado foi publicado no endpoint de produção. A validação não destrutiva foi executada com a chave pública somente no cabeçalho `apikey`, sem JWT válido e sem chamada de exclusão:
+
+| Método | Resultado observado | Interpretação |
+|---|---:|---|
+| `OPTIONS` | `200` / `ok` | Preflight CORS tratado pelo handler |
+| `GET` | `405` / `method_not_allowed` | Método não permitido pelo contrato da função |
+| `POST` sem JWT válido | `401` / `unauthorized` | Autenticação customizada bloqueou a solicitação |
+
+Nenhuma operação `auth.admin.deleteUser` foi alcançada, nenhum usuário foi excluído e nenhum dado de produção foi criado. O endpoint respondeu com o handler correto, não mais com o template padrão do Supabase.
