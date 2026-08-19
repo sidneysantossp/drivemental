@@ -1,7 +1,7 @@
 (function configureDriveAstral(globalScope) {
   globalScope.DriveAstralRuntimeConfig = Object.freeze({
     environment: "production",
-    release: "2026.08.19-f5",
+    release: "2026.08.19-f6",
     authMode: "supabase",
     supabaseUrl: "https://qgvlkpaociypyxduvsqm.supabase.co",
     supabasePublishableKey: "sb_publishable_1Lh5PLaeNXnD_6DFGa6H6A_yhqO0Ocs",
