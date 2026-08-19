@@ -1,0 +1,25 @@
+DM-F6 — Evidência Vercel (19/08/2026)
+
+A lista de deployments do projeto `drivemental` mostra o commit `bc4b33c` (`docs: close phase 5 runtime proof`) no ambiente Production com status **Ready**, seguido de `ce39c68`, também Production/Ready. O painel informa que a retenção de deployments está habilitada. A URL pública observada permanece `https://drivemental.vercel.app/`.
+
+A auditoria runtime separada observou HTTP 200 nos assets públicos principais e HSTS efetivo, porém não observou na resposta pública os headers CSP, X-Content-Type-Options, Referrer-Policy, Permissions-Policy ou X-Frame-Options declarados em `vercel.json`. Essa divergência entre configuração-fonte e resposta HTTP é uma lacuna AS-IS a ser reportada ao Arquiteto; nenhuma correção foi aplicada nesta fase de leitura.
+
+
+## Observabilidade Vercel
+
+A área Logs do projeto está acessível e oferece filtros por nível, rota, status, método e deployment. No período padrão consultado (últimos 30 minutos), o painel informa **There are no request logs in this time range** e mostra Warning 0, Error 0 e Fatal 0. O painel também oferece controles “Enable My Logs” e “Enable Has Traces”, indicando que a observabilidade avançada não está habilitada/confirmada no estado observado. Nenhuma alteração foi feita.
+
+
+## Edge Functions Supabase
+
+O painel de produção `drivemental` lista uma única Edge Function, `delete-account`, na URL oficial `https://horsbnzwozvpboejsbww.supabase.co/functions/v1/delete-account`, com três deployments registrados e atualização recente. A função está disponível no ambiente Production. Nenhuma alteração foi feita no painel.
+
+
+## Métricas observadas da Edge Function
+
+No overview de `delete-account`, o Supabase exibiu 10 invocações no período selecionado, taxa 5xx de 0% e taxa 4xx de 70%. O painel informou 14 invocações desde o último deployment e nenhum erro, com tempo médio de execução de 35 ms e máximo de 710 ms. Os 4xx correspondem ao comportamento esperado das provas de método/autenticação; não houve erro 5xx no período observado.
+
+
+## Backup e restauração
+
+Na seção Database Backups do projeto Supabase, o painel informa que o plano **Free não inclui project backups**. A interface lista Scheduled backups, Point in time e Restore to new project (Beta), mas apresenta Upgrade para obter até 7 dias de backups agendados. Portanto, no estado AS-IS não há backup gerenciado do projeto disponível para a operação; o runbook de Fase 6 deverá documentar a limitação e uma estratégia externa/versionada, sem executar restauração destrutiva.
