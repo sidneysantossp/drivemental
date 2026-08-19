@@ -1,0 +1,5 @@
+observability_local_proof=passed
+expected_4xx=GET_405
+synthetic_5xx=POST_500_configuration_invalid
+request_id=echoed_and_exposed
+logs=structured_redacted

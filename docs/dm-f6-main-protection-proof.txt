@@ -1,0 +1,38 @@
+[1;38m{[m
+[1;34m"allow_deletions"[m[1;38m:[m [1;38m{[m
+[1;34m"enabled"[m[1;38m:[m [33mfalse[m
+[1;38m}[m[1;38m,[m
+[1;34m"allow_force_pushes"[m[1;38m:[m [1;38m{[m
+[1;34m"enabled"[m[1;38m:[m [33mfalse[m
+[1;38m}[m[1;38m,[m
+[1;34m"enforce_admins"[m[1;38m:[m [1;38m{[m
+[1;34m"enabled"[m[1;38m:[m [33mtrue[m[1;38m,[m
+[1;34m"url"[m[1;38m:[m [32m"https://api.github.com/repos/sidneysantossp/drivemental/branches/main/protection/enforce_admins"[m
+[1;38m}[m[1;38m,[m
+[1;34m"required_pull_request_reviews"[m[1;38m:[m [1;38m{[m
+[1;34m"dismiss_stale_reviews"[m[1;38m:[m [33mfalse[m[1;38m,[m
+[1;34m"require_code_owner_reviews"[m[1;38m:[m [33mfalse[m[1;38m,[m
+[1;34m"require_last_push_approval"[m[1;38m:[m [33mfalse[m[1;38m,[m
+[1;34m"required_approving_review_count"[m[1;38m:[m 0[1;38m,[m
+[1;34m"url"[m[1;38m:[m [32m"https://api.github.com/repos/sidneysantossp/drivemental/branches/main/protection/required_pull_request_reviews"[m
+[1;38m}[m[1;38m,[m
+[1;34m"required_status_checks"[m[1;38m:[m [1;38m{[m
+[1;34m"checks"[m[1;38m:[m [1;38m[[m
+[1;38m{[m
+[1;34m"app_id"[m[1;38m:[m 15368[1;38m,[m
+[1;34m"context"[m[1;38m:[m [32m"Pre-deploy gate"[m
+[1;38m}[m[1;38m,[m
+[1;38m{[m
+[1;34m"app_id"[m[1;38m:[m 15368[1;38m,[m
+[1;34m"context"[m[1;38m:[m [32m"Post-deploy runtime gate"[m
+[1;38m}[m
+[1;38m][m[1;38m,[m
+[1;34m"contexts"[m[1;38m:[m [1;38m[[m
+[32m"Pre-deploy gate"[m[1;38m,[m
+[32m"Post-deploy runtime gate"[m
+[1;38m][m[1;38m,[m
+[1;34m"contexts_url"[m[1;38m:[m [32m"https://api.github.com/repos/sidneysantossp/drivemental/branches/main/protection/required_status_checks/contexts"[m[1;38m,[m
+[1;34m"strict"[m[1;38m:[m [33mtrue[m[1;38m,[m
+[1;34m"url"[m[1;38m:[m [32m"https://api.github.com/repos/sidneysantossp/drivemental/branches/main/protection/required_status_checks"[m
+[1;38m}[m
+[1;38m}[m

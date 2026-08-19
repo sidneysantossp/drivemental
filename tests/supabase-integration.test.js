@@ -98,6 +98,10 @@ assert.ok(consultationGuardrailsMigration.includes("before insert on public.read
 
 assert.ok(deleteAccount.includes("auth.admin.deleteUser"));
 assert.ok(deleteAccount.includes("auth.getUser"));
+assert.ok(deleteAccount.includes("X-Request-ID"));
+assert.ok(deleteAccount.includes("request_id: requestId"));
+assert.ok(deleteAccount.includes('console.info(JSON.stringify'));
+assert.ok(deleteAccount.includes('Authorization, cookies, payloads, user IDs, emails, or error details'));
 assert.ok(!supabaseConfig.includes("[functions.payment-webhook]"));
 assert.ok(supabaseConfig.includes("[functions.delete-account]"));
 assert.ok(supabaseConfig.includes("verify_jwt = false"));
