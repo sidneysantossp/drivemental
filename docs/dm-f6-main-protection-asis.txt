@@ -1,0 +1,10 @@
+## BRANCH_PROTECTION
+[1;37m{[m
+  [1;34m"message"[m[1;37m:[m [32m"Branch not protected"[m[1;37m,[m
+  [1;34m"documentation_url"[m[1;37m:[m [32m"https://docs.github.com/rest/branches/branch-protection#get-branch-protection"[m[1;37m,[m
+  [1;34m"status"[m[1;37m:[m [32m"404"[m
+[1;37m}[m
+gh: Branch not protected (HTTP 404)
+
+## RULESETS
+[1;37m[[m[1;37m][m

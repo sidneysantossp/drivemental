@@ -43,14 +43,18 @@ key="$(sed -nE 's/.*supabasePublishableKey:[[:space:]]*"([^"]+)".*/\1/p' "$runti
 
 edge_request() {
   local label="$1" method="$2" expected="$3"; shift 3
-  local body="$TMP/${label}.body" headers="$TMP/${label}.headers" status
-  status="$(curl -sS --max-time 25 -X "$method" "$@" -D "$headers" -o "$body" -w '%{http_code}' "$EDGE_URL")" || fail "edge_curl:${label}"
+  local body="$TMP/${label}.body" headers="$TMP/${label}.headers" status request_id returned_id
+  request_id="dm-f6-runtime-${label}"
+  status="$(curl -sS --max-time 25 -X "$method" -H "x-request-id: $request_id" "$@" -D "$headers" -o "$body" -w '%{http_code}' "$EDGE_URL")" || fail "edge_curl:${label}"
   [[ "$status" == "$expected" ]] || fail "edge_status:${label}:${status}:expected_${expected}"
   grep -qi '^access-control-allow-origin:' "$headers" || fail "edge_cors_origin:${label}"
+  grep -qi '^access-control-expose-headers:.*x-request-id' "$headers" || fail "edge_cors_expose_request_id:${label}"
+  returned_id="$(sed -n 's/^x-request-id:[[:space:]]*//Ip' "$headers" | tr -d '\r' | head -1)"
+  [[ "$returned_id" == "$request_id" ]] || fail "edge_request_id_mismatch:${label}"
 }
 
 edge_request edge_get GET 405 -H "apikey: $key"
 edge_request edge_options OPTIONS 200 -H "apikey: $key" -H "Origin: $BASE_URL" -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: authorization, apikey, content-type'
 edge_request edge_post_without_jwt POST 401 -H "apikey: $key" -H 'Content-Type: application/json' --data '{"confirmation":true}'
 
-printf 'runtime_proof=passed\nbase_url=%s\nexpected_release=%s\nassets=home,manifest,service_worker,runtime_config\nedge_guardrails=GET_405,OPTIONS_200,POST_NO_JWT_401\nsecret_scan=clear\n' "$BASE_URL" "$EXPECTED_RELEASE"
+printf 'runtime_proof=passed\nbase_url=%s\nexpected_release=%s\nassets=home,manifest,service_worker,runtime_config\nedge_guardrails=GET_405,OPTIONS_200,POST_NO_JWT_401\ncorrelation=request_id_echoed_and_cors_exposed\nsecret_scan=clear\n' "$BASE_URL" "$EXPECTED_RELEASE"

@@ -1,0 +1,68 @@
+## BASELINE_TRACKED
+src/domain/sincronario/area-application-knowledge.js
+src/domain/sincronario/area-knowledge.js
+src/domain/sincronario/coordinates-engine.js
+src/domain/sincronario/engine.js
+src/domain/sincronario/kin-cycle-engine.js
+src/domain/sincronario/knowledge.js
+src/domain/sincronario/synchronization-engine.js
+src/domain/sincronario/thirteen-moons-engine.js
+tests/sincronario-engine.test.js
+tests/thirteen-moons-engine.test.js
+
+## WORKTREE_FILES
+src/domain/sincronario/core/constants.js 7286 bytes
+src/domain/sincronario/core/engine.js 5608 bytes
+src/domain/sincronario/core/index.js 198 bytes
+tests/app-render.test.js 91064 bytes
+tests/apply-sincronario-phase-a1-evidence.js 11191 bytes
+tests/apply-sincronario-phase-a2-evidence.js 11748 bytes
+tests/apply-sincronario-post-validation-policy.js 1293 bytes
+tests/core-engine.test.js 4042 bytes
+tests/cosmic-timeline.test.js 3779 bytes
+tests/fixtures/sincronario-reference-cases.json 297373 bytes
+tests/fixtures/sincronario-validation-results.json 895460 bytes
+tests/fixtures/sincronario-validation-sources.json 6360 bytes
+tests/generate-sincronario-validation-fixtures.js 6642 bytes
+tests/run-core-tests.js 542 bytes
+tests/sincronario-engine.test.js 18985 bytes
+tests/supabase-integration.test.js 7386 bytes
+tests/thirteen-moons-engine.test.js 8458 bytes
+tests/validate-sincronario-reference-cases.js 6369 bytes
+tests/web-platform.test.js 5562 bytes
+
+## HASHES
+70d3c4b361af9a393a4627eb6922c7c31a303fc233ce64b31e373c7bbaa1ff19  src/domain/sincronario/core/constants.js
+4b5e53b4170b372fb97bb63753b4c0d832fdbbc2e5a0bd27abc5e8299a616d53  src/domain/sincronario/core/engine.js
+2a14ae06c55b336a20b7bf0e734f7668753627c07dd05d5728f0fd729babda1d  src/domain/sincronario/core/index.js
+d93b7bd0f64f5bc19e429e0bf224644259184eb02dfd8b67e54e8bc5aae7757d  tests/core-engine.test.js
+95d3a32b6b026e67cda1445f88b4d151bef19e344707665dee6e1ae85c6fafdd  tests/run-core-tests.js
+
+## FRONTEND_REFERENCES
+supabase-client.js:390:        schemaVersion: "cosmic-timeline-event-v1",
+index.html:41:    <script src="/src/domain/sincronario/thirteen-moons-engine.js"></script>
+index.html:45:    <script src="/src/domain/cosmic-timeline.js"></script>
+src/domain/cosmic-timeline.js:4:    const { ThirteenMoonsEngine } = require("./sincronario/thirteen-moons-engine.js");
+src/domain/cosmic-timeline.js:21:  const EVENT_SCHEMA_VERSION = "cosmic-timeline-event-v1";
+src/domain/sincronario/coordinates-engine.js:3:    const { ThirteenMoonsEngine } = require("./thirteen-moons-engine.js");
+src/domain/sincronario/engine.js:541:      name: "drive-astral-sincronario-engine",
+src/domain/sincronario/thirteen-moons-engine.js:294:      engine: { name: "thirteen-moons-engine", version: ENGINE_VERSION },
+src/domain/sincronario/thirteen-moons-engine.js:312:        engine: { name: "thirteen-moons-engine", version: ENGINE_VERSION },
+src/domain/sincronario/thirteen-moons-engine.js:324:        engine: { name: "thirteen-moons-engine", version: ENGINE_VERSION },
+src/domain/sincronario/thirteen-moons-engine.js:362:      engine: { name: "thirteen-moons-engine", version: ENGINE_VERSION },
+tests/app-render.test.js:160:    "src/domain/sincronario/thirteen-moons-engine.js",
+tests/app-render.test.js:164:    "src/domain/cosmic-timeline.js",
+tests/app-render.test.js:1669:assert.strictEqual(savedEvent.schemaVersion, "cosmic-timeline-event-v1");
+tests/cosmic-timeline.test.js:4:const { CosmicTimeline } = require("../src/domain/cosmic-timeline.js");
+tests/cosmic-timeline.test.js:17:assert.strictEqual(created.event.schemaVersion, "cosmic-timeline-event-v1");
+tests/cosmic-timeline.test.js:80:  "src/domain/sincronario/thirteen-moons-engine.js": "7905EA2D90419352DA11AB71684B3FA4CACD22C89B90D9B6C5A71AC5F5F3E4A1",
+tests/cosmic-timeline.test.js:88:console.log("cosmic-timeline tests passed");
+tests/fixtures/sincronario-validation-results.json:5:    "name": "drive-astral-sincronario-engine",
+tests/sincronario-engine.test.js:415:console.log("sincronario-engine tests passed");
+tests/thirteen-moons-engine.test.js:5:const { ThirteenMoonsEngine } = require("../src/domain/sincronario/thirteen-moons-engine.js");
+tests/thirteen-moons-engine.test.js:151:  .update(fs.readFileSync("src/domain/sincronario/thirteen-moons-engine.js"))
+tests/thirteen-moons-engine.test.js:189:console.log("thirteen-moons-engine tests passed");
+tests/validate-sincronario-reference-cases.js:200:    name: "drive-astral-sincronario-engine",
+tests/web-platform.test.js:49:  "/src/domain/sincronario/thirteen-moons-engine.js",
+tests/core-engine.test.js:2:const { calculate, calculateKin, isLeapDay, parseDate } = require("../src/domain/sincronario/core");
+tests/run-core-tests.js:25:require('./core-engine.test.js');
