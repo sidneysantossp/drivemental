@@ -58,3 +58,49 @@ A prova `bash scripts/backup-supabase.sh --dry-run` informou `project_ref=qgvlkp
 A prova `bash scripts/dm-f6-safe-restore-proof.sh` passou em PostgreSQL efêmero local com `row_count=2`, `control_value=restore-proof-ok` e `production_guard=passed`. Nenhuma restauração foi executada no Supabase remoto.
 
 A prova externa solicitada pelo Architect retornou HTTP 200 para `/`, `/privacy.html` e `/runtime-config.js`. Nas três superfícies foram observados `Strict-Transport-Security`, `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e `X-Frame-Options`; o runtime-config retornou `application/javascript`.
+
+## Resultado final pós-merge
+
+O PR P0 de reancoragem foi mergeado na `main` como commit `2d19f03fa1803f529f121e8ae673644ce4a4edb1`. O workflow `Validate Drive Astral` `32308986781` concluiu com sucesso: `Pre-deploy gate` e `Post-deploy runtime gate` passaram, incluindo testes, build, migration/schema validation, security sanity, deployment status, smoke test e runtime proof.
+
+A prova pós-merge `bash scripts/release-runtime-proof.sh` passou novamente contra a produção, com `GET_405`, `OPTIONS_200`, `POST_NO_JWT_401`, correlação por request ID e scan de segredos limpo. O dry-run do backup reportou `project_ref=qgvlkpaociypyxduvsqm`, `credentials_source=SUPABASE_DB_URL_environment_only` e proteção `umask_077_and_directory_mode_700`.
+
+## Registro do Architect após o checkpoint P0
+
+O Architect aprovou o P0 de reancoragem no commit `2d19f03fa1803f529f121e8ae673644ce4a4edb1`. A F6.9/rebaseline pós-migração ainda não está integralmente encerrada. Permanecem três provas a fechar antes do encerramento final da Fase 6: (1) prova Auth autenticada no novo projeto; (2) decisão/evidência de que a recuperabilidade está efetivamente disponível no projeto de destino; (3) atualização da identidade de release, pois o runtime ainda anuncia `2026.08.19-f5`.
+
+O Architect confirmou que esses pontos não impedem iniciar P1, mas devem ser encerrados antes do fechamento final. Nenhuma alteração metodológica Dreamspell/13 Luas foi autorizada ou realizada.
+
+## F6.4 — Governança efetiva da main
+
+A consulta à API do GitHub confirmou proteção efetiva em `main`: `strict=true`, checks obrigatórios `Pre-deploy gate` e `Post-deploy runtime gate`, enforcement para administradores habilitado, `allow_force_pushes=false` e `allow_deletions=false`. Não há rulesets adicionais.
+
+`required_approving_review_count=0` e `require_code_owner_reviews=false`, compatível com a ressalva arquitetural de não criar deadlock quando não há outro revisor habilitado. A governança efetiva atende checks obrigatórios, PR operacional e proteção contra force push/exclusão.
+
+## F6.5–F6.7 — Evidência de finalização
+
+O drift de `src/domain/sincronario/core/*` e `tests/core-engine.test.js` foi formalmente classificado em `docs/dm-f6-drift-classification.md` como **preservar como trabalho futuro fora do baseline**. O núcleo isolado tem API, constantes e testes próprios, mas não integra o frontend, o `npm test`, o CI ou o bundle publicado; suas fórmulas e hipóteses não possuem aceitação metodológica equivalente ao engine versionado. Nenhum arquivo do drift será integrado nesta fase.
+
+A prova `scripts/dm-f6-observability-local-proof.sh` passou com `GET_405`, `POST_500_configuration_invalid`, request ID ecoado/exposto e logs estruturados redigidos. A produção continua sendo provada de forma não destrutiva com `GET 405`, `POST sem JWT 401` e request ID; o 5xx controlado é exercitado somente localmente sem credenciais.
+
+Os três runbooks operacionais exigidos estão versionados no workspace: `deployment-rollback-runbook.md`, `migration-database-incident-runbook.md` e `incident-response-runbook.md`. Cada um define gatilho, responsável, passos operacionais, validação pós-ação, escalonamento e regras de não exposição de PII/segredos.
+
+## F6.9 — Recuperabilidade efetiva no plano novo
+
+A área Database → Backups do projeto canônico mostra **Database Backups** com execução diária aproximada à meia-noite da região, um ponto físico listado em `19 Aug 2026 20:47:58 (+0000)` e ação `Restore`. O painel também informa explicitamente que objetos armazenados via Storage API não são incluídos, pois o banco contém somente seus metadados. A decisão operacional pode, portanto, evoluir de “somente procedimento lógico externo” para **backup gerenciado diário do banco + runbook lógico externo como defesa complementar**, sem assumir que Storage/Auth/secrets/integrações estejam cobertos pelo dump.
+
+## F6.9 — Estado Auth no destino
+
+A área Authentication → Users do projeto canônico carregou com a mensagem **No users in your project** na tabela. O rodapé exibiu `Total: 10 users (estimated)`, mas nenhum registro de usuário foi apresentado na superfície consultada; esse contador foi tratado como estimativa não suficiente para selecionar uma conta de teste. Não foi criado usuário nem executada operação de escrita. A prova Auth autenticada no novo projeto permanece pendente e requer uma conta de teste temporária com limpeza autorizada, ou uma decisão explícita do Architect sobre um método seguro equivalente.
+
+## F6.8 — Decisões de hardening de delete-account
+
+A matriz `docs/dm-f6-edge-hardening-evaluation.md` fecha a avaliação sem nova exclusão autenticada: CORS wildcard permanece nesta fase com risco residual documentado; request ID está implementado, sanitizado, ecoado e exposto; repetição é segura porque a identidade deriva exclusivamente do JWT e não há chave persistida necessária; rate limiting não será criado dentro da função nesta fase e fica como follow-up de camada apropriada; logs sensíveis são proibidos e cobertos por prova local. A prova autenticada aceita da Fase 5 não foi repetida porque a lógica de autenticação/exclusão não foi modificada.
+
+A operação de prova Auth temporária foi confirmada pelo operador após a autorização do Architect. Antes da criação, o painel continuou mostrando a tabela sem usuários visíveis; nenhum dado foi criado até este ponto.
+
+## F6.9 — Prova Auth pós-migração
+
+A prova controlada autorizada passou no projeto canônico: login inicial da conta sintética retornou `200`; chamada `delete-account` com JWT válido retornou `200`; nova tentativa de login após a autoexclusão retornou `400`. O request ID foi enviado e verificado localmente. A conta temporária foi criada com confirmação automática, usada somente no teste e removida pela própria função; nenhum token, senha, UID ou PII foi versionado ou incluído no reporte.
+
+Após a prova, a lista Authentication → Users voltou a exibir **No users in your project**; nenhum usuário temporário permanece visível no destino. O contador estimado do painel não foi usado como evidência de registros.

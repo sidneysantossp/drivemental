@@ -84,5 +84,5 @@ jobs:
         env:
           DM_PRODUCTION_URL: https://drivemental.vercel.app
           DM_DELETE_ACCOUNT_URL: https://qgvlkpaociypyxduvsqm.supabase.co/functions/v1/delete-account
-          DM_EXPECTED_RELEASE: 2026.08.19-f5
+          DM_EXPECTED_RELEASE: 2026.08.19-f6
         run: bash scripts/release-runtime-proof.sh
