@@ -83,6 +83,6 @@ jobs:
       - name: Run production smoke and runtime proof
         env:
           DM_PRODUCTION_URL: https://drivemental.vercel.app
-          DM_DELETE_ACCOUNT_URL: https://horsbnzwozvpboejsbww.supabase.co/functions/v1/delete-account
+          DM_DELETE_ACCOUNT_URL: https://qgvlkpaociypyxduvsqm.supabase.co/functions/v1/delete-account
           DM_EXPECTED_RELEASE: 2026.08.19-f5
         run: bash scripts/release-runtime-proof.sh
