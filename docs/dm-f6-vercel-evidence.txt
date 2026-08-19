@@ -23,3 +23,8 @@ No overview de `delete-account`, o Supabase exibiu 10 invocações no período s
 ## Backup e restauração
 
 Na seção Database Backups do projeto Supabase, o painel informa que o plano **Free não inclui project backups**. A interface lista Scheduled backups, Point in time e Restore to new project (Beta), mas apresenta Upgrade para obter até 7 dias de backups agendados. Portanto, no estado AS-IS não há backup gerenciado do projeto disponível para a operação; o runbook de Fase 6 deverá documentar a limitação e uma estratégia externa/versionada, sem executar restauração destrutiva.
+
+
+## F6.1 — Deployment da correção de headers
+
+O commit `673d130` (`fix: apply effective security headers on vercel`) está no Vercel Production com status **Ready**. A alteração substituiu somente o fallback `routes` legado por `rewrites` com precedência do filesystem, mantendo o build estático e o shell SPA. A suíte local e `npm run build` passaram antes da publicação.

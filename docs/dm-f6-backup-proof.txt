@@ -1,0 +1,9 @@
+CREATE TABLE
+INSERT 0 2
+CREATE INDEX
+safe_restore_proof=passed
+source=local_ephemeral_postgres
+target=local_ephemeral_postgres
+row_count=2
+control_value=restore-proof-ok
+production_guard=passed
