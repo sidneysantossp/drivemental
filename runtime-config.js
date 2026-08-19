@@ -1,10 +1,10 @@
 (function configureDriveAstral(globalScope) {
   globalScope.DriveAstralRuntimeConfig = Object.freeze({
     environment: "production",
-    release: "2026.06.24",
+    release: "2026.08.19-f5",
     authMode: "supabase",
-    supabaseUrl: "https://xvwbtxsryehozinshyfr.supabase.co",
-    supabasePublishableKey: "sb_publishable_-744VdsrQGgl9xpc8g0NMA_DUWn1M7l",
+    supabaseUrl: "https://horsbnzwozvpboejsbww.supabase.co",
+    supabasePublishableKey: "sb_publishable_htTWzhGBTpMH66FYmiHO-A_yJ4pF50q",
     billingMode: "external-checkout",
     paymentProvider: "hotmart",
     checkoutUrls: {},

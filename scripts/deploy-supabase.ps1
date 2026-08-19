@@ -1,5 +1,5 @@
 param(
-  [string]$ProjectRef = "xvwbtxsryehozinshyfr",
+  [string]$ProjectRef = "horsbnzwozvpboejsbww",
   [string]$DbPassword = $env:SUPABASE_DB_PASSWORD,
   [switch]$SkipFunctions
 )
