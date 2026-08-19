@@ -1,0 +1,6 @@
+runtime_proof=passed
+base_url=https://drivemental.vercel.app
+expected_release=2026.08.19-f5
+assets=home,manifest,service_worker,runtime_config
+edge_guardrails=GET_405,OPTIONS_200,POST_NO_JWT_401
+secret_scan=clear
