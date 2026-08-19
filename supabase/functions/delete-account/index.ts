@@ -1,5 +1,20 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders, jsonResponse } from "../_shared/responses.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  });
+}
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -15,6 +30,10 @@ Deno.serve(async (request) => {
     || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")
     || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
+  if (!supabaseUrl || !publishableKey || !serviceRoleKey) {
+    return jsonResponse({ error: "function_configuration_invalid" }, 500);
+  }
 
   const userClient = createClient(supabaseUrl, publishableKey, {
     global: { headers: { Authorization: authorization } },

@@ -100,7 +100,7 @@ assert.ok(deleteAccount.includes("auth.admin.deleteUser"));
 assert.ok(deleteAccount.includes("auth.getUser"));
 assert.ok(!supabaseConfig.includes("[functions.payment-webhook]"));
 assert.ok(supabaseConfig.includes("[functions.delete-account]"));
-assert.ok(supabaseConfig.includes("verify_jwt = true"));
+assert.ok(supabaseConfig.includes("verify_jwt = false"));
 
 assert.ok(clientSource.includes("signInWithPassword"));
 assert.ok(clientSource.includes("loadCurrentAccessPlans"));
