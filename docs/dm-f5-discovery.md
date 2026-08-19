@@ -139,3 +139,7 @@ O painel mostra `delete-account` com **2 deployments**, porém os logs mais rece
 A Edge Function autocontida foi publicada e validada externamente. Resultados objetivos: `OPTIONS` retornou `HTTP 200` com `ok`; `GET` retornou `HTTP 405` com `method_not_allowed`; `POST` sem JWT retornou `HTTP 401` com `unauthorized`; login da conta temporária auto-confirmada retornou `AUTH_OK`; `POST` com JWT válido retornou `HTTP 200` com `{\"ok\":true}`, removendo a própria conta; nova tentativa de login retornou `HTTP 400`, confirmando o cleanup. A conta sintética foi removida e nenhuma credencial foi persistida no repositório.
 
 O bloqueio `F5-BLOCK-DELETE-ACCOUNT` está resolvido operacionalmente. O arquivo da função foi tornado autocontido para o editor web, eliminando a dependência ausente de `../_shared/responses.ts`. O runtime agora atende a implementação correta, e a prova de Auth/RLS pode ser considerada concluída para o fluxo de exclusão de conta.
+
+## Convergência final do código e produção
+
+A suíte final passou integralmente: testes do motor, plataforma web, integração Supabase e renderização; `npm run build` concluiu com `dist` gerado. O commit `ce39c68` foi publicado em `main`, e o Vercel reportou o deployment de produção como **Ready**. O runtime da aplicação segue publicado em `https://drivemental.vercel.app/`, enquanto a Edge Function `delete-account` responde conforme o contrato autenticado validado acima.
