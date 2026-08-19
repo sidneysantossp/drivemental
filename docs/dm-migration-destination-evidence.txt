@@ -40,3 +40,9 @@ Após a substituição manual do conteúdo de `index.ts` no editor do Supabase, 
 | `POST` sem JWT válido | `401` / `unauthorized` | Autenticação customizada bloqueou a solicitação |
 
 Nenhuma operação `auth.admin.deleteUser` foi alcançada, nenhum usuário foi excluído e nenhum dado de produção foi criado. O endpoint respondeu com o handler correto, não mais com o template padrão do Supabase.
+
+## Atualização: produção e CI pós-correção
+
+O PR de migração foi mergeado na `main` e o PR corretivo do workflow também foi mergeado após os checks obrigatórios. O workflow final `Validate Drive Astral` concluiu com sucesso no commit `22e5fe6c24ce227e4412fa3eaa77aad0a47e3a9d`: tanto `Pre-deploy gate` quanto `Post-deploy runtime gate` passaram, incluindo `Wait for the Production deployment status` e `Run production smoke and runtime proof`.
+
+A produção `https://drivemental.vercel.app/` carregou normalmente a landing page do Drive Mental, com o título `Drive Mental — Clareza para escolher. Direção para agir.` e os fluxos públicos de entrada visíveis. Nenhum login, cadastro, pagamento, POST autenticado ou exclusão de conta foi executado durante esta validação.

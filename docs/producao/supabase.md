@@ -13,7 +13,7 @@
 Com a Supabase CLI autenticada:
 
 ```powershell
-npx supabase link --project-ref xvwbtxsryehozinshyfr
+npx supabase link --project-ref qgvlkpaociypyxduvsqm
 npx supabase db push
 npx supabase functions deploy delete-account
 ```
@@ -32,11 +32,9 @@ $env:SUPABASE_DB_PASSWORD="SENHA_DO_BANCO"
 .\scripts\deploy-supabase.ps1 -SkipFunctions
 ```
 
-A migracao inicial ja foi aplicada no projeto remoto em 24 de junho de 2026. A
+A migração versionada foi aplicada no projeto remoto canônico `qgvlkpaociypyxduvsqm`. A
 migration `202606240001_remove_payment_integration.sql` remove as tabelas da
-integracao antiga de pagamento. O deploy da Edge Function de exclusao ainda
-depende de `npx supabase login` com uma conta que tenha permissao de owner/editor
-no projeto.
+integração antiga de pagamento. A Edge Function `delete-account` já foi publicada e validada no projeto canônico; novos deploys dependem de `npx supabase login` com uma conta que tenha permissão de owner/editor no projeto.
 
 A migracao `supabase/migrations/202606130001_initial_schema.sql` cria as tabelas,
 triggers e politicas RLS. Nao crie tabelas publicas sem RLS.
@@ -53,7 +51,7 @@ Edite `runtime-config.js` no ambiente publicado:
 
 ```js
 authMode: "supabase",
-supabaseUrl: "https://xvwbtxsryehozinshyfr.supabase.co",
+supabaseUrl: "https://qgvlkpaociypyxduvsqm.supabase.co",
 supabasePublishableKey: "chave anon/public do projeto",
 ```
 
