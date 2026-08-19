@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 BASE_URL="${DM_PRODUCTION_URL:-https://drivemental.vercel.app}"
-EDGE_URL="${DM_DELETE_ACCOUNT_URL:-https://horsbnzwozvpboejsbww.supabase.co/functions/v1/delete-account}"
+EDGE_URL="${DM_DELETE_ACCOUNT_URL:-https://qgvlkpaociypyxduvsqm.supabase.co/functions/v1/delete-account}"
 EXPECTED_RELEASE="${DM_EXPECTED_RELEASE:-2026.08.19-f5}"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/dm-release-proof.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT

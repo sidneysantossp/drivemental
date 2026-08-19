@@ -6,6 +6,10 @@
 **Data da auditoria:** 19 de agosto de 2026  
 **Modo de execução:** somente leitura; nenhuma migration, política RLS, configuração de produção, segredo ou código funcional foi alterado durante esta etapa.
 
+## Nota de canonicalização após a migração
+
+Este documento registra uma auditoria histórica do ambiente `horsbnzwozvpboejsbww` no commit `bc4b33c`; os identificadores antigos nas tabelas e referências abaixo são fatos do AS-IS e não devem ser interpretados como destino operacional atual. Após a migração do Drive Mental, o projeto canônico de produção passou a ser `qgvlkpaociypyxduvsqm`, e os controles ativos de backup, restore, runtime proof, deploy, documentação operacional e release gate foram reancorados para esse destino. A evidência contemporânea está em `docs/dm-migration-destination-evidence.txt`.
+
 ## 1. Mandato e conclusão executiva
 
 A Fase 6 recebeu do ChatGPT Arquiteto o objetivo de transformar o baseline funcional aprovado em uma operação observável, recuperável e disciplinada, sem refatoração cosmética nem evolução funcional do Sincronário/13 Luas. A ordem de execução foi explicitamente AS-IS: primeiro inventariar e diagnosticar; somente depois aplicar as mudanças estritamente necessárias para fechar as lacunas comprovadas.
@@ -89,4 +93,6 @@ A matriz acima é diagnóstico, não autorização de implementação. Nenhum he
 [5]: https://horsbnzwozvpboejsbww.supabase.co/functions/v1/delete-account "Edge Function delete-account"
 [6]: https://vercel.com/admsuisso-1633s-projects/drivemental/deployments "Deployments Vercel"
 [7]: https://supabase.com/dashboard/project/horsbnzwozvpboejsbww/functions/delete-account "Overview da Edge Function no Supabase"
-[8]: https://supabase.com/dashboard/project/horsbnzwozvpboejsbww/database/backups/scheduled "Backups do banco no Supabase"
+[8]: https://supabase.com/dashboard/project/horsbnzwozvpboejsbww/database/backups/scheduled "Backups do banco no Supabase — evidência histórica do AS-IS"
+[9]: https://qgvlkpaociypyxduvsqm.supabase.co/functions/v1/delete-account "Edge Function delete-account — destino canônico atual"
+[10]: https://supabase.com/dashboard/project/qgvlkpaociypyxduvsqm "Projeto Supabase — destino canônico atual"

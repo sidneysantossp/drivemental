@@ -1,7 +1,7 @@
 # Runbook de Backup Lógico e Recuperação — Drive Mental
 
 **Status:** controle mínimo operacional autorizado na Fase 6
-**Projeto:** Supabase `horsbnzwozvpboejsbww`
+**Projeto canônico:** Supabase `qgvlkpaociypyxduvsqm`
 **Estratégia escolhida:** backup lógico próprio, reproduzível e armazenado fora do projeto
 **Autoridade:** ChatGPT Arquiteto — F6.2 P0
 **Data:** 19 de agosto de 2026
@@ -33,7 +33,7 @@ A rotina versionada é `scripts/backup-supabase.sh` e requer `pg_dump`, `pg_dump
 O operador deve executar o equivalente a:
 
 ```bash
-export SUPABASE_PROJECT_REF="horsbnzwozvpboejsbww"
+export SUPABASE_PROJECT_REF="qgvlkpaociypyxduvsqm"
 export SUPABASE_DB_URL='postgresql://<usuario>:<senha>@<pooler-ou-host>/postgres'
 export DM_BACKUP_DIR='/var/backups/drive-mental'
 ./scripts/backup-supabase.sh dump
@@ -58,7 +58,7 @@ A restauração lógica é permitida somente em projeto descartável, homologaç
 Exemplo de execução segura:
 
 ```bash
-export DM_BACKUP_BUNDLE='/var/backups/drive-mental/horsbnzwozvpboejsbww/<timestamp>'
+export DM_BACKUP_BUNDLE='/var/backups/drive-mental/qgvlkpaociypyxduvsqm/<timestamp>'
 export SUPABASE_RESTORE_DB_URL='postgresql://<usuario>:<senha>@<projeto-descartavel>/postgres'
 export SUPABASE_RESTORE_CONFIRM='YES_ISOLATED_TARGET'
 ./scripts/verify-backup-bundle.sh "$DM_BACKUP_BUNDLE"

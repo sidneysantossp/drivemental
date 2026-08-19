@@ -52,7 +52,7 @@ COUNT="$(psql -h 127.0.0.1 -p "$PORT" -U postgres -d dm_f6_restore -Atqc 'select
 VALUE="$(psql -h 127.0.0.1 -p "$PORT" -U postgres -d dm_f6_restore -Atqc "select control_value from public.f6_restore_fixture where id=1")"
 [[ "$COUNT" == "2" ]]
 [[ "$VALUE" == "restore-proof-ok" ]]
-if (DM_BACKUP_BUNDLE="$BUNDLE" SUPABASE_RESTORE_DB_URL="postgresql://postgres@127.0.0.1:${PORT}/horsbnzwozvpboejsbww" SUPABASE_RESTORE_CONFIRM=YES_ISOLATED_TARGET "$ROOT/scripts/restore-supabase.sh" > "$ARTIFACT_ROOT/prod-block.out" 2>&1); then
+if (DM_BACKUP_BUNDLE="$BUNDLE" SUPABASE_RESTORE_DB_URL="postgresql://postgres@127.0.0.1:${PORT}/qgvlkpaociypyxduvsqm" SUPABASE_RESTORE_CONFIRM=YES_ISOLATED_TARGET "$ROOT/scripts/restore-supabase.sh" > "$ARTIFACT_ROOT/prod-block.out" 2>&1); then
   printf 'production_guard=FAILED\n' >&2
   exit 1
 fi

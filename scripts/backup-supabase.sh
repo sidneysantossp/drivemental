@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-PROJECT_REF="${SUPABASE_PROJECT_REF:-horsbnzwozvpboejsbww}"
+PROJECT_REF="${SUPABASE_PROJECT_REF:-qgvlkpaociypyxduvsqm}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKUP_DIR="${DM_BACKUP_DIR:-}"
 DB_URL="${SUPABASE_DB_URL:-}"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-PRODUCTION_REF="horsbnzwozvpboejsbww"
+PRODUCTION_REF="qgvlkpaociypyxduvsqm"
 BUNDLE="${DM_BACKUP_BUNDLE:-}"
 TARGET_URL="${SUPABASE_RESTORE_DB_URL:-}"
 CONFIRM="${SUPABASE_RESTORE_CONFIRM:-}"

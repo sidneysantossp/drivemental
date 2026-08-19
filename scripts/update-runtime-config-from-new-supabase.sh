@@ -2,12 +2,17 @@
 set -euo pipefail
 
 REPO_DIR="${REPO_DIR:-/home/ubuntu/drivemental}"
-HTML_FILE="${HTML_FILE:-/home/ubuntu/upload/supabase.com_dashboard_project_qgvlkpaociypyxduvsqm_functions_delete-account_details_1787174593036.html}"
+HTML_FILE="${HTML_FILE:-}"
 CONFIG_FILE="$REPO_DIR/runtime-config.js"
-NEW_URL="https://qgvlkpaociypyxduvsqm.supabase.co"
+SOURCE_URL="${SUPABASE_SOURCE_URL:-}"
+NEW_URL="${SUPABASE_DESTINATION_URL:-https://qgvlkpaociypyxduvsqm.supabase.co}"
 
-if [[ ! -r "$HTML_FILE" ]]; then
-  echo "missing dashboard HTML: $HTML_FILE" >&2
+if [[ -z "$HTML_FILE" || ! -r "$HTML_FILE" ]]; then
+  echo "HTML_FILE must point to the saved Supabase dashboard HTML" >&2
+  exit 1
+fi
+if [[ -z "$SOURCE_URL" ]]; then
+  echo "SUPABASE_SOURCE_URL must identify the source project explicitly" >&2
   exit 1
 fi
 if [[ ! -w "$CONFIG_FILE" ]]; then
@@ -21,7 +26,7 @@ if [[ ! "$key" =~ ^sb_publishable_[A-Za-z0-9_-]+$ ]]; then
   exit 1
 fi
 
-before_url_count="$(grep -c 'horsbnzwozvpboejsbww\.supabase\.co' "$CONFIG_FILE" || true)"
+before_url_count="$(grep -F -c "$SOURCE_URL" "$CONFIG_FILE" || true)"
 before_key_count="$(grep -c 'sb_publishable_' "$CONFIG_FILE" || true)"
 if [[ "$before_url_count" -ne 1 || "$before_key_count" -ne 1 ]]; then
   echo "unexpected runtime-config shape; refusing blind replacement" >&2
@@ -29,9 +34,10 @@ if [[ "$before_url_count" -ne 1 || "$before_key_count" -ne 1 ]]; then
 fi
 
 cp "$CONFIG_FILE" "$CONFIG_FILE.migration-backup"
-sed -i "s#https://horsbnzwozvpboejsbww\.supabase\.co#$NEW_URL#g; s#sb_publishable_[A-Za-z0-9_-]*#$key#g" "$CONFIG_FILE"
+old_url_escaped="${SOURCE_URL//./\\.}"
+sed -i "s#${old_url_escaped}#${NEW_URL}#g; s#sb_publishable_[A-Za-z0-9_-]*#$key#g" "$CONFIG_FILE"
 
-if ! grep -q "$NEW_URL" "$CONFIG_FILE" || grep -q 'horsbnzwozvpboejsbww\.supabase\.co' "$CONFIG_FILE"; then
+if ! grep -F -q "$NEW_URL" "$CONFIG_FILE" || grep -F -q "$SOURCE_URL" "$CONFIG_FILE"; then
   echo "runtime-config URL replacement failed" >&2
   exit 1
 fi
