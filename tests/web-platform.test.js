@@ -54,7 +54,7 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-mental-web-v44"));
+assert.ok(serviceWorker.includes("drive-mental-web-v45"));
 assert.ok(stylesheet.includes("font-size: clamp(1.95rem, 3.05vw, 3rem)"));
 assert.ok(stylesheet.includes("@media (max-width: 900px)"));
 assert.ok(stylesheet.includes("@media (max-width: 620px)"));
