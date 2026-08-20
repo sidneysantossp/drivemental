@@ -7704,7 +7704,7 @@ function render() {
     }
   }
 
-  document.getElementById("app").innerHTML = `${selectedScreen()}${lifecycleDiagnosticPanel()}`;
+  document.getElementById("app").innerHTML = selectedScreen();
   bindEvents();
   updateBottomNavigationOffset();
 
