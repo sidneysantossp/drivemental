@@ -888,23 +888,36 @@ let state = loadState();
 
 const LIFECYCLE_DIAGNOSTIC_SESSION_KEY = "drive-mental:f7-lifecycle-001:diagnostic-enabled";
 const LIFECYCLE_DIAGNOSTIC_BUFFER_KEY = "drive-mental:f7-lifecycle-001:diagnostic-buffer";
+
+function lifecycleDiagnosticStorage() {
+  try {
+    return window.sessionStorage || null;
+  } catch {
+    return null;
+  }
+}
+
 let lifecycleDiagnosticMode = (() => {
+  const storage = lifecycleDiagnosticStorage();
   try {
     const params = new URLSearchParams(window.location.search);
     const enabled = params.get("f7diag") === "1" || params.get("dm_lifecycle_diag") === "1";
     const disabled = params.get("f7diag") === "0" || params.get("dm_lifecycle_diag") === "0";
     if (disabled) {
-      sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY);
-      sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY);
+      window.__driveMentalLifecycleDiagnosticEnabled = false;
+      storage?.removeItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY);
+      storage?.removeItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY);
       return false;
     }
     if (enabled) {
-      sessionStorage.setItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY, "true");
+      window.__driveMentalLifecycleDiagnosticEnabled = true;
+      storage?.setItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY, "true");
       return true;
     }
-    return sessionStorage.getItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY) === "true";
+    return window.__driveMentalLifecycleDiagnosticEnabled === true
+      || storage?.getItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY) === "true";
   } catch {
-    return false;
+    return window.__driveMentalLifecycleDiagnosticEnabled === true;
   }
 })();
 const lifecycleDiagnosticState = {
@@ -953,7 +966,7 @@ function recordLifecycleDiagnostic(payload = {}) {
   lifecycleDiagnosticState.events = lifecycleDiagnosticState.events.slice(-24);
   lifecycleDiagnosticState.latest[event] = safe;
   try {
-    sessionStorage.setItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY, JSON.stringify({
+    lifecycleDiagnosticStorage()?.setItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY, JSON.stringify({
       events: lifecycleDiagnosticState.events,
       latest: lifecycleDiagnosticState.latest,
     }));
@@ -967,7 +980,7 @@ function restoreLifecycleDiagnostics() {
     return;
   }
   try {
-    const saved = JSON.parse(sessionStorage.getItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY) || "null");
+    const saved = JSON.parse(lifecycleDiagnosticStorage()?.getItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY) || "null");
     if (!saved || !Array.isArray(saved.events)) {
       return;
     }
@@ -979,11 +992,12 @@ function restoreLifecycleDiagnostics() {
 
 function clearLifecycleDiagnostics() {
   lifecycleDiagnosticMode = false;
+  window.__driveMentalLifecycleDiagnosticEnabled = false;
   lifecycleDiagnosticState.events = [];
   lifecycleDiagnosticState.latest = {};
   try {
-    sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY);
-    sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY);
+    lifecycleDiagnosticStorage()?.removeItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY);
+    lifecycleDiagnosticStorage()?.removeItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY);
   } catch {
     // Diagnostic cleanup must never affect the sign-out flow.
   }

@@ -355,6 +355,7 @@ assert.ok(diagnosticHtml.includes(">false</td>"));
 const diagnosticSnapshot = vm.runInContext("JSON.stringify(lifecycleDiagnosticState)", diagnosticContext);
 assert.ok(!diagnosticSnapshot.includes("not-used-in-diagnostic@example.test"));
 assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), "true");
+assert.strictEqual(vm.runInContext("window.__driveMentalLifecycleDiagnosticEnabled", diagnosticContext), true);
 vm.runInContext('recordLifecycleDiagnostic({ event: "auth_get_user", status: "success", authenticated_user_present: true })', diagnosticContext);
 assert.ok(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-buffer").includes("authenticated_user_present"));
 diagnosticContext.setState({ route: "login" }, { updateUrl: true });
