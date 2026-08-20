@@ -7718,17 +7718,46 @@ function initConstellationAnimation() {
   tick();
 }
 
+function applyAuthenticatedAccount(account) {
+  if (!account || !state.authenticated) {
+    return;
+  }
+  setState({
+    account,
+    name: account.name || "",
+    birth: account.birth || "",
+    selectedAreaId: account.primaryAreaId || "",
+  }, { persist: true });
+}
+
+async function rehydrateAuthenticatedAccount() {
+  if (!isSupabaseMode() || !state.authenticated) {
+    return;
+  }
+
+  try {
+    const account = await supabaseService().getAccount();
+    applyAuthenticatedAccount(account);
+  } catch {
+    // The existing base guard remains visible when the authoritative profile is unavailable.
+  }
+}
+
 function bindEvents() {
   document.querySelectorAll("[data-route]").forEach((element) => {
     element.addEventListener("click", (event) => {
       event.preventDefault();
+      const nextRoute = element.dataset.route;
       setState({
-        route: element.dataset.route,
+        route: nextRoute,
         notice: "",
         authNotice: "",
         authNoticeKind: "",
         upgradeModalOpen: false,
       }, { updateUrl: true });
+      if (nextRoute === "home") {
+        rehydrateAuthenticatedAccount();
+      }
     });
   });
 
