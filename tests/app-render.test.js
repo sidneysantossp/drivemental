@@ -267,6 +267,33 @@ assert.ok(!restoringSessionContext.__getHtml().includes("Acesse sua conta"));
 vm.runInContext("setState({ authLoading: false })", restoringSessionContext);
 assert.ok(restoringSessionContext.__getHtml().includes("Acesse sua conta"));
 
+const rehydrationContext = createBrowserLikeContext(
+  "http://localhost:4173/app/consulta",
+  { authenticated: false },
+);
+rehydrationContext.setState({
+  authenticated: true,
+  account: null,
+  name: "",
+  birth: "",
+  selectedAreaId: "",
+});
+rehydrationContext.applyAuthenticatedAccount({
+  id: "22222222-2222-4222-8222-222222222222",
+  name: "Conta Sintética",
+  email: "synthetic@example.test",
+  birth: "1991-02-20",
+  primaryAreaId: "purpose",
+  onboardingComplete: true,
+  accessMode: "supabase",
+});
+assert.strictEqual(vm.runInContext("state.account.birth", rehydrationContext), "1991-02-20");
+assert.strictEqual(vm.runInContext("state.account.primaryAreaId", rehydrationContext), "purpose");
+assert.strictEqual(vm.runInContext("state.birth", rehydrationContext), "1991-02-20");
+assert.strictEqual(vm.runInContext("state.selectedAreaId", rehydrationContext), "purpose");
+assert.ok(appSource.includes("function rehydrateAuthenticatedAccount()"));
+assert.ok(appSource.includes('if (nextRoute === "home")'));
+
 const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
 vm.runInContext(`setState({
   route: "onboarding",
