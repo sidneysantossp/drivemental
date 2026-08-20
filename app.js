@@ -819,6 +819,10 @@ function updateLocationForState(nextState, replace = false) {
     nextUrl = `/app/consulta/resultado/${encodeURIComponent(nextState.activeHistoryId)}`;
   }
 
+  if (lifecycleDiagnosticMode && !nextUrl.includes("dm_lifecycle_diag=1")) {
+    nextUrl += `${nextUrl.includes("?") ? "&" : "?"}dm_lifecycle_diag=1`;
+  }
+
   if (`${window.location.pathname}${window.location.search || ""}` === nextUrl) {
     return;
   }

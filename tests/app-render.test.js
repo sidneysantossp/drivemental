@@ -137,8 +137,21 @@ function createBrowserLikeContext(
         return true;
       },
       getAccount() {
+        if (options.cloudAccount) {
+          return Promise.resolve(cloneForTest(options.cloudAccount));
+        }
         return new Promise(() => {});
       },
+      signIn() {
+        if (options.cloudAccount) {
+          return Promise.resolve(cloneForTest(options.cloudAccount));
+        }
+        return Promise.reject(new Error("AUTH_MOCK_NOT_CONFIGURED"));
+      },
+      loadCloudState() {
+        return Promise.resolve(cloneForTest(options.cloudState || { history: [], timelineEvents: [] }));
+      },
+      setLifecycleDiagnosticSink() {},
       getAdminRole() {
         return Promise.resolve(null);
       },
@@ -1827,6 +1840,78 @@ assert.ok(appSource.includes("timelineEvents"));
 assert.ok(appSource.includes("Nenhuma coordenada foi recalculada"));
 
 (async () => {
+  const lifecycleFixtureContext = createBrowserLikeContext();
+  const lifecycleReading = lifecycleFixtureContext.calculateReading("1990-01-01", "general");
+  const lifecycleFirstReading = lifecycleFixtureContext.createReadingHistoryEntry({
+    name: "Pessoa Teste",
+    birth: "1990-01-01",
+    area: { id: "general", title: "Momento Atual" },
+    reading: lifecycleReading,
+    readingType: "first-reading",
+  });
+  const lifecycleAccount = {
+    id: "33333333-3333-4333-8333-333333333333",
+    name: "Pessoa Teste",
+    email: "cloud@example.test",
+    birth: "1990-01-01",
+    primaryAreaId: "general",
+    onboardingComplete: true,
+    accessMode: "supabase",
+  };
+  const lifecycleContext = createBrowserLikeContext(
+    "http://localhost:4173/app/consulta?dm_lifecycle_diag=1",
+    {
+      authenticated: false,
+      supabaseMode: true,
+      cloudAccount: lifecycleAccount,
+      cloudState: { history: [lifecycleFirstReading], timelineEvents: [] },
+    },
+  );
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const lifecycleState = vm.runInContext("state", lifecycleContext);
+  const lifecycleBase = vm.runInContext("persistedPersonalBase()", lifecycleContext);
+  assert.strictEqual(lifecycleState.authenticated, true);
+  assert.strictEqual(lifecycleState.account.birth, "1990-01-01");
+  assert.strictEqual(lifecycleState.account.primaryAreaId, "general");
+  assert.strictEqual(lifecycleBase.valid, true);
+  assert.ok(lifecycleContext.__getHtml().includes("SUA BASE PESSOAL"));
+  assert.strictEqual(lifecycleContext.location.search, "?dm_lifecycle_diag=1");
+  assert.ok(lifecycleContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
+
+  const incompleteLifecycleContext = createBrowserLikeContext(
+    "http://localhost:4173/app/consulta",
+    {
+      authenticated: false,
+      supabaseMode: true,
+      cloudAccount: {
+        id: "44444444-4444-4444-8444-444444444444",
+        name: "Pessoa Incompleta",
+        email: "incomplete@example.test",
+        birth: "",
+        primaryAreaId: "",
+        onboardingComplete: false,
+        accessMode: "supabase",
+      },
+      cloudState: { history: [], timelineEvents: [] },
+    },
+  );
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  incompleteLifecycleContext.setState({
+    route: "home",
+    account: {
+      ...vm.runInContext("state.account", incompleteLifecycleContext),
+      onboardingComplete: true,
+    },
+  }, { updateUrl: true });
+  const incompleteLifecycleState = vm.runInContext("state", incompleteLifecycleContext);
+  assert.strictEqual(incompleteLifecycleState.authenticated, true);
+  assert.strictEqual(vm.runInContext("state.route", incompleteLifecycleContext), "home");
+  assert.strictEqual(vm.runInContext("persistedPersonalBase().valid", incompleteLifecycleContext), false);
+  assert.ok(incompleteLifecycleContext.__getHtml().includes("SUA BASE PESSOAL"));
+
   const networkFailureContext = createBrowserLikeContext(
     "http://localhost:4173/app/consulta",
     {
