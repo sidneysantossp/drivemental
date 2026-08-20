@@ -40,6 +40,17 @@
     return globalScope.DriveAstralRuntimeConfig || {};
   }
 
+  function authRedirectBase() {
+    const configured = String(config().publicAppUrl || "").trim().replace(/\/$/, "");
+    if (configured) {
+      return configured;
+    }
+    if (globalScope.location?.hostname === "drivemental.vercel.app") {
+      return "https://drivemental.vercel.app";
+    }
+    return globalScope.location?.origin || "";
+  }
+
   function isEnabled() {
     const current = config();
     return current.authMode === "supabase"
@@ -218,7 +229,7 @@
       email,
       password,
       options: {
-        emailRedirectTo: `${globalScope.location.origin}/login`,
+        emailRedirectTo: `${authRedirectBase()}/login`,
         data: {
           display_name: name,
           privacy_version: privacyVersion,
@@ -261,7 +272,7 @@
       throw new Error("SUPABASE_NOT_CONFIGURED");
     }
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: `${globalScope.location.origin}/login?recovery=1`,
+      redirectTo: `${authRedirectBase()}/login?recovery=1`,
     });
     if (error) {
       throw error;

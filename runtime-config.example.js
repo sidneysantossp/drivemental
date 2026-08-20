@@ -3,6 +3,7 @@
     environment: "production",
     release: "REPLACE_WITH_RELEASE_ID",
     authMode: "supabase",
+    publicAppUrl: "https://drivemental.vercel.app",
     supabaseUrl: "https://PROJECT_REF.supabase.co",
     supabasePublishableKey: "sb_publishable_REPLACE_ME",
     billingMode: "external-checkout",
