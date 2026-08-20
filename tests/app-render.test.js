@@ -27,6 +27,7 @@ function createBrowserLikeContext(
 ) {
   let html = "";
   const storage = new Map();
+  const sessionStorage = new Map();
   const appElement = {};
   const locationUrl = new URL(initialUrl);
   const location = {
@@ -105,6 +106,17 @@ function createBrowserLikeContext(
         storage.delete(key);
       },
     },
+    sessionStorage: {
+      getItem(key) {
+        return sessionStorage.has(key) ? sessionStorage.get(key) : null;
+      },
+      setItem(key, value) {
+        sessionStorage.set(key, String(value));
+      },
+      removeItem(key) {
+        sessionStorage.delete(key);
+      },
+    },
     document: {
       getElementById(id) {
         return id === "app" ? appElement : null;
@@ -122,6 +134,9 @@ function createBrowserLikeContext(
     __getSavedState() {
       return storage.has(STORAGE_KEY) ? JSON.parse(storage.get(STORAGE_KEY)) : null;
     },
+    __getSessionValue(key) {
+      return sessionStorage.has(key) ? sessionStorage.get(key) : null;
+    },
   };
 
   context.window = context;
@@ -135,6 +150,9 @@ function createBrowserLikeContext(
     context.DriveAstralSupabase = {
       isEnabled() {
         return true;
+      },
+      signOut() {
+        return Promise.resolve();
       },
       getAccount() {
         if (options.cloudAccount) {
@@ -308,10 +326,11 @@ assert.ok(appSource.includes("function rehydrateAuthenticatedAccount()"));
 assert.ok(appSource.includes('if (nextRoute === "home")'));
 assert.ok(appSource.includes("function recordLifecycleDiagnostic(payload = {})"));
 assert.ok(appSource.includes("setLifecycleDiagnosticSink"));
-assert.ok(appSource.includes('dm_lifecycle_diag'));
+assert.ok(appSource.includes('f7diag'));
+assert.ok(appSource.includes('sessionStorage'));
 
 const diagnosticContext = createBrowserLikeContext(
-  "http://localhost:4173/app/consulta?dm_lifecycle_diag=1",
+  "http://localhost:4173/app/consulta?f7diag=1",
 );
 vm.runInContext(`setState({
   route: "home",
@@ -335,6 +354,16 @@ assert.ok(diagnosticHtml.includes("consultation_base_valid"));
 assert.ok(diagnosticHtml.includes(">false</td>"));
 const diagnosticSnapshot = vm.runInContext("JSON.stringify(lifecycleDiagnosticState)", diagnosticContext);
 assert.ok(!diagnosticSnapshot.includes("not-used-in-diagnostic@example.test"));
+assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), "true");
+vm.runInContext('recordLifecycleDiagnostic({ event: "auth_get_user", status: "success", authenticated_user_present: true })', diagnosticContext);
+assert.ok(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-buffer").includes("authenticated_user_present"));
+diagnosticContext.setState({ route: "login" }, { updateUrl: true });
+assert.strictEqual(diagnosticContext.location.search, "");
+assert.ok(diagnosticContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
+diagnosticContext.finishSignOut();
+assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), null);
+assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-buffer"), null);
+assert.ok(!diagnosticContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
 
 const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
 vm.runInContext(`setState({
@@ -1859,7 +1888,7 @@ assert.ok(appSource.includes("Nenhuma coordenada foi recalculada"));
     accessMode: "supabase",
   };
   const lifecycleContext = createBrowserLikeContext(
-    "http://localhost:4173/app/consulta?dm_lifecycle_diag=1",
+    "http://localhost:4173/app/consulta?f7diag=1",
     {
       authenticated: false,
       supabaseMode: true,
@@ -1876,7 +1905,8 @@ assert.ok(appSource.includes("Nenhuma coordenada foi recalculada"));
   assert.strictEqual(lifecycleState.account.primaryAreaId, "general");
   assert.strictEqual(lifecycleBase.valid, true);
   assert.ok(lifecycleContext.__getHtml().includes("SUA BASE PESSOAL"));
-  assert.strictEqual(lifecycleContext.location.search, "?dm_lifecycle_diag=1");
+  assert.strictEqual(lifecycleContext.location.search, "");
+  assert.strictEqual(lifecycleContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), "true");
   assert.ok(lifecycleContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
 
   const incompleteLifecycleContext = createBrowserLikeContext(
