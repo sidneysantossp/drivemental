@@ -1,6 +1,40 @@
 (function createDriveAstralSupabase(globalScope) {
   const SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.102.0/dist/umd/supabase.min.js";
   let clientPromise = null;
+  let lifecycleDiagnosticSink = null;
+  const lifecycleDiagnosticStatuses = new Set(["not_run", "success", "error", "skipped"]);
+
+  function setLifecycleDiagnosticSink(sink) {
+    lifecycleDiagnosticSink = typeof sink === "function" ? sink : null;
+  }
+
+  function emitLifecycleDiagnostic(event, payload = {}) {
+    if (typeof lifecycleDiagnosticSink !== "function") {
+      return;
+    }
+    const safePayload = { event };
+    if (typeof payload.status === "string" && lifecycleDiagnosticStatuses.has(payload.status)) {
+      safePayload.status = payload.status;
+    }
+    [
+      "authenticated_user_present",
+      "profile_row_present",
+      "source_birth_present",
+      "source_primary_area_present",
+      "mapped_account_present",
+      "mapped_birth_present",
+      "mapped_primary_area_present",
+    ].forEach((key) => {
+      if (typeof payload[key] === "boolean") {
+        safePayload[key] = payload[key];
+      }
+    });
+    try {
+      lifecycleDiagnosticSink(safePayload);
+    } catch {
+      // Diagnostic reporting must never affect the application flow.
+    }
+  }
 
   function config() {
     return globalScope.DriveAstralRuntimeConfig || {};
@@ -112,26 +146,66 @@
   async function getAccount() {
     const client = await getClient();
     if (!client) {
+      emitLifecycleDiagnostic("auth_get_user", { status: "skipped", authenticated_user_present: false });
       return null;
     }
-    const { data: sessionData, error: sessionError } = await client.auth.getSession();
-    if (sessionError || !sessionData.session?.user) {
+
+    let user = null;
+    if (typeof lifecycleDiagnosticSink === "function") {
+      const { data: userData, error: userError } = await client.auth.getUser();
+      emitLifecycleDiagnostic("auth_get_user", {
+        status: userError ? "error" : "success",
+        authenticated_user_present: Boolean(userData?.user),
+      });
+      if (userError) {
+        throw userError;
+      }
+      user = userData?.user || null;
+    } else {
+      const { data: sessionData, error: sessionError } = await client.auth.getSession();
+      user = sessionError ? null : sessionData.session?.user || null;
+    }
+
+    if (!user) {
+      emitLifecycleDiagnostic("auth_get_user", { status: "success", authenticated_user_present: false });
       return null;
     }
-    const user = sessionData.session.user;
-    const { data: profile, error: profileError } = await client
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
+
+    let profile;
+    let profileError;
+    try {
+      ({ data: profile, error: profileError } = await client
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle());
+    } catch (error) {
+      emitLifecycleDiagnostic("profile_query", { status: "error", profile_row_present: false });
+      throw error;
+    }
+    emitLifecycleDiagnostic("profile_query", {
+      status: profileError ? "error" : "success",
+      profile_row_present: Boolean(profile),
+    });
     if (profileError) {
       throw profileError;
     }
+    emitLifecycleDiagnostic("profile_source", {
+      source_birth_present: Boolean(profile?.birth_date),
+      source_primary_area_present: Boolean(profile?.primary_area_id),
+    });
+
     const [accessPlans, firstReading] = await Promise.all([
       loadCurrentAccessPlans(user.id),
       loadLatestFirstReading(),
     ]);
-    return accountFrom(user, profile, accessPlans, Boolean(firstReading));
+    const account = accountFrom(user, profile, accessPlans, Boolean(firstReading));
+    emitLifecycleDiagnostic("account_mapping", {
+      mapped_account_present: Boolean(account),
+      mapped_birth_present: Boolean(account?.birth),
+      mapped_primary_area_present: Boolean(account?.primaryAreaId),
+    });
+    return account;
   }
 
   async function signUp({ name, email, password, privacyVersion, termsVersion }) {
@@ -655,6 +729,7 @@
 
   globalScope.DriveAstralSupabase = Object.freeze({
     isEnabled,
+    setLifecycleDiagnosticSink,
     getClient,
     getAccount,
     loadCurrentAccessPlans,

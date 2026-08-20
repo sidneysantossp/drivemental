@@ -293,6 +293,35 @@ assert.strictEqual(vm.runInContext("state.birth", rehydrationContext), "1991-02-
 assert.strictEqual(vm.runInContext("state.selectedAreaId", rehydrationContext), "purpose");
 assert.ok(appSource.includes("function rehydrateAuthenticatedAccount()"));
 assert.ok(appSource.includes('if (nextRoute === "home")'));
+assert.ok(appSource.includes("function recordLifecycleDiagnostic(payload = {})"));
+assert.ok(appSource.includes("setLifecycleDiagnosticSink"));
+assert.ok(appSource.includes('dm_lifecycle_diag'));
+
+const diagnosticContext = createBrowserLikeContext(
+  "http://localhost:4173/app/consulta?dm_lifecycle_diag=1",
+);
+vm.runInContext(`setState({
+  route: "home",
+  authenticated: true,
+  account: {
+    name: "",
+    email: "not-used-in-diagnostic@example.test",
+    birth: "1990-01-01",
+    primaryAreaId: "general",
+    onboardingComplete: true,
+  },
+  name: "",
+  birth: "1990-01-01",
+  selectedAreaId: "general",
+  history: [],
+  reading: null,
+})`, diagnosticContext);
+const diagnosticHtml = diagnosticContext.__getHtml();
+assert.ok(diagnosticHtml.includes("F7-LIFECYCLE-001-DIAG"));
+assert.ok(diagnosticHtml.includes("consultation_base_valid"));
+assert.ok(diagnosticHtml.includes(">false</td>"));
+const diagnosticSnapshot = vm.runInContext("JSON.stringify(lifecycleDiagnosticState)", diagnosticContext);
+assert.ok(!diagnosticSnapshot.includes("not-used-in-diagnostic@example.test"));
 
 const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
 vm.runInContext(`setState({

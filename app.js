@@ -886,6 +886,100 @@ const defaultState = {
 
 let state = loadState();
 
+const lifecycleDiagnosticMode = (() => {
+  try {
+    return new URLSearchParams(window.location.search).get("dm_lifecycle_diag") === "1";
+  } catch {
+    return false;
+  }
+})();
+const lifecycleDiagnosticState = {
+  events: [],
+  latest: {},
+};
+const lifecycleDiagnosticKeys = [
+  "authenticated_user_present",
+  "profile_row_present",
+  "source_birth_present",
+  "source_primary_area_present",
+  "mapped_account_present",
+  "mapped_birth_present",
+  "mapped_primary_area_present",
+  "apply_authenticated_account_called",
+  "state_account_present",
+  "state_birth_present",
+  "state_primary_area_present",
+  "consultation_base_valid",
+];
+const lifecycleDiagnosticEventNames = [
+  "auth_get_user",
+  "profile_query",
+  "profile_source",
+  "account_mapping",
+  "apply_authenticated_account",
+  "state_after_apply",
+  "consultation_base",
+];
+
+function recordLifecycleDiagnostic(payload = {}) {
+  if (!lifecycleDiagnosticMode || !payload || typeof payload !== "object") {
+    return;
+  }
+  const event = lifecycleDiagnosticEventNames.includes(payload.event) ? payload.event : "unknown";
+  const safe = { event };
+  if (["not_run", "success", "error", "skipped"].includes(payload.status)) {
+    safe.status = payload.status;
+  }
+  lifecycleDiagnosticKeys.forEach((key) => {
+    if (typeof payload[key] === "boolean") {
+      safe[key] = payload[key];
+    }
+  });
+  lifecycleDiagnosticState.events.push(safe);
+  lifecycleDiagnosticState.events = lifecycleDiagnosticState.events.slice(-24);
+  lifecycleDiagnosticState.latest[event] = safe;
+}
+
+function configureLifecycleDiagnostics() {
+  const service = supabaseService();
+  if (service && typeof service.setLifecycleDiagnosticSink === "function") {
+    service.setLifecycleDiagnosticSink(lifecycleDiagnosticMode ? recordLifecycleDiagnostic : null);
+  }
+}
+
+function lifecycleDiagnosticValue(value) {
+  return value === true ? "true" : value === false ? "false" : "not_observed";
+}
+
+function lifecycleDiagnosticPanel() {
+  if (!lifecycleDiagnosticMode) {
+    return "";
+  }
+  const latest = lifecycleDiagnosticState.latest;
+  const rows = [
+    ["auth_get_user", latest.auth_get_user?.status || "not_observed"],
+    ["authenticated_user_present", lifecycleDiagnosticValue(latest.auth_get_user?.authenticated_user_present)],
+    ["profile_query", latest.profile_query?.status || "not_observed"],
+    ["profile_row_present", lifecycleDiagnosticValue(latest.profile_query?.profile_row_present)],
+    ["source_birth_present", lifecycleDiagnosticValue(latest.profile_source?.source_birth_present)],
+    ["source_primary_area_present", lifecycleDiagnosticValue(latest.profile_source?.source_primary_area_present)],
+    ["mapped_account_present", lifecycleDiagnosticValue(latest.account_mapping?.mapped_account_present)],
+    ["mapped_birth_present", lifecycleDiagnosticValue(latest.account_mapping?.mapped_birth_present)],
+    ["mapped_primary_area_present", lifecycleDiagnosticValue(latest.account_mapping?.mapped_primary_area_present)],
+    ["apply_authenticated_account", latest.apply_authenticated_account?.status || "not_observed"],
+    ["state_account_present", lifecycleDiagnosticValue(latest.state_after_apply?.state_account_present)],
+    ["state_birth_present", lifecycleDiagnosticValue(latest.state_after_apply?.state_birth_present)],
+    ["state_primary_area_present", lifecycleDiagnosticValue(latest.state_after_apply?.state_primary_area_present)],
+    ["consultation_base_valid", lifecycleDiagnosticValue(latest.consultation_base?.consultation_base_valid)],
+  ];
+  return `<section data-lifecycle-diagnostic style="margin:1rem;padding:1rem;border:1px solid #c49b4e;background:#10231f;color:#f6e9bd;font:12px/1.5 monospace;">
+    <strong>F7-LIFECYCLE-001-DIAG · sanitized</strong>
+    <table style="width:100%;margin-top:.5rem;border-collapse:collapse;">
+      <tbody>${rows.map(([key, value]) => `<tr><td style="padding:.15rem .5rem .15rem 0;">${escapeHtml(key)}</td><td style="padding:.15rem 0;">${escapeHtml(value)}</td></tr>`).join("")}</tbody>
+    </table>
+  </section>`;
+}
+
 function loadLocalAccount() {
   if (runtimeConfig().authMode === "supabase") {
     return null;
@@ -4906,6 +5000,11 @@ function ConsultationProgress(context) {
 }
 
 function PersonalBaseCard(context) {
+  recordLifecycleDiagnostic({
+    event: "consultation_base",
+    status: context.base.valid ? "success" : "error",
+    consultation_base_valid: Boolean(context.base.valid),
+  });
   const primaryCopy = consultationAreaCopy(context.base.primaryAreaId);
   if (!context.base.valid) {
     return `
@@ -6645,6 +6744,7 @@ function submitLogin({ email: emailValue, password }) {
   const email = String(emailValue || "").trim().toLowerCase();
   const passwordValue = String(password || "");
   if (isSupabaseMode()) {
+    configureLifecycleDiagnostics();
     if (!email || passwordValue.length < 8) {
       setState({
         authNotice: "Informe e-mail e senha v&aacute;lidos.",
@@ -7538,7 +7638,7 @@ function render() {
     }
   }
 
-  document.getElementById("app").innerHTML = selectedScreen();
+  document.getElementById("app").innerHTML = `${selectedScreen()}${lifecycleDiagnosticPanel()}`;
   bindEvents();
   updateBottomNavigationOffset();
 
@@ -7719,7 +7819,13 @@ function initConstellationAnimation() {
 }
 
 function applyAuthenticatedAccount(account) {
-  if (!account || !state.authenticated) {
+  const canApply = Boolean(account && state.authenticated);
+  recordLifecycleDiagnostic({
+    event: "apply_authenticated_account",
+    status: canApply ? "success" : "skipped",
+    apply_authenticated_account_called: true,
+  });
+  if (!canApply) {
     return;
   }
   setState({
@@ -7728,10 +7834,19 @@ function applyAuthenticatedAccount(account) {
     birth: account.birth || "",
     selectedAreaId: account.primaryAreaId || "",
   }, { persist: true });
+  recordLifecycleDiagnostic({
+    event: "state_after_apply",
+    status: "success",
+    state_account_present: Boolean(state.account),
+    state_birth_present: Boolean(state.account?.birth),
+    state_primary_area_present: Boolean(state.account?.primaryAreaId),
+  });
 }
 
 async function rehydrateAuthenticatedAccount() {
+  configureLifecycleDiagnostics();
   if (!isSupabaseMode() || !state.authenticated) {
+    recordLifecycleDiagnostic({ event: "apply_authenticated_account", status: "skipped" });
     return;
   }
 
@@ -7739,6 +7854,7 @@ async function rehydrateAuthenticatedAccount() {
     const account = await supabaseService().getAccount();
     applyAuthenticatedAccount(account);
   } catch {
+    recordLifecycleDiagnostic({ event: "apply_authenticated_account", status: "error" });
     // The existing base guard remains visible when the authoritative profile is unavailable.
   }
 }
@@ -8297,6 +8413,7 @@ if (window.addEventListener) {
 render();
 
 async function initializeSupabaseSession() {
+  configureLifecycleDiagnostics();
   if (!isSupabaseMode()) {
     return;
   }
