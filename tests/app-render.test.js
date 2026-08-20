@@ -349,9 +349,8 @@ vm.runInContext(`setState({
   reading: null,
 })`, diagnosticContext);
 const diagnosticHtml = diagnosticContext.__getHtml();
-assert.ok(diagnosticHtml.includes("F7-LIFECYCLE-001-DIAG"));
-assert.ok(diagnosticHtml.includes("consultation_base_valid"));
-assert.ok(diagnosticHtml.includes(">false</td>"));
+assert.ok(!diagnosticHtml.includes("F7-LIFECYCLE-001-DIAG"));
+assert.ok(!diagnosticHtml.includes("data-lifecycle-diagnostic"));
 const diagnosticSnapshot = vm.runInContext("JSON.stringify(lifecycleDiagnosticState)", diagnosticContext);
 assert.ok(!diagnosticSnapshot.includes("not-used-in-diagnostic@example.test"));
 assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), "true");
@@ -360,11 +359,11 @@ vm.runInContext('recordLifecycleDiagnostic({ event: "auth_get_user", status: "su
 assert.ok(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-buffer").includes("authenticated_user_present"));
 diagnosticContext.setState({ route: "login" }, { updateUrl: true });
 assert.strictEqual(diagnosticContext.location.search, "");
-assert.ok(diagnosticContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
+assert.ok(!diagnosticContext.__getHtml().includes("data-lifecycle-diagnostic"));
 diagnosticContext.finishSignOut();
 assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), null);
 assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-buffer"), null);
-assert.ok(!diagnosticContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
+assert.ok(!diagnosticContext.__getHtml().includes("data-lifecycle-diagnostic"));
 
 const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
 vm.runInContext(`setState({
@@ -1908,7 +1907,7 @@ assert.ok(appSource.includes("Nenhuma coordenada foi recalculada"));
   assert.ok(lifecycleContext.__getHtml().includes("SUA BASE PESSOAL"));
   assert.strictEqual(lifecycleContext.location.search, "");
   assert.strictEqual(lifecycleContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-enabled"), "true");
-  assert.ok(lifecycleContext.__getHtml().includes("F7-LIFECYCLE-001-DIAG"));
+  assert.ok(!lifecycleContext.__getHtml().includes("data-lifecycle-diagnostic"));
 
   const incompleteLifecycleContext = createBrowserLikeContext(
     "http://localhost:4173/app/consulta",
