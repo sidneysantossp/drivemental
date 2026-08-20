@@ -819,10 +819,6 @@ function updateLocationForState(nextState, replace = false) {
     nextUrl = `/app/consulta/resultado/${encodeURIComponent(nextState.activeHistoryId)}`;
   }
 
-  if (lifecycleDiagnosticMode && !nextUrl.includes("dm_lifecycle_diag=1")) {
-    nextUrl += `${nextUrl.includes("?") ? "&" : "?"}dm_lifecycle_diag=1`;
-  }
-
   if (`${window.location.pathname}${window.location.search || ""}` === nextUrl) {
     return;
   }
@@ -890,9 +886,23 @@ const defaultState = {
 
 let state = loadState();
 
-const lifecycleDiagnosticMode = (() => {
+const LIFECYCLE_DIAGNOSTIC_SESSION_KEY = "drive-mental:f7-lifecycle-001:diagnostic-enabled";
+const LIFECYCLE_DIAGNOSTIC_BUFFER_KEY = "drive-mental:f7-lifecycle-001:diagnostic-buffer";
+let lifecycleDiagnosticMode = (() => {
   try {
-    return new URLSearchParams(window.location.search).get("dm_lifecycle_diag") === "1";
+    const params = new URLSearchParams(window.location.search);
+    const enabled = params.get("f7diag") === "1" || params.get("dm_lifecycle_diag") === "1";
+    const disabled = params.get("f7diag") === "0" || params.get("dm_lifecycle_diag") === "0";
+    if (disabled) {
+      sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY);
+      sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY);
+      return false;
+    }
+    if (enabled) {
+      sessionStorage.setItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY, "true");
+      return true;
+    }
+    return sessionStorage.getItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY) === "true";
   } catch {
     return false;
   }
@@ -942,6 +952,41 @@ function recordLifecycleDiagnostic(payload = {}) {
   lifecycleDiagnosticState.events.push(safe);
   lifecycleDiagnosticState.events = lifecycleDiagnosticState.events.slice(-24);
   lifecycleDiagnosticState.latest[event] = safe;
+  try {
+    sessionStorage.setItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY, JSON.stringify({
+      events: lifecycleDiagnosticState.events,
+      latest: lifecycleDiagnosticState.latest,
+    }));
+  } catch {
+    // Diagnostic persistence must never affect the application flow.
+  }
+}
+
+function restoreLifecycleDiagnostics() {
+  if (!lifecycleDiagnosticMode) {
+    return;
+  }
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY) || "null");
+    if (!saved || !Array.isArray(saved.events)) {
+      return;
+    }
+    saved.events.forEach((event) => recordLifecycleDiagnostic(event));
+  } catch {
+    // Ignore malformed or unavailable diagnostic storage.
+  }
+}
+
+function clearLifecycleDiagnostics() {
+  lifecycleDiagnosticMode = false;
+  lifecycleDiagnosticState.events = [];
+  lifecycleDiagnosticState.latest = {};
+  try {
+    sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_SESSION_KEY);
+    sessionStorage.removeItem(LIFECYCLE_DIAGNOSTIC_BUFFER_KEY);
+  } catch {
+    // Diagnostic cleanup must never affect the sign-out flow.
+  }
 }
 
 function configureLifecycleDiagnostics() {
@@ -954,6 +999,8 @@ function configureLifecycleDiagnostics() {
 function lifecycleDiagnosticValue(value) {
   return value === true ? "true" : value === false ? "false" : "not_observed";
 }
+
+restoreLifecycleDiagnostics();
 
 function lifecycleDiagnosticPanel() {
   if (!lifecycleDiagnosticMode) {
@@ -1012,6 +1059,7 @@ function saveLocalAccount(account) {
 }
 
 function finishSignOut() {
+  clearLifecycleDiagnostics();
   localStorage.removeItem(SESSION_KEY);
   state = {
     ...state,
