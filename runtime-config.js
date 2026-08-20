@@ -3,6 +3,7 @@
     environment: "production",
     release: "2026.08.19-f6",
     authMode: "supabase",
+    publicAppUrl: "https://drivemental.vercel.app",
     supabaseUrl: "https://qgvlkpaociypyxduvsqm.supabase.co",
     supabasePublishableKey: "sb_publishable_1Lh5PLaeNXnD_6DFGa6H6A_yhqO0Ocs",
     billingMode: "external-checkout",

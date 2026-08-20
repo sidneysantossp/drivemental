@@ -107,6 +107,9 @@ assert.ok(supabaseConfig.includes("[functions.delete-account]"));
 assert.ok(supabaseConfig.includes("verify_jwt = false"));
 
 assert.ok(clientSource.includes("signInWithPassword"));
+assert.ok(clientSource.includes("function authRedirectBase()"));
+assert.ok(clientSource.includes("emailRedirectTo: `${authRedirectBase()}/login`"));
+assert.ok(clientSource.includes("redirectTo: `${authRedirectBase()}/login?recovery=1`"));
 assert.ok(clientSource.includes("loadCurrentAccessPlans"));
 assert.ok(clientSource.includes("planId: activeAccess?.plan_id || \"free\""));
 assert.ok(clientSource.includes("resetPasswordForEmail"));
@@ -133,6 +136,7 @@ assert.ok(clientSource.includes('from("user_access_plans")'));
 assert.ok(deployScript.includes("npx.cmd"));
 assert.ok(deployScript.includes("--db-url"));
 assert.ok(runtimeExample.includes('authMode: "supabase"'));
+assert.ok(runtimeExample.includes('publicAppUrl: "https://drivemental.vercel.app"'));
 assert.ok(runtimeExample.includes("supabasePublishableKey"));
 assert.ok(runtimeExample.includes('paymentProvider: "hotmart"'));
 
