@@ -6685,7 +6685,7 @@ function ProfileScreen() {
           <div class="profile-action-list">
             <button class="profile-action-row" data-export-backup type="button">
               <span class="profile-action-icon">${icon("download")}</span>
-              <span class="profile-action-copy"><strong>Exportar meus dados</strong><small>Baixar backup das suas informa&ccedil;&otilde;es</small></span>
+              <span class="profile-action-copy"><strong>Baixar backup local</strong><small>Somente o estado dispon&iacute;vel neste navegador; n&atilde;o &eacute; uma exporta&ccedil;&atilde;o completa da conta sincronizada.</small></span>
               <span class="profile-action-arrow">${icon("arrow")}</span>
             </button>
             <button class="profile-action-row" data-import-backup type="button">

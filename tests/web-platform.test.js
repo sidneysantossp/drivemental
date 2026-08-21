@@ -54,7 +54,7 @@ assert.ok(serviceWorker.includes('self.addEventListener("install"'));
 assert.ok(serviceWorker.includes('self.addEventListener("fetch"'));
 assert.ok(serviceWorker.includes("self.skipWaiting()"));
 assert.ok(serviceWorker.includes("self.clients.claim()"));
-assert.ok(serviceWorker.includes("drive-mental-web-v45"));
+assert.ok(serviceWorker.includes("drive-mental-web-v46"));
 assert.ok(stylesheet.includes("font-size: clamp(1.95rem, 3.05vw, 3rem)"));
 assert.ok(stylesheet.includes("@media (max-width: 900px)"));
 assert.ok(stylesheet.includes("@media (max-width: 620px)"));
@@ -89,6 +89,9 @@ assert.ok(vercelConfig.includes("Strict-Transport-Security"));
 
 assert.ok(privacyHtml.includes("Privacidade e Dados"));
 assert.ok(privacyHtml.includes("armazenados localmente"));
+assert.ok(privacyHtml.includes("baixar um backup local do estado dispon&iacute;vel neste navegador"));
+assert.ok(privacyHtml.includes("n&atilde;o &eacute; uma exporta&ccedil;&atilde;o completa dos dados"));
+assert.ok(privacyHtml.includes("portabilidade"));
 assert.ok(privacyHtml.includes("Excluir meus dados deste dispositivo"));
 assert.ok(termsHtml.includes("Termos de Uso"));
 assert.ok(termsHtml.includes("Fase beta e contas"));
