@@ -17,6 +17,10 @@ const adminUsersPlansMigration = fs.readFileSync(
   "supabase/migrations/202606240003_admin_users_plans.sql",
   "utf8",
 );
+const adminAuditTrailMigration = fs.readFileSync(
+  "supabase/migrations/202608210001_admin_audit_trail.sql",
+  "utf8",
+);
 const firstReadingMigration = fs.readFileSync(
   "supabase/migrations/202607160001_first_reading_flow.sql",
   "utf8",
@@ -80,6 +84,23 @@ assert.ok(adminUsersPlansMigration.includes("grant select, insert, update on pub
 assert.ok(adminUsersPlansMigration.includes("grant select, insert, update on public.user_access_plans to authenticated"));
 assert.ok(adminUsersPlansMigration.includes("'premium'"));
 assert.ok(adminUsersPlansMigration.includes("'mentor'"));
+assert.ok(adminAuditTrailMigration.includes("add column if not exists actor_role text"));
+assert.ok(adminAuditTrailMigration.includes("add column if not exists result text not null default 'success'"));
+assert.ok(adminAuditTrailMigration.includes("add column if not exists request_id text"));
+assert.ok(adminAuditTrailMigration.includes("create or replace function public.audit_admin_mutation()"));
+assert.ok(adminAuditTrailMigration.includes("security definer"));
+assert.ok(adminAuditTrailMigration.includes("ADMIN_AUDIT_ACTOR_NOT_AUTHORIZED"));
+assert.ok(adminAuditTrailMigration.includes("insert into public.admin_audit_logs"));
+for (const table of ["app_settings", "plan_catalog", "user_access_plans"]) {
+  assert.ok(
+    adminAuditTrailMigration.includes(`after insert or update or delete on public.${table}`),
+    table,
+  );
+}
+assert.ok(adminAuditTrailMigration.includes("before_summary"));
+assert.ok(adminAuditTrailMigration.includes("after_summary"));
+assert.ok(adminAuditTrailMigration.includes("request.jwt.claim.request_id"));
+assert.ok(adminAuditTrailMigration.includes("revoke all on function public.audit_admin_mutation()"));
 assert.ok(firstReadingMigration.includes("reading_type text not null default 'consultation'"));
 assert.ok(firstReadingMigration.includes("reading_status text not null default 'completed'"));
 assert.ok(firstReadingMigration.includes("'first-reading'"));
