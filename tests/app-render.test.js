@@ -365,6 +365,52 @@ assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycl
 assert.strictEqual(diagnosticContext.__getSessionValue("drive-mental:f7-lifecycle-001:diagnostic-buffer"), null);
 assert.ok(!diagnosticContext.__getHtml().includes("data-lifecycle-diagnostic"));
 
+const staleAdminContext = createBrowserLikeContext("http://localhost:4173/admin");
+staleAdminContext.setState({
+  authenticated: true,
+  account: { id: "admin-account", name: "Admin", email: "admin@example.test" },
+  adminAccessChecked: true,
+  adminRole: "owner",
+  adminSettingsLoaded: true,
+  adminUsersLoaded: true,
+  adminPlansLoaded: true,
+  adminUsers: [{ user_id: "target", display_name: "Target" }],
+  adminPlans: [{ plan_id: "premium", is_visible: true }],
+});
+staleAdminContext.finishSignOut();
+const staleAdminState = vm.runInContext("state", staleAdminContext);
+assert.strictEqual(staleAdminState.authenticated, false);
+assert.strictEqual(staleAdminState.adminRole, "");
+assert.strictEqual(staleAdminState.adminAccessChecked, false);
+assert.strictEqual(staleAdminState.adminSettingsLoaded, false);
+assert.strictEqual(staleAdminState.adminUsersLoaded, false);
+assert.strictEqual(staleAdminState.adminPlansLoaded, false);
+assert.strictEqual(staleAdminState.adminUsers.length, 0);
+assert.strictEqual(staleAdminState.adminPlans.length, 0);
+
+const switchedAdminContext = createBrowserLikeContext("http://localhost:4173/app");
+switchedAdminContext.setState({
+  authenticated: true,
+  account: { id: "admin-account", name: "Admin", email: "admin@example.test" },
+  adminAccessChecked: true,
+  adminRole: "owner",
+  adminUsersLoaded: true,
+  adminPlansLoaded: true,
+});
+switchedAdminContext.applyAuthenticatedAccount({
+  id: "common-account",
+  name: "Common",
+  email: "common@example.test",
+  birth: "1990-01-01",
+  primaryAreaId: "general",
+  onboardingComplete: true,
+});
+const switchedAdminState = vm.runInContext("state", switchedAdminContext);
+assert.strictEqual(switchedAdminState.adminRole, "");
+assert.strictEqual(switchedAdminState.adminAccessChecked, false);
+assert.strictEqual(switchedAdminState.adminUsersLoaded, false);
+assert.strictEqual(switchedAdminState.adminPlansLoaded, false);
+
 const onboardingContext = createBrowserLikeContext("http://localhost:4173/onboarding");
 vm.runInContext(`setState({
   route: "onboarding",

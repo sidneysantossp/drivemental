@@ -1072,11 +1072,33 @@ function saveLocalAccount(account) {
   localStorage.setItem(SESSION_KEY, "active");
 }
 
+function resetAdminSessionState() {
+  return {
+    adminAccessChecked: false,
+    adminLoading: false,
+    adminRole: "",
+    adminSettings: defaultAdminSettings(),
+    adminSettingsLoaded: false,
+    adminSettingsLoading: false,
+    adminNotice: "",
+    adminNoticeKind: "",
+    adminUsers: [],
+    adminUserAccessPlans: [],
+    adminUsersLoaded: false,
+    adminUsersLoading: false,
+    adminPlans: [],
+    adminPlansLoaded: false,
+    adminPlansLoading: false,
+    adminSaving: false,
+  };
+}
+
 function finishSignOut() {
   clearLifecycleDiagnostics();
   localStorage.removeItem(SESSION_KEY);
   state = {
     ...state,
+    ...resetAdminSessionState(),
     route: "landing",
     authenticated: false,
     authNotice: "",
@@ -7894,7 +7916,10 @@ function applyAuthenticatedAccount(account) {
   if (!canApply) {
     return;
   }
+  const previousUserId = state.account && state.account.id;
+  const accountChanged = Boolean(previousUserId && account.id && previousUserId !== account.id);
   setState({
+    ...(accountChanged ? resetAdminSessionState() : {}),
     account,
     name: account.name || "",
     birth: account.birth || "",
