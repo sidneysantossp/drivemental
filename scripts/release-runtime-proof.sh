@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 BASE_URL="${DM_PRODUCTION_URL:-https://drivemental.vercel.app}"
 EDGE_URL="${DM_DELETE_ACCOUNT_URL:-https://qgvlkpaociypyxduvsqm.supabase.co/functions/v1/delete-account}"
-EXPECTED_RELEASE="${DM_EXPECTED_RELEASE:-2026.08.19-f6}"
+EXPECTED_RELEASE="${DM_EXPECTED_RELEASE:-2026.08.21-f7-rc1}"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/dm-release-proof.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -44,7 +44,7 @@ key="$(sed -nE 's/.*supabasePublishableKey:[[:space:]]*"([^"]+)".*/\1/p' "$runti
 edge_request() {
   local label="$1" method="$2" expected="$3"; shift 3
   local body="$TMP/${label}.body" headers="$TMP/${label}.headers" status request_id returned_id
-  request_id="dm-f6-runtime-${label}"
+  request_id="dm-f7-rc1-runtime-${label}"
   status="$(curl -sS --max-time 25 -X "$method" -H "x-request-id: $request_id" "$@" -D "$headers" -o "$body" -w '%{http_code}' "$EDGE_URL")" || fail "edge_curl:${label}"
   [[ "$status" == "$expected" ]] || fail "edge_status:${label}:${status}:expected_${expected}"
   grep -qi '^access-control-allow-origin:' "$headers" || fail "edge_cors_origin:${label}"
